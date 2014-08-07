@@ -49,7 +49,7 @@ close(fileConn)
 ```
 
 ##Embedding in Shiny
-It is possible embed Cytoscape.js networks into Shiny applications. The example in current GitHub repository shows a small network with proteins that interact with topoisomerase TOP1, as well as drugs that target the protein. The example has no controls: 1) to change the edges shown and 2) to change the layout of the shown network. With all the files downloaded and in the directory with the server.R and ui.R files, the example can be run as follows: 
+It is possible embed Cytoscape.js networks into Shiny applications. The example in current GitHub repository shows a small network with proteins that interact with topoisomerase TOP1, as well as drugs that target the protein. The example has two controls: 1) to change the edges shown and 2) to change the layout of the shown network. With all the files downloaded and in the directory with the server.R and ui.R files, the example can be run as follows: 
 
 ```
 library(shiny)
