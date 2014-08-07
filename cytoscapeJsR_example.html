@@ -1,0 +1,77 @@
+
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta name='description' content='[An example of getting started with Cytoscape.js]' />
+	<script src='http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js'></script>
+    <script src='http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js'></script>
+	<meta charset='utf-8' />
+	<title>Cytoscape.js initialisation</title><style>
+        	#cy {
+        	  height: 100%; 
+        	  width: 100%;
+        	  position: absolute; 
+        	  left: 0;
+              top: 200;
+              border: 2px solid; 
+        	}
+        	</style>
+  <script>
+	$(function(){ // on dom ready
+	
+	var cy = cytoscape({
+        container: $('#cy')[0],
+
+		style: cytoscape.stylesheet()
+		.selector('node')
+		.css({
+		'content': 'data(name)',
+		'text-valign': 'center',
+		'color': 'white',
+		'text-outline-width': 2,
+        'shape': 'data(shape)',
+        'text-outline-color': 'data(color)',
+        'background-color': 'data(color)'
+		})
+		.selector('edge')
+		.css({
+    	'line-color': 'data(color)',
+        'source-arrow-color': 'data(color)',
+    	'target-arrow-color': 'data(color)',
+        'source-arrow-shape': 'data(sourceShape)',
+		'target-arrow-shape': 'data(targetShape)'
+		})
+		.selector(':selected')
+		.css({
+		'background-color': 'black',
+		'line-color': 'black',
+		'target-arrow-color': 'black',
+		'source-arrow-color': 'black'
+		})
+		.selector('.faded')
+		.css({
+		'opacity': 0.25,
+		'text-opacity': 0
+		}),
+		
+		elements: {
+		nodes: [{ data: { id:'Jerry', name:'Jerry', color:'#00FF00', href:'http://www.google.com/search?q=Seinfeld%20Jerry', shape:'ellipse'} }, { data: { id:'Elaine', name:'Elaine', color:'#FF0000', href:'http://www.google.com/search?q=Seinfeld%20Elaine', shape:'ellipse'} }, { data: { id:'Kramer', name:'Kramer', color:'#00FF00', href:'http://www.google.com/search?q=Seinfeld%20Kramer', shape:'ellipse'} }, { data: { id:'George', name:'George', color:'#00FF00', href:'http://www.google.com/search?q=Seinfeld%20George', shape:'ellipse'} }],
+		edges: [{ data: { source:'Jerry', target:'Elaine', color:'#888888', sourceShape:'none', targetShape:'triangle'} }, { data: { source:'Jerry', target:'Kramer', color:'#888888', sourceShape:'none', targetShape:'triangle'} }, { data: { source:'Jerry', target:'George', color:'#888888', sourceShape:'none', targetShape:'triangle'} }, { data: { source:'Elaine', target:'Jerry', color:'#888888', sourceShape:'none', targetShape:'triangle'} }, { data: { source:'Elaine', target:'Kramer', color:'#888888', sourceShape:'none', targetShape:'triangle'} }, { data: { source:'Kramer', target:'Jerry', color:'#888888', sourceShape:'none', targetShape:'triangle'} }, { data: { source:'Kramer', target:'Elaine', color:'#888888', sourceShape:'none', targetShape:'triangle'} }, { data: { source:'Kramer', target:'George', color:'#888888', sourceShape:'none', targetShape:'triangle'} }, { data: { source:'George', target:'Jerry', color:'#888888', sourceShape:'none', targetShape:'triangle'} }]
+		},
+		
+		layout: {
+		name: 'cose',
+		padding: 10
+		}
+    });
+
+    cy.on('tap', 'node', function(){
+      if(this.data('href').length > 0) {
+        window.open(this.data('href'));
+      }
+     
+      //console.log(this.data('href'));
+    });
+
+		}); // on dom ready
+</script></head><body><div id='cy'></div></body></html>
