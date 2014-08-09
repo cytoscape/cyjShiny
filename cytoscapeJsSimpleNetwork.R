@@ -81,11 +81,11 @@ createCytoscapeNetwork <- function(nodeData, edgeData,
     }
     
     if(!("sourceShape" %in% colnames(edgeData))) {
-        edgeData$sourceShape <- rep(edgeSourceShape, nrow(edgeData))
+        edgeData$edgeSourceShape <- rep(edgeSourceShape, nrow(edgeData))
     }
     
     if(!("targetShape" %in% colnames(edgeData))) {
-        edgeData$targetShape <- rep(edgeTargetShape, nrow(edgeData))
+        edgeData$edgeTargetShape <- rep(edgeTargetShape, nrow(edgeData))
     }
     
     edgeEntries <- NULL
@@ -114,8 +114,16 @@ createCytoscapeNetwork <- function(nodeData, edgeData,
 
 #' Generate an HTML string for a network visualized using CytoscapeJS 
 #' 
-#' @param a string with JSON for node information for CytoscapeJS
-#' @param a stirng with JSON for edge information for CytoscapeJS
+#' @param nodeEntries a string with JSON for node information for CytoscapeJS
+#' @param edgeEntries a stirng with JSON for edge information for CytoscapeJS
+#' @param standAlone a boolean whether to produce a single page with embedded network; 
+#'   set to FALSE for Shiny (default: FALSE)
+#' @param layout a string describing the layout (default: cose)
+#' @param height an integer height in pixels for network (default: 600)
+#' @param width an integer width in pixels for network (default: 600)
+#' 
+#' @details 
+#' Layouts: http://cytoscape.github.io/cytoscape.js/#layouts
 #' 
 #' @return a string with a complete HTML file containing network
 #' 
@@ -135,17 +143,21 @@ createCytoscapeNetwork <- function(nodeData, edgeData,
 #' writeLines(output, fileConn)
 #' close(fileConn)
 cytoscapeJsSimpleNetwork <- function(nodeEntries, edgeEntries, 
-                                     standAlone=FALSE, layout="cose") {
+                                     standAlone=FALSE, layout="cose", 
+                                     height=600, width=600, injectCode="") {
 	# Create webpage
 	PageHeader <- "
 	<!DOCTYPE html>
 	<html>
 	<head>
 	<meta name='description' content='[An example of getting started with Cytoscape.js]' />
+
 	<script src='http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js'></script>
     <script src='http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js'></script>
+    <script src='http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/arbor.js'></script>
+
 	<meta charset='utf-8' />
-	<title>Cytoscape.js initialisation</title>"
+	<title>Cytoscape.js in R Example</title>"
 	
     if(standAlone) {
         NetworkCSS <- "<style>
@@ -159,15 +171,15 @@ cytoscapeJsSimpleNetwork <- function(nodeEntries, edgeEntries,
         	}
         	</style>"    
     } else {
-        NetworkCSS <- "<style>
+        NetworkCSS <- paste0("<style>
         	#cy {
-        	  height: 600px; 
-        	  width: 600px;
+        	  height: ", height, "px; 
+        	  width: ", width, "px;
         	  position: relative;
         	  left: 0;
               top: 200;
               border: 2px solid; 
-        	}</style>"        
+        	}</style>")        
     }
 
 	# Main script for creating the graph
@@ -224,6 +236,11 @@ cytoscapeJsSimpleNetwork <- function(nodeEntries, edgeEntries,
 		padding: 10
 		}
     });
+
+    //Injected options
+    ",
+    injectCode 
+    , "
 
     cy.on('tap', 'node', function(){
       if(this.data('href').length > 0) {
