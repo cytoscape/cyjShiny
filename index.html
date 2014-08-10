@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Cytoscape JS for R and Shiny by cytoscape</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Cytoscape JS for R and Shiny</h1>
+        <p>Example code to embed Cytoscape.js into a R Shiny application and generate a standalone webpage with Cytoscape.js from R</p>
+
+        <p class="view"><a href="https://github.com/cytoscape/r-cytoscape.js">View the Project on GitHub <small>cytoscape/r-cytoscape.js</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/cytoscape/r-cytoscape.js/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/cytoscape/r-cytoscape.js/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/cytoscape/r-cytoscape.js">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a name="r-cytoscapejs" class="anchor" href="#r-cytoscapejs"><span class="octicon octicon-link"></span></a>r-cytoscape.js</h1>
+
+<h2>
+<a name="basic-network" class="anchor" href="#basic-network"><span class="octicon octicon-link"></span></a>Basic Network</h2>
+
+<p>The basic example draws a small network, while using default options for the customizations. The examples make use of the R package <a href="https://github.com/hadley/devtools">devtools</a>, which allows users to source R scripts from GitHub. </p>
+
+<pre><code># Load devtools 
+library(devtools) 
+
+# Download functions
+source_url("https://raw.githubusercontent.com/cytoscape/r-cytoscape.js/master/cytoscapeJsSimpleNetwork.R")
+
+id &lt;- c("Jerry", "Elaine", "Kramer", "George")
+name &lt;- id
+nodeData &lt;- data.frame(id, name, stringsAsFactors=FALSE)
+
+source &lt;- c("Jerry", "Jerry", "Jerry", "Elaine", "Elaine", "Kramer", "Kramer", "Kramer", "George")
+target &lt;- c("Elaine", "Kramer", "George", "Jerry", "Kramer", "Jerry", "Elaine", "George", "Jerry")
+edgeData &lt;- data.frame(source, target, stringsAsFactors=FALSE)
+
+network &lt;- createCytoscapeNetwork(nodeData, edgeData)
+</code></pre>
+
+<p>The resulting "network" object is a data.frame with information for the nodes and edges that is then passed on to cytoscapeJsSimpleNetwork. cytoscapeJsSimpleNetwork takes the JSON output and generates HTML code. The resulting HTML code can be a standalone webpage or HTML which can be embedded in <a href="http://shiny.rstudio.com/">Shiny</a> apps.  </p>
+
+<pre><code>output &lt;- cytoscapeJsSimpleNetwork(network$nodes, network$edges, standAlone=TRUE)
+fileConn &lt;- file("cytoscapeJsR_example.html")
+writeLines(output, fileConn)
+close(fileConn)
+</code></pre>
+
+<h2>
+<a name="customizing-network" class="anchor" href="#customizing-network"><span class="octicon octicon-link"></span></a>Customizing Network</h2>
+
+<p>Customizing the network can be done by appending additional columns on to the original data.frames for the network. The current possible additional columns for nodes are "color", "shape", and "href" (an external link). The colors are hex colors and the options for shapes are from the <a href="http://cytoscape.github.io/cytoscape.js/">CytoscapeJS website</a>. For edges, the additional columns are: "color", "sourceShape", "targetShape". </p>
+
+<pre><code>nodeData$color &lt;- rep("#00FF00", nrow(nodeData)) 
+nodeData$color[which(grepl("^Elaine$", nodeData$id))] &lt;- "#FF0000"
+
+nodeData$href &lt;- paste0("http://www.google.com/search?q=Seinfeld%20", nodeData$name)
+
+network &lt;- createCytoscapeNetwork(nodeData, edgeData)
+
+output &lt;- cytoscapeJsSimpleNetwork(network$nodes, network$edges, standAlone=TRUE)
+fileConn &lt;- file("cytoscapeJsR_example.html")
+writeLines(output, fileConn)
+close(fileConn)
+</code></pre>
+
+<h2>
+<a name="embedding-in-shiny" class="anchor" href="#embedding-in-shiny"><span class="octicon octicon-link"></span></a>Embedding in Shiny</h2>
+
+<p>It is possible embed Cytoscape.js networks into <a href="http://shiny.rstudio.com/">Shiny applications</a>. The example in current GitHub repository shows a small network with proteins that interact with topoisomerase TOP1, as well as drugs that target the protein. The example has three controls, controls to: 1) change the edges shown, 2) change the layout of the shown network, and 3) add links to Google for each node. With all the files downloaded and in the directory with the server.R and ui.R files, the example can be run as follows: </p>
+
+<pre><code>library(shiny)
+runApp()
+</code></pre>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/cytoscape">cytoscape</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
