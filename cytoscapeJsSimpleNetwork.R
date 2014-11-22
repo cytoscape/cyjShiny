@@ -138,12 +138,12 @@ createCytoscapeNetwork <- function(nodeData, edgeData,
 #' 
 #' network <- createCytoscapeNetwork(nodeData, edgeData)
 #' 
-#' output <- cytoscapeJsSimpleNetwork(network$nodes, network$edges)
+#' output <- cytoscapeJsSimpleNetwork(network$nodes, network$edges, standAlone=TRUE)
 #' fileConn <- file("cytoscapeJsR_example.html")
 #' writeLines(output, fileConn)
 #' close(fileConn)
 cytoscapeJsSimpleNetwork <- function(nodeEntries, edgeEntries, 
-                                     standAlone=FALSE, layout="cose", 
+                                     standAlone=FALSE, layout="cola", 
                                      height=600, width=600, injectCode="") {
 	# Create webpage
 	PageHeader <- "
@@ -155,6 +155,9 @@ cytoscapeJsSimpleNetwork <- function(nodeEntries, edgeEntries,
 	<script src='http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js'></script>
     <script src='http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js'></script>
     <script src='http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/arbor.js'></script>
+    <script src='http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cola.v3.min.js'></script>
+    <script src='http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/springy.js'></script>
+    <script src='http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/dagre.js'></script>
 
 	<meta charset='utf-8' />
 	<title>Cytoscape.js in R Example</title>"
@@ -185,72 +188,72 @@ cytoscapeJsSimpleNetwork <- function(nodeEntries, edgeEntries,
 	# Main script for creating the graph
 	MainScript <- paste0("
   <script>
-	$(function(){ // on dom ready
-	
-	var cy = cytoscape({
-        container: $('#cy')[0],
-
-		style: cytoscape.stylesheet()
-		.selector('node')
-		.css({
-		'content': 'data(name)',
-		'text-valign': 'center',
-		'color': 'white',
-		'text-outline-width': 2,
-        'shape': 'data(shape)',
-        'text-outline-color': 'data(color)',
-        'background-color': 'data(color)'
-		})
-		.selector('edge')
-		.css({
-    	'line-color': 'data(color)',
-        'source-arrow-color': 'data(color)',
-    	'target-arrow-color': 'data(color)',
-        'source-arrow-shape': 'data(sourceShape)',
-		'target-arrow-shape': 'data(targetShape)'
-		})
-		.selector(':selected')
-		.css({
-		'background-color': 'black',
-		'line-color': 'black',
-		'target-arrow-color': 'black',
-		'source-arrow-color': 'black'
-		})
-		.selector('.faded')
-		.css({
-		'opacity': 0.25,
-		'text-opacity': 0
-		}),
-		
-		elements: {
-		nodes: [",
-			nodeEntries,
-		"],
-		edges: [",
-			edgeEntries,
-		"]
-		},
-		
-		layout: {
-		name: '", layout, "',
-		padding: 10
-		}
-    });
-
-    //Injected options
-    ",
-    injectCode 
-    , "
-
-    cy.on('tap', 'node', function(){
-      if(this.data('href').length > 0) {
-        window.open(this.data('href'));
-      }
-     
-      //console.log(this.data('href'));
-    });
-
-		}); // on dom ready
+	$(function(){ // on dom ready	
+    	$('#cy').cytoscape({
+    		style: cytoscape.stylesheet()
+        		.selector('node')
+            		.css({
+                		'content': 'data(name)',
+                		'text-valign': 'center',
+                		'color': 'white',
+                		'text-outline-width': 2,
+                        'shape': 'data(shape)',
+                        'text-outline-color': 'data(color)',
+                        'background-color': 'data(color)'
+            		})
+        		.selector('edge')
+        		    .css({
+                    	'line-color': 'data(color)',
+                        'source-arrow-color': 'data(color)',
+                    	'target-arrow-color': 'data(color)',
+                        'source-arrow-shape': 'data(edgeSourceShape)',
+                		'target-arrow-shape': 'data(edgeTargetShape)'
+            		})
+    		.selector(':selected')
+            		.css({
+                		'background-color': 'black',
+                		'line-color': 'black',
+                		'target-arrow-color': 'black',
+                		'source-arrow-color': 'black'
+            		})
+    		.selector('.faded')
+            		.css({
+                		'opacity': 0.25,
+                		'text-opacity': 0
+            		}),
+    		
+    		elements: {
+        		nodes: [",
+    	    		nodeEntries,
+    		    "],
+    		    edges: [",
+    			    edgeEntries,
+    		    "]
+    		},
+    		
+    		layout: {
+    		    name: '", layout, "',
+    		    padding: 10
+    		},
+    
+            ready: function() {
+                window.cy = this; 
+        
+                //Injected options
+                ",
+                injectCode 
+                , "
+        
+                cy.on('tap', 'node', function(){
+                    if(this.data('href').length > 0) {
+                        window.open(this.data('href'));
+                    }
+                 
+                    //console.log(this.data('href'));
+                });
+            }
+    	}); 
+    }); // on dom ready
 </script>")
 	
 	PageBody <- "</head><body><div id='cy'></div>"
