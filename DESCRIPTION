@@ -1,0 +1,13 @@
+Package: rcytoscapejs
+Title: Cytoscape JS HTMLWidgets
+Version: 0.0.2
+Authors@R: person("Augustin", "Luna", email="lunaa@cbio.mskcc.org", role=c("aut", "cre"))
+Description: HTMLWidgets package for CytoscapeJS.
+Depends: R (>= 3.1.0)
+License: LGPL
+Imports:
+    htmlwidgets (>= 0.3.2)
+Suggests: 
+    DT,
+    shiny
+LazyData: true

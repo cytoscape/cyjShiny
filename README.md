@@ -1,14 +1,21 @@
 # r-cytoscape.js
 
-##Basic Network
-The basic example draws a small network, while using default options for the customizations. The examples make use of the R package [devtools](https://github.com/hadley/devtools), which allows users to source R scripts from GitHub. 
+## Overview 
 
+An [HTMLWidgets](http://www.htmlwidgets.org/) package for CytoscapeJS which can be used to produce standalone figure or for embedding in [Shiny](http://shiny.rstudio.com/) applications. 
+
+## Install
+This package is currently not on CRAN, but you can install it from GitHub via `devtools`:
+
+```r
+library("devtools");
+devtools::install_github("cytoscape/r-cytoscape.js");
+```
+
+## Sample network
 ```
 # Load devtools 
-library(devtools) 
-
-# Download functions
-source_url("https://raw.githubusercontent.com/cytoscape/r-cytoscape.js/master/cytoscapeJsSimpleNetwork.R")
+library(rcytoscapejs)
 
 id <- c("Jerry", "Elaine", "Kramer", "George")
 name <- id
@@ -18,18 +25,9 @@ source <- c("Jerry", "Jerry", "Jerry", "Elaine", "Elaine", "Kramer", "Kramer", "
 target <- c("Elaine", "Kramer", "George", "Jerry", "Kramer", "Jerry", "Elaine", "George", "Jerry")
 edgeData <- data.frame(source, target, stringsAsFactors=FALSE)
 
-network <- createCytoscapeNetwork(nodeData, edgeData)
+network <- createCytoscapeJsNetwork(nodeData, edgeData)
+rcytoscapejs(network$nodes, network$edges, showPanzoom=FALSE)
 ```
-
-The resulting "network" object is a data.frame with information for the nodes and edges that is then passed on to cytoscapeJsSimpleNetwork. cytoscapeJsSimpleNetwork takes the JSON output and generates HTML code. The resulting HTML code can be a standalone webpage or HTML which can be embedded in [Shiny](http://shiny.rstudio.com/) apps.  
-
-```
-output <- cytoscapeJsSimpleNetwork(network$nodes, network$edges, standAlone=TRUE)
-fileConn <- file("cytoscapeJsR_example.html")
-writeLines(output, fileConn)
-close(fileConn)
-```
-
 ##Customizing Network
 
 Customizing the network can be done by appending additional columns on to the original data.frames for the network. The current possible additional columns for nodes are "color", "shape", and "href" (an external link). The colors are hex colors and the options for shapes are from the [CytoscapeJS website](http://cytoscape.github.io/cytoscape.js/). For edges, the additional columns are: "color", "sourceShape", "targetShape". 
@@ -40,18 +38,19 @@ nodeData$color[which(grepl("^Elaine$", nodeData$id))] <- "#FF0000"
 
 nodeData$href <- paste0("http://www.google.com/search?q=Seinfeld%20", nodeData$name)
 
-network <- createCytoscapeNetwork(nodeData, edgeData)
+network <- createCytoscapeJsNetwork(nodeData, edgeData)
 
-output <- cytoscapeJsSimpleNetwork(network$nodes, network$edges, standAlone=TRUE)
-fileConn <- file("cytoscapeJsR_example.html")
-writeLines(output, fileConn)
-close(fileConn)
+cytoscapeJsSimpleNetwork(network$nodes, network$edges)
 ```
 
 ##Embedding in Shiny
-It is possible embed Cytoscape.js networks into [Shiny applications](http://shiny.rstudio.com/). The example in current GitHub repository shows a small network with proteins that interact with topoisomerase TOP1, as well as drugs that target the protein. The example has three controls, controls to: 1) change the edges shown, 2) change the layout of the shown network, and 3) add links to Google for each node. With all the files downloaded and in the directory with the server.R and ui.R files, the example can be run as follows: 
+
+It is possible embed Cytoscape.js networks into [Shiny applications](http://shiny.rstudio.com/). The example in current GitHub repository shows a small network with proteins that interact with topoisomerase TOP1, as well as drugs that target the protein. The example Shiny app can be run with the following commands and is stored in inst/examples.
 
 ```
 library(shiny)
-runApp()
+runShinyApp()
 ```
+
+CytoscapeJS possesses many options that are not all captured in the HTMLWidgets functionality; users can fork this repository and edit inst/htmlwidgets/rcytoscapejs.js The sample showcases the use tooltips (from "href" data column), usage of Cytoscape plugins (i.e. panzoom and qtip), returning values from click events on network. 
+ 
