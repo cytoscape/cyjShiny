@@ -8,4 +8,4 @@ sudo docker stop rcytoscapejs
 sudo docker rm rcytoscapejs
 
 echo "Starting new container"
-sudo docker run --restart always --name rcytoscapejs -d -p 3840:3838 -t cannin/rcytoscapejs shiny-server
+sudo docker run --restart always --name rcytoscapejs -d -p 3839:3838 -t cannin/rcytoscapejs shiny-server
