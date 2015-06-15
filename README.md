@@ -54,3 +54,7 @@ runShinyApp()
 
 CytoscapeJS possesses many options that are not all captured in the HTMLWidgets functionality; users can fork this repository and edit inst/htmlwidgets/rcytoscapejs.js The sample showcases the use tooltips (from "href" data column), usage of Cytoscape plugins (i.e. panzoom and qtip), returning values from click events on network. 
  
+[Demo](http://sanderlab.org/rcytoscapejs/)
+
+### Screenshot 
+![screenshot](https://raw.githubusercontent.com/cytoscape/r-cytoscape.js/master/inst/screenshot.png) 
