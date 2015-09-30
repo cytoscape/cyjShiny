@@ -13,6 +13,7 @@
 #' @param edgeColor a hex color for edges (default: #666666)
 #' @param edgeSourceShape a shape for arrow sources (default: none)
 #' @param edgeTargetShape a shape for arrow targets (default: triangle)
+#' @param edgeWidth edge width (default: 2)
 #' @param nodeHref a link associated with the node (appears in a tooltip)
 #'
 #' @return a list with two entries:
@@ -44,7 +45,7 @@ createCytoscapeJsNetwork <- function(nodeData, edgeData,
                                      nodeColor="#888888", nodeShape="ellipse",
                                      nodeHeight="70", nodeWidth="70", nodeLabelColor="#FFFFFF",
                                      edgeColor="#888888", edgeSourceShape="none",
-                                     edgeTargetShape="triangle", nodeHref="") {
+                                     edgeTargetShape="triangle", edgeWidth=2, nodeHref="") {
 
     # There must be nodes and nodeData must have at least id and name columns
     if(nrow(nodeData) == 0 || !(all(c("id", "name") %in% names(nodeData)))) {
@@ -99,6 +100,9 @@ createCytoscapeJsNetwork <- function(nodeData, edgeData,
 
     if(!("targetShape" %in% colnames(edgeData))) {
         edgeData$edgeTargetShape <- rep(edgeTargetShape, nrow(edgeData))
+    }
+    if(!("width" %in% colnames(edgeData))) {
+      edgeData$width <- rep(edgeWidth, nrow(edgeData))
     }
 
     rownames(edgeData) <- NULL
