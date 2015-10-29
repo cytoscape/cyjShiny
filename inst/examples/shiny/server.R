@@ -24,7 +24,8 @@ shinyServer(function(input, output, session) {
   
   if(addLinks) {
     href <- paste0("https://www.google.com/search?q=", nodes)
-    nodeData <- data.frame(id, name, href, stringsAsFactors=FALSE)
+    tooltip <- paste0("https://www.google.com/search?q=", nodes)
+    nodeData <- data.frame(id, name, href, tooltip, stringsAsFactors=FALSE)
   } else {
     nodeData <- data.frame(id, name, stringsAsFactors=FALSE)
   }

@@ -13,5 +13,6 @@ shinyUI(navbarPage("R Cytoscape Example",
     h4("Data for Edges between Connected Nodes"),
     dataTableOutput("edgeDataTable")
   )
+  #tags$head(includeScript("www/js/google-analytics.js"))
 ))
 

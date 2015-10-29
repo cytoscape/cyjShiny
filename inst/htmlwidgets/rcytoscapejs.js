@@ -23,6 +23,7 @@ HTMLWidgets.widget({
         //console.log(nodetest);
         //console.log(edgetest);
         
+        //Panzoom defaults
         var defaults = ({
           zoomFactor: 0.05, // zoom factor per zoom tick
           zoomDelay: 45, // how many ms between zoom ticks
@@ -55,6 +56,7 @@ HTMLWidgets.widget({
 
         instance.cy = new cytoscape({
             container: el,
+            autoungrabify: false, 
             style: cytoscape.stylesheet()
                 .selector('node')
                 .css({
@@ -110,68 +112,78 @@ HTMLWidgets.widget({
             },
             ready: function () {
                 window.cy = this;
+
+                $(window).trigger("cy_ready");
   
                 if(x.showPanzoom) {
                   cy.panzoom(defaults);                  
                 }
 
-                cy.boxSelectionEnabled(true);
+                cy.boxSelectionEnabled(x.boxSelectionEnabled);
                 cy.userZoomingEnabled(true);
-                cy.on('tap', 'node', function (event) {
-                    var nodeHighlighted = this.hasClass("highlighted");
-                    console.log(nodeHighlighted);
-                    var nodes = this.closedNeighborhood().connectedNodes();
-                    //console.log(nodes);
-                    console.log("A:" + el.id);
-                    console.log("ID:" + this._private.data.id);
-                    Shiny.onInputChange("clickedNode", this._private.data.id);
-                    console.log("break");
-
-                    if (nodes.length === 0) {
-                        this.toggleClass("highlighted");
-                    }
-
-                    if (nodeHighlighted) {
-                        for (var i = 0; i < nodes.length; i++) {
-                            if (nodes[i].hasClass("highlighted")) {
-                                nodes[i].toggleClass("highlighted");
-                            }
-                        }
-                    } else {
-                        for (var i = 0; i < nodes.length; i++) {
-                            if (!nodes[i].hasClass("highlighted")) {
-                                nodes[i].toggleClass("highlighted");
-                            }
-                        }
-                    }
-
-                    var globalnodes = instance.cy.nodes();
-                    var selected = [];
-                    for (var i = 0; i < globalnodes.length; i++) {
-                        if (globalnodes[i].hasClass("highlighted")) {
-                            selected.push(globalnodes[i]._private.ids);
-                        }
-                    }
-
-                    //console.log(globalnodes);
-                    //console.log(selected);
-
-                    var keys = [];
-                    for (var i = 0; i < selected.length; i++) {
-                        var kk = selected[i];
-                        for (var k in kk) keys.push(k);
-                    }
-                    console.log(keys);
-                    Shiny.onInputChange("connectedNodes", keys);
-                });
                 
-                cy.on('tap', 'node', function (event) {
+                if(x.highlightConnectedNodes) {
+                  cy.on('tap', 'node', function (event) {
+                      var nodeHighlighted = this.hasClass("highlighted");
+                      console.log(nodeHighlighted);
+                      var nodes = this.closedNeighborhood().connectedNodes();
+                      //console.log(nodes);
+                      console.log("A:" + el.id);
+                      console.log("ID:" + this._private.data.id);
+                      Shiny.onInputChange("clickedNode", this._private.data.id);
+                      console.log("break");
+  
+                      if (nodes.length === 0) {
+                        this.toggleClass("highlighted");
+                      }
+  
+                      if (nodeHighlighted) {
+                          for (var i = 0; i < nodes.length; i++) {
+                              if (nodes[i].hasClass("highlighted")) {
+                                  nodes[i].toggleClass("highlighted");
+                              }
+                          }
+                      } else {
+                          for (var i = 0; i < nodes.length; i++) {
+                              if (!nodes[i].hasClass("highlighted")) {
+                                  nodes[i].toggleClass("highlighted");
+                              }
+                          }
+                      }
+  
+                      var globalnodes = instance.cy.nodes();
+                      var selected = [];
+                      for (var i = 0; i < globalnodes.length; i++) {
+                          if (globalnodes[i].hasClass("highlighted")) {
+                              selected.push(globalnodes[i]._private.ids);
+                          }
+                      }
+  
+                      //console.log(globalnodes);
+                      //console.log(selected);
+  
+                      var keys = [];
+                      for (var i = 0; i < selected.length; i++) {
+                          var kk = selected[i];
+                          for (var k in kk) keys.push(k);
+                      }
+                      console.log(keys);
+                      Shiny.onInputChange("connectedNodes", keys);
+                  });
+                }
+                
+                cy.on('mouseover', 'node', function (event) {
                     var node = this;
+                    Shiny.onInputChange("clickedNode", this._private.data.id);
+                    
                     $(".qtip").remove();
                     //console.log(event);
                     
-                    var name = node._private.data.name; 
-                    var href = node._private.data.href; 
+                    var name = node.data("name"); 
+                    var href = node.data("href"); 
+                    var tooltip = node.data("tooltip"); 
+                    console.log("href: " + href);
+                    console.log("tooltip: " + tooltip);
 
                     var target = event.cyTarget;
                     var sourceName = target.data("id");
@@ -189,7 +201,11 @@ HTMLWidgets.widget({
                         content: {
                             text: function (event, api) {
                               // Retrieve content from custom attribute of the $('.selector') elements.
-                              return href;
+                              if(typeof(tooltip) === "undefined") {
+                                return name;
+                              } else {
+                                return tooltip;  
+                              }
                             }
                         },
                         show: {
@@ -206,7 +222,7 @@ HTMLWidgets.widget({
                         hide: {
                             fixed: true,
                             event: false,
-                            inactive: 1000
+                            inactive: 2000
                         },
                         style: {
                             classes: 'qtip-bootstrap',
