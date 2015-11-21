@@ -8,7 +8,9 @@
 #'   'x' and 'y' from nodeEntries will be used for position information.
 #' @param width width of widget (Default: 100 percent for Shiny apps)
 #' @param height height of widget (Default: 400px for Shiny apps)
-#' @param showPanzoom whether to show the CytoscapeJS panzoom menu in the upper left corner
+#' @param showPanzoom whether to show the CytoscapeJS panzoom menu in the upper left corner (Default: TRUE)
+#' @param highlightConnectedNodes whether to highlight connected nodes to a clicked node (Default: TRUE)
+#' @param boxSelectionEnabled whether to allow users to box select multiple nodes (Default: TRUE)
 #'
 #' @examples 
 #' id <- c("Jerry", "Elaine", "Kramer", "George")
@@ -25,13 +27,16 @@
 #' @import htmlwidgets
 #' @seealso \code{\link{createCytoscapeJsNetwork}}
 #' @export
-rcytoscapejs <- function(nodeEntries, edgeEntries, layout="cose", width=NULL, height=NULL, showPanzoom=TRUE) {
+rcytoscapejs <- function(nodeEntries, edgeEntries, layout="cose", width=NULL, 
+                         height=NULL, showPanzoom=TRUE, highlightConnectedNodes=TRUE, boxSelectionEnabled=TRUE) {
   # forward options using x
   x = list()
   x$nodeEntries <- nodeEntries
   x$edgeEntries <- edgeEntries
   x$layout <- layout
   x$showPanzoom <- showPanzoom
+  x$highlightConnectedNodes <- highlightConnectedNodes
+  x$boxSelectionEnabled <- boxSelectionEnabled
 
   # create widget
   htmlwidgets::createWidget(

@@ -5,7 +5,8 @@
 \title{Create CytoscapeJS widget}
 \usage{
 rcytoscapejs(nodeEntries, edgeEntries, layout = "cose", width = NULL,
-  height = NULL, showPanzoom = TRUE)
+  height = NULL, showPanzoom = TRUE, highlightConnectedNodes = TRUE,
+  boxSelectionEnabled = TRUE)
 }
 \arguments{
 \item{nodeEntries}{nodes output from createCytoscapeJsNetwork function}
@@ -19,7 +20,11 @@ rcytoscapejs(nodeEntries, edgeEntries, layout = "cose", width = NULL,
 
 \item{height}{height of widget (Default: 400px for Shiny apps)}
 
-\item{showPanzoom}{whether to show the CytoscapeJS panzoom menu in the upper left corner}
+\item{showPanzoom}{whether to show the CytoscapeJS panzoom menu in the upper left corner (Default: TRUE)}
+
+\item{highlightConnectedNodes}{whether to highlight connected nodes to a clicked node (Default: TRUE)}
+
+\item{boxSelectionEnabled}{whether to allow users to box select multiple nodes (Default: TRUE)}
 }
 \description{
 Pass network information to CytoscapeJS widget
