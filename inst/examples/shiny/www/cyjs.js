@@ -6,12 +6,13 @@ $(document).ready(function() {
       
       var result = cy.png(); 
       //Shiny.onInputChange("imgContent", result);
-      //console.log("imgContent: " + result);
+      console.log("imgContent: " + result);
       
       // From: http://stackoverflow.com/questions/25087009/trigger-a-file-download-on-click-of-button-javascript-with-contents-from-dom
-      var dl = document.createElement('a');
-      dl.setAttribute('href', result);
-      dl.setAttribute('download', 'download.png');
+      dl = document.createElement('a');
+      document.body.appendChild(dl);
+      dl.download = "download.png";
+      dl.href = result;
       dl.click();
     }
   );
