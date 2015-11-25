@@ -72,16 +72,6 @@ shinyServer(function(input, output, session) {
     rcytoscapejs(nodeEntries=cyNetwork$nodes, edgeEntries=cyNetwork$edges)
   })
   
-  output$imgContent <- renderUI({
-    # From: https://groups.google.com/forum/#!topic/shiny-discuss/qQ8yICfvDu0
-    tagList(
-      actionLink("saveImage", "Step 1: Click to Take Snapshot"),
-      helpText(
-        a("Step 2: Click to Get Image", href=input$imgContent, target="_blank")
-      )  
-    )
-  })
-  
   observeEvent(input$saveImage, {
     # NOTE: Message cannot be an empty string "", nothing will happen    
     session$sendCustomMessage(type="saveImage", message="NULL")
