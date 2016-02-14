@@ -60,6 +60,10 @@ rcytoscapejsOutput <- function(outputId, width = '100%', height = '400px'){
 }
 
 #' Widget render function for use in Shiny
+#' 
+#' @param expr An expression that returns an R object that can be used as an argument to cat.
+#' @param env	The environment in which to evaluate expr.
+#' @param quoted Is expr a quoted expression (with quote())? This is useful if you want to save an expression in a variable.
 #'
 #' @export
 renderRcytoscapejs <- function(expr, env = parent.frame(), quoted = FALSE) {
