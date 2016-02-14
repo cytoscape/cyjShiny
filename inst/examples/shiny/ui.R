@@ -1,3 +1,4 @@
+library(rcytoscapejs)
 library(shiny)
 
 shinyUI(navbarPage("R Cytoscape Example",
