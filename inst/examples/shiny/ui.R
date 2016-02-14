@@ -1,3 +1,5 @@
+library(shiny)
+
 shinyUI(navbarPage("R Cytoscape Example",
   tabPanel("Network",
     h4("Clicked Node"),

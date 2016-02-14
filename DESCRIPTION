@@ -7,7 +7,7 @@ Depends: R (>= 3.1.0)
 License: LGPL
 Imports:
     htmlwidgets (>= 0.3.2)
-Suggests: 
+Depends: 
     DT,
     shiny
 LazyData: true

@@ -1,3 +1,6 @@
+library(rcytoscapejs)
+library(DT)
+
 shinyServer(function(input, output, session) {
   network <- read.table("cbioportal_top1.sif", sep="\t", stringsAsFactors=FALSE)
   
