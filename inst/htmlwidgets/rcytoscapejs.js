@@ -172,6 +172,44 @@ HTMLWidgets.widget({
                   });
                 }
                 
+                cy.on('tap', 'edge', function (event) {
+                  var edgeHighlighted = this.hasClass("highlighted");
+                  console.log(edgeHighlighted);
+                  var nodes = this.connectedNodes();
+                  
+                  console.log("nodes");
+                  console.log(nodes);
+                  console.log("ID 1:" + nodes[0]._private.data.id);
+                  console.log("ID 2:" + nodes[1]._private.data.id);
+                  
+                  var keys = [nodes[0]._private.data.id, nodes[1]._private.data.id];
+                  
+                  Shiny.onInputChange("clickedEdge", keys);
+                  console.log("break");
+                  
+                  /*
+                  var globalnodes = instance.cy.nodes();
+                  var selected = [];
+                  for (var i = 0; i < globalnodes.length; i++) {
+                      if (globalnodes[i].hasClass("highlighted")) {
+                          selected.push(globalnodes[i]._private.ids);
+                      }
+                  }
+
+                  //console.log(globalnodes);
+                  console.log(selected);
+
+                  var keys = [];
+                  for (var i = 0; i < selected.length; i++) {
+                      var kk = selected[i];
+                      for (var k in kk) keys.push(k);
+                  }
+                  */
+                  
+                  console.log("keys" + keys);
+                  Shiny.onInputChange("edgeConnectedNodes", keys);
+                });
+                
                 cy.on('mouseover', 'node', function (event) {
                     var node = this;
                     Shiny.onInputChange("clickedNode", this._private.data.id);

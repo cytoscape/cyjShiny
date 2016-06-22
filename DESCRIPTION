@@ -1,6 +1,6 @@
 Package: rcytoscapejs
 Title: Cytoscape JS HTMLWidgets
-Version: 0.0.6
+Version: 0.0.7
 Authors@R: person("Augustin", "Luna", email="lunaa@cbio.mskcc.org", role=c("aut", "cre"))
 Description: HTMLWidgets package for CytoscapeJS.
 License: file LICENSE
