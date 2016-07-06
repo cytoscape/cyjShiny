@@ -39,8 +39,7 @@ nodeData$color[which(grepl("^Elaine$", nodeData$id))] <- "#FF0000"
 nodeData$href <- paste0("http://www.google.com/search?q=Seinfeld%20", nodeData$name)
 
 network <- createCytoscapeJsNetwork(nodeData, edgeData)
-
-cytoscapeJsSimpleNetwork(network$nodes, network$edges)
+rcytoscapejs(network$nodes, network$edges)
 ```
 
 ##Embedding in Shiny
