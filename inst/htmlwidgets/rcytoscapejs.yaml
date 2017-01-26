@@ -1,12 +1,17 @@
 dependencies:
+  
   - name: cytoscape
     version: 2.4.1
     src: "htmlwidgets/lib/cytoscape/dist"
     script: cytoscape.min.js
   - name: arbor
-    version: 0.91
+    version: 0.1
     src: "htmlwidgets/lib/cytoscape/lib"
     script: arbor.js
+  - name: cytoscape-spread
+    version: 1.1.0
+    src: "htmlwidgets/lib/cytoscape/lib"
+    script: cytoscape-spread.js
   - name: cola
     version: 2.4.1
     src: "htmlwidgets/lib/cytoscape/lib"
