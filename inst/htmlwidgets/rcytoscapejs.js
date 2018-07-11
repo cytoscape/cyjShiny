@@ -212,7 +212,7 @@ HTMLWidgets.widget({
                 
                 cy.on('mouseover', 'node', function (event) {
                     var node = this;
-                    Shiny.onInputChange("clickedNode", this._private.data.id);
+                    Shiny.onInputChange("mouseoverNode", this._private.data.id);
                     
                     $(".qtip").remove();
                     //console.log(event);
