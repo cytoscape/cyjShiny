@@ -87461,8 +87461,8 @@ HTMLWidgets.widget({
                   ]
               },
               ready: function(){
-                  cyjs = this;
-                  console.log("small cyjs network ready, with " + cyjs.nodes().length + " nodes.");
+                  var cyj = this;
+                  console.log("small cyjs network ready, with " + cyj.nodes().length + " nodes.");
               } // ready
              }) // cytoscape()
            } // renderValue
