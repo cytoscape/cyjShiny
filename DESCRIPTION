@@ -1,0 +1,11 @@
+Package: cyjShiny
+Title: cyjShiny
+Version: 0.99.0
+Date: 2018-07-20
+Author: Paul Shannon
+Maintainer: Paul Shannon <pshannon@systemsbiology.org>
+Description: cytoscape.js as a shiny widget
+Depends: R (>= 3.4.2)
+License: MIT
+Encoding: UTF-8
+LazyData: true

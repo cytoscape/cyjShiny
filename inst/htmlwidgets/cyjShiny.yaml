@@ -1,0 +1,8 @@
+dependencies:
+  - name: cyjShiny
+    version: 0.99.0
+    src: htmlwidgets
+    script: ./lib/bundle.js
+
+
+
