@@ -3,3 +3,8 @@ Shiny.addCustomMessageHandler("selectNodes",
       console.log("selectNodes")
   }
 );
+Shiny.addCustomMessageHandler("loadStyleFile",
+  function(message) {
+      console.log("loadStyleFile")
+  }
+);

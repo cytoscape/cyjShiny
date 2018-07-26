@@ -33,4 +33,12 @@ renderCyjShiny <- function(expr, env = parent.frame(), quoted = FALSE)
 
 }
 #----------------------------------------------------------------------------------------------------
+loadStyleFile <- function(filename)
+{
+   message <- list(filename=filename)
+   session <- shiny::getDefaultReactiveDomain()
+   session$sendCustomMessage("loadStyleFile", message)
+
+} # loadStyleFile
+#------------------------------------------------------------------------------------------------------------------------
 
