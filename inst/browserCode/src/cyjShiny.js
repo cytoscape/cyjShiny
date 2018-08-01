@@ -18,44 +18,47 @@ require('jquery-ui-bundle');
 //----------------------------------------------------------------------------------------------------
 HTMLWidgets.widget({
 
-  name: 'cyjShiny',
-  type: 'output',
-
-  factory: function(el, width, height) {
-    var cyj;
-    return {
-       renderValue: function(x, instance) {
-          console.log("---- ~/github/cyjsShiny/inst/browserCode/src/cyjShiny.js, renderValue")
-          var cyDiv = el;
-          //htmlElement = el;
-          cyj = cytoscape({
-              container: cyDiv,
-              elements: {
-                  nodes: [
-                      {data: {id: 'a', name: 'Node A', type: 'big' }},
-                      {data: {id: 'b', name: 'Node B', type: 'little'}},
-                  ],
-                  edges: [
-                      {data: {source: 'a', target: 'b'}},
-                      {data: {source: 'b', target: 'a'}}
-                  ]
-              },
-              ready: function(){
-                  $("#cyjShiny").height(0.8 * window.innerHeight);
-                  var cyj = this;
-                  window.cyj = this;   // terrible hack.  but gives us a simple way to call cytosacpe functions
-                  console.log("small cyjs network ready, with " + cyj.nodes().length + " nodes.");
-                  } // ready
-
-             }) // cytoscape()
-           }, // renderValue
-        resize: function(width, height, instance){
-           console.log("cyjShiny widget, resize: " + width + ", " + height)
-           $("#cyjShiny").height(0.8 * window.innerHeight);
-           cyj.resize()
-           console.log("  after resize: " + width + ", " + height)
-          },
-        cyjWidget: cyj
+    name: 'cyjShiny',
+    type: 'output',
+    
+    factory: function(el, width, height) {
+	var cyj;
+	return {
+	    renderValue: function(x, instance) {
+		console.log("---- ~/github/cyjsShiny/inst/browserCode/src/cyjShiny.js, renderValue")
+		console.log(x)
+		var cyDiv = el;
+		//htmlElement = el;
+				
+		cyj = cytoscape({
+		    container: cyDiv,
+		    elements: {
+			nodes: [
+			    {data: {id: 'a', name: 'Node A', type: 'big' }},
+			    {data: {id: 'b', name: 'Node B', type: 'little'}},
+			    {data: {id: 'c', name: 'Node C', type: 'little'}}
+			],
+			edges: [
+			    {data: {source: 'a', target: 'b'}},
+			    {data: {source: 'b', target: 'a'}}
+			]
+		    },
+		    ready: function(){
+			$("#cyjShiny").height(0.8 * window.innerHeight);
+			var cyj = this;
+			window.cyj = this;   // terrible hack.  but gives us a simple way to call cytosacpe functions
+			console.log("small cyjs network ready, with " + cyj.nodes().length + " nodes.");
+			
+		    } // ready
+		}) // cytoscape()
+            }, // renderValue
+            resize: function(width, height, instance){
+		console.log("cyjShiny widget, resize: " + width + ", " + height)
+		$("#cyjShiny").height(0.8 * window.innerHeight);
+		cyj.resize()
+		console.log("  after resize: " + width + ", " + height)
+            },
+            cyjWidget: cyj
         }; // return
     } // factory
 });  // widget

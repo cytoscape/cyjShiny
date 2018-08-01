@@ -2,7 +2,7 @@ build: webpack  package
 
 webpack:
 	npm update
-	webpack
+	node_modules/webpack/bin/webpack.js
 	cp dist/bundle.js ../htmlwidgets/lib/
 
 package:
