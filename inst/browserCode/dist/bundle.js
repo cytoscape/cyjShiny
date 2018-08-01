@@ -99807,13 +99807,18 @@ HTMLWidgets.widget({
 	return {
 	    renderValue: function(x, instance) {
 		console.log("---- ~/github/cyjsShiny/inst/browserCode/src/cyjShiny.js, renderValue")
-		console.log(x)
+		console.log(x.message);
+
+		var data = JSON.parse(x.message)
+		console.log(data);
+		
 		var cyDiv = el;
 		//htmlElement = el;
 				
 		cyj = cytoscape({
 		    container: cyDiv,
-		    elements: {
+		    elements: data,
+		    /*elements: {
 			nodes: [
 			    {data: {id: 'a', name: 'Node A', type: 'big' }},
 			    {data: {id: 'b', name: 'Node B', type: 'little'}},
@@ -99821,9 +99826,10 @@ HTMLWidgets.widget({
 			],
 			edges: [
 			    {data: {source: 'a', target: 'b'}},
-			    {data: {source: 'b', target: 'a'}}
+			    {data: {source: 'b', target: 'a'}},
+			    {data: {source: 'a', target: 'c'}}
 			]
-		    },
+		    },*/
 		    ready: function(){
 			$("#cyjShiny").height(0.8 * window.innerHeight);
 			var cyj = this;
