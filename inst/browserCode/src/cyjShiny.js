@@ -30,13 +30,15 @@ HTMLWidgets.widget({
 
 		var data = JSON.parse(x.message)
 		console.log(data);
+		console.log(typeof data)
+		console.log(data.elements.nodes)
 		
 		var cyDiv = el;
 		//htmlElement = el;
 				
 		cyj = cytoscape({
 		    container: cyDiv,
-		    elements: data,
+		    elements: data.elements,
 		    /*elements: {
 			nodes: [
 			    {data: {id: 'a', name: 'Node A', type: 'big' }},
