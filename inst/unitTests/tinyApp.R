@@ -3,6 +3,14 @@ library(cyjShiny)
 library(htmlwidgets)
 library(graph)
 library(jsonlite)
+
+source("organize.R")
+source("sepDate.R")
+source("analysis.R")
+
+load("interaction_bundle-2018-07-30.RData")
+tbl <- fixTbl(tbl)
+print(head(tbl))
 #----------------------------------------------------------------------------------------------------
 nodeCount <- 2
 edgeCount <- 2
@@ -29,10 +37,6 @@ ui = shinyUI(fluidPage(
      sidebarPanel(
         actionButton("selectNodes", "Select Nodes"),
         actionButton("loadStyleFileButton", "LOAD style.js"),
-        actionButton("hideSelectedNodes", "Hide Selected Nodes"),
-        actionButton("getNodes", "Get Node Names"),
-        actionButton("hideAllEdges", "Change Background"),
-        actionButton("sendMtx", "Send Matrix"),
 
         hr(),
         width=2
@@ -51,26 +55,6 @@ server = function(input, output, session)
         session$sendCustomMessage(type="selectNodes", message=list("a", "b"))
     })
 
-    #observeEvent(input$sendMtx, {
-     #   printf("about to sendCustomMessage, sendMtx")
-      #  session$sendCustomMessage(type="sendMtx", data = data)
-       # })
-
-    observeEvent(input$hideSelectedNodes, { #DOESNT WORK
-        printf("about sendCustomMessage, hideSelectedNodes")
-        session$sendCustomMessage(type="hideSelectedNodes", message=list())
-        })
-
-    observeEvent(input$getNodes, { #DOESNT WORK
-        printf("about to sendCustomMessage, getNodes")
-        session$sendCustomMessage(type="getNodes", message=(list("all")))
-    })
-
-    observeEvent(input$hideAllEdges, {
-        printf("about to sendCustomMessage, setBackgroundColor") #DOESNT WORK
-        session$sendCustomMessage(type="setBackgroundColor", message=list("lightblue"))
-        })
-    
     observeEvent(input$loadStyleFileButton, { #DOESNT WORK
         printf("about to sendCustomMessage, loadStyleFile")
         session$sendCustomMessage(type="loadStyleFile", message=(list(filename="style.js")))
@@ -165,7 +149,43 @@ graphToJSON <- function(g) #Copied from RCyjs/R/utils.R
 
 } # .graphToJSON
 #------------------------------------------------------------------------------------------------------------------------
+loadData <- function()
+{
+    load("interaction_bundle-2018-07-30.RData")
+
+    week <- "all"  # "all", 1, 2, 3, 4, 5, 6
+    
+    tbl <- fixTbl(tbl) #organize.R
+    
+    if(week != "all")
+        tbl <- s.date(tbl, week) #sepDate.R
+    
+    tbl$signature <- paste(tbl$a, tbl$b, sep=":")
+    
+    gnel <- new("graphNEL", edgemode = "undirected")
+                                        #gnel <- new("graphNEL", edgemode = "directed")
+    
+    all.nodes <- c(unique(c(tbl$a, tbl$b)))
+    duplicated.interactions <- which(duplicated(tbl$signature))
+    tbl.unique <- tbl[-duplicated.interactions,]
+    
+    gnel <- addNode(all.nodes, gnel)
+    #gnel <- graph::addEdge(tbl.unique$a, tbl.unique$b, gnel)
+    
+    #gi <- igraph.from.graphNEL(gnel, name = TRUE, weight = TRUE, unlist.attrs = TRUE)
+    #newman <- community.newman(gi) #analysis.R
+    #print(head(newman))
+    
+    #nodeDataDefaults(gnel, attr = "type") <- "undefined"
+    #nodeDataDefaults(gnel, attr="newman") <- 0
+    #edgeDataDefaults(gnel, attr = "count") <- 0
+    
+    #nodeData(gnel, nodes(gnel), attr="newman") <- newman
+    
+    gnel
+}#loadData
+#------------------------------------------------------------------------------------------
+
+graph <- loadData()
+
 shinyApp(ui = ui, server = server)
-
-
-graph <- graphToJSON(gnel)
