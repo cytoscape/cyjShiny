@@ -7,24 +7,6 @@ library(jsonlite)
 source("organize.R")
 source("sepDate.R")
 source("analysis.R")
-
-load("interaction_bundle-2018-07-30.RData")
-tbl <- fixTbl(tbl)
-print(head(tbl))
-#----------------------------------------------------------------------------------------------------
-nodeCount <- 2
-edgeCount <- 2
-
-elementCount <- nodeCount^2;
-vec <- rep(0, elementCount)
-
-set.seed(13);
-vec[sample(1:elementCount, edgeCount)] <- 1
-mtx <- matrix(vec, nrow=nodeCount)
-
-gam <- graphAM(adjMat=mtx, edgemode="directed")
-gnel <- as(gam, "graphNEL")
-
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
 
@@ -182,7 +164,9 @@ loadData <- function()
     
     #nodeData(gnel, nodes(gnel), attr="newman") <- newman
     
-    gnel
+    g.json <- graphToJSON(gnel)
+
+    g.json
 }#loadData
 #------------------------------------------------------------------------------------------
 

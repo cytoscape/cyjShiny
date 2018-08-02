@@ -31,14 +31,16 @@ HTMLWidgets.widget({
 		var data = JSON.parse(x.message)
 		console.log(data);
 		console.log(typeof data)
+		console.log(data.elements.nodes)
+		console.log(data.elements.edges)
 		
 		var cyDiv = el;
 		//htmlElement = el;
 				
 		cyj = cytoscape({
 		    container: cyDiv,
-		    //elements: data.elements,
-		    elements: {
+		    elements: data.elements,
+		    /*elements: {
 			nodes: [
 			    {data: {id: 'a', name: 'Node A', type: 'big' }},
 			    {data: {id: 'b', name: 'Node B', type: 'little'}},
@@ -49,7 +51,7 @@ HTMLWidgets.widget({
 			    {data: {source: 'b', target: 'a'}},
 			    {data: {source: 'a', target: 'c'}}
 			]
-		    },
+		    },*/
 		    ready: function(){
 			$("#cyjShiny").height(0.8 * window.innerHeight);
 			var cyj = this;
