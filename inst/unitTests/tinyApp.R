@@ -152,7 +152,7 @@ loadData <- function()
     tbl.unique <- tbl[-duplicated.interactions,]
     
     gnel <- addNode(all.nodes, gnel)
-    #gnel <- graph::addEdge(tbl.unique$a, tbl.unique$b, gnel)
+    gnel <- graph::addEdge(tbl.unique$a, tbl.unique$b, gnel)
     
     #gi <- igraph.from.graphNEL(gnel, name = TRUE, weight = TRUE, unlist.attrs = TRUE)
     #newman <- community.newman(gi) #analysis.R
