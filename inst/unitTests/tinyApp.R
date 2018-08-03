@@ -50,11 +50,6 @@ server = function(input, output, session)
     
 } # server
 #----------------------------------------------------------------------------------------------------
-showRegion <- function(roi)
-{
-
-} # showRegion
-#----------------------------------------------------------------------------------------------------
 graphToJSON <- function(g) #Copied from RCyjs/R/utils.R
 {
    if(length(nodes(g)) == 0)

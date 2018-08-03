@@ -99821,6 +99821,7 @@ HTMLWidgets.widget({
 		cyj = cytoscape({
 		    container: cyDiv,
 		    elements: data.elements,
+		    layout: {name: 'random'},
 		    		    
 		    ready: function(){
 			$("#cyjShiny").height(0.8 * window.innerHeight);

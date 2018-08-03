@@ -31,8 +31,8 @@ HTMLWidgets.widget({
 		var data = JSON.parse(x.message)
 		console.log(data);
 		console.log(typeof data)
-		console.log(data.elements.nodes)
-		console.log(data.elements.edges)
+		console.log(length(data.elements.nodes))
+		console.log(length(data.elements.edges))
 		
 		var cyDiv = el;
 		//htmlElement = el;
@@ -40,6 +40,7 @@ HTMLWidgets.widget({
 		cyj = cytoscape({
 		    container: cyDiv,
 		    elements: data.elements,
+		    layout: {name: 'random'},
 		    		    
 		    ready: function(){
 			$("#cyjShiny").height(0.8 * window.innerHeight);
