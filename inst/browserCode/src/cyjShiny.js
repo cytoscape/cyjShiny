@@ -138,6 +138,13 @@ Shiny.addCustomMessageHandler("getSelectedNodes", function(message){
     
 });
 //------------------------------------------------------------------------------------------------------------------------
+Shiny.addCustomMessageHandler("fit", function(message){
+
+    console.log("fit requested", + message);
+    var padding = message;
+    self.cyj.fit(padding);
+});
+//------------------------------------------------------------------------------------------------------------------------
 // requires an http server at localhost, started in the directory where filename is found
 // expected file contents:  vizmap = [{selector:"node",css: {...
 function loadStyle(filename)

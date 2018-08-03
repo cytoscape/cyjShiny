@@ -17,6 +17,7 @@ ui = shinyUI(fluidPage(
                     href = "http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css")),
   sidebarLayout(
       sidebarPanel(
+          actionButton("fit", "Fit Graph"),
           textInput("nodeSelect", "Select Node:", value="Enter name..."),
           actionButton("selectNodes", "Select Nodes"),
           actionButton("loadStyleFileButton", "LOAD style.js"),
@@ -47,6 +48,11 @@ server = function(input, output, session)
     observeEvent(input$getSelectedNodes, {
         printf("about to sendCustomMessage, getSelectedNodes")
         session$sendCustomMessage(type="getSelectedNodes", message=list())
+    })
+
+    observeEvent(input$fit, {
+        printf("about to sendCustomMessage, fit")
+        session$sendCustomMessage(type="fit", message=list(50))
     })
     
     output$value <- renderPrint({ input$action })
