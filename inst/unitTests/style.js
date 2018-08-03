@@ -1,18 +1,5 @@
 vizmap = [
 
-   {selector: "node", css: {
-      "shape": "ellipse",
-      "text-valign":"center",
-      "text-halign":"center",
-      "content": "data(label)",
-      "border-width": "3px",
-      "background-color": "#FFFFFF",
-      "border-color":"black",
-      "width": "80px",
-      "height": "80px",
-      "font-size":"24px"}},
-
-
    {selector:"node:selected", css: {
        "text-valign":"center",
        "text-halign":"center",
@@ -40,4 +27,4 @@ vizmap = [
         "width": "2px",
        }},
 
-   ];
+];

@@ -40,7 +40,7 @@ HTMLWidgets.widget({
 		cyj = cytoscape({
 		    container: cyDiv,
 		    elements: data.elements,
-		    layout: {name: 'random'},
+		    layout: {name: 'cose'},
 		    style: [{selector: "node", css: {
 			"shape": "ellipse",
 			"text-valign":"center",
@@ -66,7 +66,7 @@ HTMLWidgets.widget({
 		    
 		    
 		    {selector:"edge", css: {
-			"line-color": "rgb(50,50,50",
+			"line-color": "rgb(50,50,50)",
 			'target-arrow-color': 'rgb(50,50,50)',
 			'target-arrow-shape': 'triangle',
 			"width": "1px",
@@ -129,6 +129,13 @@ Shiny.addCustomMessageHandler("selectNodes", function(message){
    var nodesToSelect = window.cyj.nodes(filterStrings.join());
    nodesToSelect.select()
 
+});
+//------------------------------------------------------------------------------------------------------------------------
+Shiny.addCustomMessageHandler("getSelectedNodes", function(message){
+
+    console.log("getSelectedNodes requested: " + message);
+    console.log(self.cyj.filter("node:selected"))
+    
 });
 //------------------------------------------------------------------------------------------------------------------------
 // requires an http server at localhost, started in the directory where filename is found

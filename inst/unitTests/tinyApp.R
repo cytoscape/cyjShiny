@@ -16,18 +16,20 @@ ui = shinyUI(fluidPage(
           tags$link(rel = "stylesheet", type = "text/css",
                     href = "http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css")),
   sidebarLayout(
-     sidebarPanel(
-        actionButton("selectNodes", "Select Nodes"),
-        actionButton("loadStyleFileButton", "LOAD style.js"),
-
-        hr(),
-        width=2
-        ),
-     mainPanel(
-        cyjShinyOutput('cyjShiny'),
-        width=10
-        )
-     ) # sidebarLayout
+      sidebarPanel(
+          textInput("nodeSelect", "Select Node:", value="Enter name..."),
+          actionButton("selectNodes", "Select Nodes"),
+          actionButton("loadStyleFileButton", "LOAD style.js"),
+          actionButton("getSelectedNodes", "Get Selected Nodes"),
+          
+          hr(),
+          width=2
+      ),
+      mainPanel(
+          cyjShinyOutput('cyjShiny'),
+          width=10
+      )
+  ) # sidebarLayout
 ))
 #----------------------------------------------------------------------------------------------------
 server = function(input, output, session)
@@ -41,7 +43,11 @@ server = function(input, output, session)
         printf("about to sendCustomMessage, loadStyleFile")
         session$sendCustomMessage(type="loadStyleFile", message=(list(filename="style.js")))
     })
-    
+
+    observeEvent(input$getSelectedNodes, {
+        printf("about to sendCustomMessage, getSelectedNodes")
+        session$sendCustomMessage(type="getSelectedNodes", message=list())
+    })
     
     output$value <- renderPrint({ input$action })
     output$cyjShiny <- renderCyjShiny(
