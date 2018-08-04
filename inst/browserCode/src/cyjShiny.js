@@ -40,7 +40,7 @@ HTMLWidgets.widget({
 		cyj = cytoscape({
 		    container: cyDiv,
 		    elements: data.elements,
-		    layout: {name: 'cose'},
+		    layout: {name: 'cola'},
 		    style: [{selector: "node", css: {
 			"shape": "ellipse",
 			"text-valign":"center",
@@ -108,6 +108,16 @@ Shiny.addCustomMessageHandler("loadStyleFile", function(message){
 
 });
 //------------------------------------------------------------------------------------------------------------------------
+Shiny.addCustomMessageHandler("doLayout", function(message){
+
+    console.log("doLayout requested: " + message);
+
+    var strategy = message
+    
+    self.cyj.layout({name: strategy}).run()
+
+})
+//------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("selectNodes", function(message){
 
    console.log("selectNodes requested: " + message);
@@ -131,10 +141,17 @@ Shiny.addCustomMessageHandler("selectNodes", function(message){
 
 });
 //------------------------------------------------------------------------------------------------------------------------
+Shiny.addCustomMessageHandler("clearSelection", function(message){
+
+    console.log("clearSelection requested: " + message);
+    self.cyj.filter("node:selected").unselect();
+
+})
+//------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("getSelectedNodes", function(message){
 
     console.log("getSelectedNodes requested: " + message);
-    console.log(self.cyj.filter("node:selected"))
+    console.log(self.cyj.filter("node:selected"));
     
 });
 //------------------------------------------------------------------------------------------------------------------------

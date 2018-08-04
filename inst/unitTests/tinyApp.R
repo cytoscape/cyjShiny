@@ -7,6 +7,8 @@ library(jsonlite)
 source("organize.R")
 source("sepDate.R")
 source("analysis.R")
+
+staffList <- read.table("isbAllStaff",header=FALSE, sep="\t", fill=TRUE)
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
 
@@ -18,8 +20,23 @@ ui = shinyUI(fluidPage(
   sidebarLayout(
       sidebarPanel(
           actionButton("fit", "Fit Graph"),
-          textInput("nodeSelect", "Select Node:", value="Enter name..."),
-          actionButton("selectNodes", "Select Nodes"),
+          br(),
+          selectInput("doLayout", "Select Layout:",
+                      choices=c("",
+                                "cose",
+                                "cola",
+                                "circle",
+                                "concentric",
+                                "breadthfirst",
+                                "grid",
+                                "random",
+                                "dagre",
+                                "cose-bilkent")),
+                                
+          selectInput("selectName", "Node Name:",
+                      choices = staffList[[1]]),
+          actionButton("selectNodes", "Select Node"),
+          actionButton("clearSelection", "Unselect Nodes"),
           actionButton("loadStyleFileButton", "LOAD style.js"),
           actionButton("getSelectedNodes", "Get Selected Nodes"),
           
@@ -35,11 +52,21 @@ ui = shinyUI(fluidPage(
 #----------------------------------------------------------------------------------------------------
 server = function(input, output, session)
 {
+    observeEvent(input$doLayout, {
+        printf("about to sendCustomMessage, doLayout")
+        session$sendCustomMessage(type="doLayout", message=list(input$doLayout))
+    })
+    
     observeEvent(input$selectNodes, {
         printf("about to sendCustomMessage, selectNodes")
-        session$sendCustomMessage(type="selectNodes", message=list("a", "b"))
+        session$sendCustomMessage(type="selectNodes", message=list(input$selectName))
     })
 
+    observeEvent(input$clearSelection, {
+        printf("about to sendCustomMessage, clearSelection")
+        session$sendCustomMessage(type="clearSelection", message=list())
+    })
+    
     observeEvent(input$loadStyleFileButton, { #DOESNT WORK
         printf("about to sendCustomMessage, loadStyleFile")
         session$sendCustomMessage(type="loadStyleFile", message=(list(filename="style.js")))
