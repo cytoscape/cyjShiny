@@ -39,6 +39,7 @@ ui = shinyUI(fluidPage(
           actionButton("clearSelection", "Unselect Nodes"),
           actionButton("loadStyleFileButton", "LOAD style.js"),
           actionButton("getSelectedNodes", "Get Selected Nodes"),
+          actionButton("sfn", "Select First Neighbor"),
           
           hr(),
           width=2
@@ -81,7 +82,12 @@ server = function(input, output, session)
         printf("about to sendCustomMessage, fit")
         session$sendCustomMessage(type="fit", message=list(50))
     })
-    
+
+    observeEvent(input$sfn, {
+        printf("about to sendCustomMessage, sfn")
+        session$sendCustomMessage(type="sfn", message=list())
+    })
+                                         
     output$value <- renderPrint({ input$action })
     output$cyjShiny <- renderCyjShiny(
         cyjShiny(graph)
