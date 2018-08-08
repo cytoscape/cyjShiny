@@ -5,7 +5,7 @@ cyjShiny <- function(graph, width = NULL, height = NULL, elementId = NULL)
     x <- list(
         graph = graph
     )
-    
+
     # create widget
     htmlwidgets::createWidget(
                      name = 'cyjShiny',
@@ -15,7 +15,7 @@ cyjShiny <- function(graph, width = NULL, height = NULL, elementId = NULL)
                      package = 'cyjShiny',
                      elementId = elementId
                  )
-    
+
 } # cyjShiny constructor
 #----------------------------------------------------------------------------------------------------
 cyjShinyOutput <- function(outputId, width = '100%', height = '400px')
@@ -35,9 +35,16 @@ renderCyjShiny <- function(expr, env = parent.frame(), quoted = FALSE)
 #----------------------------------------------------------------------------------------------------
 loadStyleFile <- function(filename)
 {
-   message <- list(filename=filename)
+   if(!file.exists(filename)){
+      printf("cannot read style file: %s", filename)
+      return;
+      }
+
+   jsonText <- toJSON(fromJSON(filename))
+   print(jsonText)
+   message <- list(json=jsonText)
    session <- shiny::getDefaultReactiveDomain()
-   session$sendCustomMessage("loadStyleFile", message)
+   session$sendCustomMessage("loadStyle", message)
 
 } # loadStyleFile
 #------------------------------------------------------------------------------------------------------------------------
