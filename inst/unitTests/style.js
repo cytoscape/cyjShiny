@@ -1,9 +1,9 @@
-vizmap = [
+var vizmap = [
 
    {selector:"node:selected", css: {
        "text-valign":"center",
        "text-halign":"center",
-       "border-color": "black",
+       "border-color": "red",
        "content": "data(id)",
        "border-width": "3px",
        "overlay-opacity": 0.2,

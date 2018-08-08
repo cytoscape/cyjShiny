@@ -20,7 +20,7 @@ HTMLWidgets.widget({
 
     name: 'cyjShiny',
     type: 'output',
-    
+
     factory: function(el, width, height) {
 	var cyj;
 	return {
@@ -33,10 +33,10 @@ HTMLWidgets.widget({
 		console.log(typeof data)
 		console.log(data.elements.nodes)
 		console.log(data.elements.edges)
-		
+
 		var cyDiv = el;
 		//htmlElement = el;
-				
+
 		cyj = cytoscape({
 		    container: cyDiv,
 		    elements: data.elements,
@@ -52,8 +52,8 @@ HTMLWidgets.widget({
 			"width": "50px",
 			"height": "50px",
 			"font-size":"24px"}},
-		    
-		    
+
+
 		    {selector:"node:selected", css: {
 			"text-valign":"center",
 			"text-halign":"center",
@@ -63,8 +63,8 @@ HTMLWidgets.widget({
 			"overlay-opacity": 0.2,
 			"overlay-color": "gray"
 		    }},
-		    
-		    
+
+
 		    {selector:"edge", css: {
 			"line-color": "rgb(50,50,50)",
 			'target-arrow-color': 'rgb(50,50,50)',
@@ -80,13 +80,13 @@ HTMLWidgets.widget({
 			"overlay-color": "gray",
 			"width": "2px",
 		    }}],
-		    
+
 		    ready: function(){
 			$("#cyjShiny").height(0.8 * window.innerHeight);
 			var cyj = this;
 			window.cyj = this;   // terrible hack.  but gives us a simple way to call cytosacpe functions
 			console.log("small cyjs network ready, with " + cyj.nodes().length + " nodes.");
-			
+
 		    } // ready
 		}) // cytoscape()
             }, // renderValue
@@ -101,19 +101,19 @@ HTMLWidgets.widget({
     } // factory
 });  // widget
 //------------------------------------------------------------------------------------------------------------------------
-Shiny.addCustomMessageHandler("loadStyleFile", function(message){
-
-   console.log("loadStyleFile requested: " + message.filename);
-   loadStyle(message.filename)
-
-});
+// Shiny.addCustomMessageHandler("loadStyleFile", function(message){
+//
+//    console.log("loadStyleFile requested: " + message.filename);
+//    loadStyle(message.filename)
+//
+// });
 //------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("doLayout", function(message){
 
     console.log("doLayout requested: " + message);
 
     var strategy = message
-    
+
     self.cyj.layout({name: strategy}).run()
 
 })
@@ -152,7 +152,7 @@ Shiny.addCustomMessageHandler("getSelectedNodes", function(message){
 
     console.log("getSelectedNodes requested: " + message);
     console.log(self.cyj.filter("node:selected"));
-    
+
 });
 //------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("sfn", function(message){
@@ -167,29 +167,39 @@ Shiny.addCustomMessageHandler("fit", function(message){
     console.log("fit requested", + message);
     var padding = message;
     self.cyj.fit(padding);
-});
+   });
+
+
+//------------------------------------------------------------------------------------------------------------------------
+Shiny.addCustomMessageHandler("loadStyle", function(message) {
+
+    console.log("loading style");
+    var stringStyleSheet = message.json;
+    window.cyj.style(stringStyleSheet);
+    });
+
 //------------------------------------------------------------------------------------------------------------------------
 // requires an http server at localhost, started in the directory where filename is found
 // expected file contents:  vizmap = [{selector:"node",css: {...
-function loadStyle(filename)
-{
-   var self = this;
-   console.log("rcyjs.loadStyle, filename: " + filename);
-
-   var s = window.location.href + filename;
-   console.log("=== about to getScript on " + s);
-
-   $.getScript(s)
-     .done(function(script, textStatus) {
-        console.log(textStatus);
-        //console.log("style elements " + layout.length);
-        window.cyj.style(vizmap);
-       })
-    .fail(function( jqxhr, settings, exception ) {
-       console.log("getScript error trying to read " + filename);
-       console.log("exception: ");
-       console.log(exception);
-       });
-
-} // loadStyle
-//----------------------------------------------------------------------------------------------------
+//function loadStyle(filename)
+// {
+//    var self = this;
+//     console.log("rcyjs.loadStyle, filename: ", + filename);
+//
+//     var s = window.location.href + "?", + filename;
+//    console.log("=== about to getScript on " + s);
+//
+//    $.getScript(s)
+//      .done(function(script, textStatus) {
+//         console.log(textStatus);
+//         //console.log("style elements " + layout.length);
+//         window.cyj.style(vizmap);
+//        })
+//     .fail(function( jqxhr, settings, exception ) {
+//        console.log("getScript error trying to read " + filename);
+//        console.log("exception: ");
+//        console.log(exception);
+//        });
+//
+// } // loadStyle
+// //----------------------------------------------------------------------------------------------------
