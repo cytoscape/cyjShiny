@@ -1,9 +1,9 @@
 #----------------------------------------------------------------------------------------------------
-cyjShiny <- function(message, width = NULL, height = NULL, elementId = NULL)
+cyjShiny <- function(graph, width = NULL, height = NULL, elementId = NULL)
 {
     printf("--- ~/github/cyjShiny/R/cyjShiny ctor");
     x <- list(
-        message = message
+        graph = graph
     )
     
     # create widget

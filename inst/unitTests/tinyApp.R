@@ -9,6 +9,8 @@ source("sepDate.R")
 source("analysis.R")
 
 staffList <- read.table("isbAllStaff",header=FALSE, sep="\t", fill=TRUE)
+tbl <- read.table(file="genemania-interactions.txt", header=TRUE, sep="\t", stringsAsFactors=FALSE)
+nodeList <- c(unique(c(tbl$Gene.1, tbl$Gene.2)))
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
 
@@ -34,8 +36,11 @@ ui = shinyUI(fluidPage(
                                 "cose-bilkent")),
                                 
           selectInput("selectName", "Node Name:",
-                      choices = staffList[[1]]),
-          actionButton("selectNodes", "Select Node"),
+                      choices = c("",
+                                  "Gene A",
+                                  "Gene B",
+                                  "Gene C")),
+          #actionButton("selectNodes", "Select Node"),
           actionButton("clearSelection", "Unselect Nodes"),
           actionButton("loadStyleFileButton", "LOAD style.js"),
           actionButton("getSelectedNodes", "Get Selected Nodes"),
@@ -58,9 +63,10 @@ server = function(input, output, session)
         session$sendCustomMessage(type="doLayout", message=list(input$doLayout))
     })
     
-    observeEvent(input$selectNodes, {
-        printf("about to sendCustomMessage, selectNodes")
+    observeEvent(input$selectName, {
+        printf("about to sendCustomMessage, selectNodes, clearSelection")
         session$sendCustomMessage(type="selectNodes", message=list(input$selectName))
+        session$sendCustomMessage(type="clearSelection", message=list())
     })
 
     observeEvent(input$clearSelection, {
@@ -209,7 +215,46 @@ loadData <- function()
     g.json
 }#loadData
 #------------------------------------------------------------------------------------------
+loadDataExample <- function()
+{
+    tbl <- read.table(file="genemania-interactions.txt", header=TRUE, sep="\t", stringsAsFactors=FALSE)
+    
+    gnel <- new("graphNEL", edgemode = "undirected")
+   
+    all.nodes <- c(unique(c(tbl$Gene.1, tbl$Gene.2)))
 
-graph <- loadData()
+    gnel <- addNode(all.nodes, gnel)
+    gnel <- graph::addEdge(tbl$Gene.1, tbl$Gene.2, gnel)
+     
+    nodeDataDefaults(gnel, attr = "type") <- "undefined"
+    #nodeDataDefaults(gnel, attr="newman") <- 0
+    edgeDataDefaults(gnel, attr = "type") <- "undefined"
+    
+    #nodeData(gnel, nodes(gnel), attr="newman") <- newman
+    edgeData(gnel, tbl$Gene.1, tbl$Gene.2, attr="type") <- tbl$Network.group
+    
+    g.json <- graphToJSON(gnel)
+
+    g.json
+}#loadData
+#------------------------------------------------------------------------------------------
+simpleGraph <- function() {
+
+    all.nodes <- c("Gene A", "Gene B", "Gene C")
+
+    edge.a <- c("Gene A", "Gene B", "Gene C")
+    edge.b <- c("Gene B", "Gene C", "Gene A")
+
+    gnel <- new("graphNEL", edgemode = "undirected")
+
+    gnel <- addNode(all.nodes, gnel)
+    gnel <- addEdge(edge.a, edge.b, gnel)
+
+    gnel.json <- graphToJSON(gnel)
+
+    gnel.json
+}#simpleGraph
+#------------------------------------------------------------------------------------------
+graph <- simpleGraph()
 
 shinyApp(ui = ui, server = server)
