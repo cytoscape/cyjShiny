@@ -2,8 +2,6 @@
     {"selector": "node", "css": {
 	"text-valign":"center",
 	"text-halign":"center",
-	//"border-color": "red",
-	//"background-color": "lightgreen",
 	"content": "data(id)",
 	"border-width": "3px",
 	"height":"40px",

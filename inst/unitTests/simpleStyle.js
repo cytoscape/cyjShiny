@@ -15,6 +15,7 @@
        "text-halign":"center",
        "border-color": "red",
        "content": "data(id)",
+       "font-size":"10px",
        "border-width": "3px",
        "overlay-opacity": 0.2,
        "overlay-color": "gray"

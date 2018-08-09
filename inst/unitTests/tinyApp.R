@@ -3,14 +3,6 @@ library(cyjShiny)
 library(htmlwidgets)
 library(graph)
 library(jsonlite)
-
-source("organize.R")
-source("sepDate.R")
-source("analysis.R")
-
-staffList <- read.table("isbAllStaff",header=FALSE, sep="\t", fill=TRUE)
-tbl <- read.table(file="genemania-interactions.txt", header=TRUE, sep="\t", stringsAsFactors=FALSE)
-nodeList <- c(unique(c(tbl$Gene.1, tbl$Gene.2)))
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
 
@@ -22,7 +14,13 @@ ui = shinyUI(fluidPage(
   sidebarLayout(
       sidebarPanel(
           actionButton("fit", "Fit Graph"),
-          br(),
+          selectInput("loadStyleFile", "Choose Style: ",
+                      choices=c("",
+                                "geneStyle.js",
+                                "simpleStyle.js",
+                                "sillyStyle.js")),
+                                
+          actionButton("loadStyleFileButton", "LOAD style.js"),
           selectInput("doLayout", "Select Layout:",
                       choices=c("",
                                 "cose",
@@ -41,7 +39,7 @@ ui = shinyUI(fluidPage(
                                   "Gene B",
                                   "Gene C")),
           actionButton("sfn", "Select First Neighbor"),
-          actionButton("loadStyleFileButton", "LOAD style.js"),
+         
           actionButton("getSelectedNodes", "Get Selected Nodes"),
           actionButton("clearSelection", "Unselect Nodes"),
 
@@ -56,6 +54,7 @@ ui = shinyUI(fluidPage(
 #----------------------------------------------------------------------------------------------------
 server = function(input, output, session)
 {
+    
     observeEvent(input$doLayout, {
         printf("about to sendCustomMessage, doLayout")
         session$sendCustomMessage(type="doLayout", message=list(input$doLayout))
@@ -73,7 +72,7 @@ server = function(input, output, session)
 
     observeEvent(input$loadStyleFileButton, {
         printf("tinyApp.R, about to sendCustomMessage, loadStyle")
-        loadStyleFile("style.js")
+        loadStyleFile(input$loadStyleFile)
     })
 
     observeEvent(input$getSelectedNodes, {
@@ -95,7 +94,7 @@ server = function(input, output, session)
     output$cyjShiny <- renderCyjShiny(
         cyjShiny(graph)
     )
-
+    
 } # server
 #----------------------------------------------------------------------------------------------------
 graphToJSON <- function(g) #Copied from RCyjs/R/utils.R
@@ -173,68 +172,7 @@ graphToJSON <- function(g) #Copied from RCyjs/R/utils.R
    paste0(vec.trimmed, collapse=" ")
 
 } # .graphToJSON
-#------------------------------------------------------------------------------------------------------------------------
-loadData <- function()
-{
-    load("interaction_bundle-2018-07-30.RData")
-
-    week <- "all"  # "all", 1, 2, 3, 4, 5, 6
-
-    tbl <- fixTbl(tbl) #organize.R
-
-    if(week != "all")
-        tbl <- s.date(tbl, week) #sepDate.R
-
-    tbl$signature <- paste(tbl$a, tbl$b, sep=":")
-
-    gnel <- new("graphNEL", edgemode = "undirected")
-                                        #gnel <- new("graphNEL", edgemode = "directed")
-
-    all.nodes <- c(unique(c(tbl$a, tbl$b)))
-    duplicated.interactions <- which(duplicated(tbl$signature))
-    tbl.unique <- tbl[-duplicated.interactions,]
-
-    gnel <- addNode(all.nodes, gnel)
-    gnel <- graph::addEdge(tbl.unique$a, tbl.unique$b, gnel)
-
-    #gi <- igraph.from.graphNEL(gnel, name = TRUE, weight = TRUE, unlist.attrs = TRUE)
-    #newman <- community.newman(gi) #analysis.R
-    #print(head(newman))
-
-    #nodeDataDefaults(gnel, attr = "type") <- "undefined"
-    #nodeDataDefaults(gnel, attr="newman") <- 0
-    #edgeDataDefaults(gnel, attr = "count") <- 0
-
-    #nodeData(gnel, nodes(gnel), attr="newman") <- newman
-
-    g.json <- graphToJSON(gnel)
-
-    g.json
-}#loadData
-#------------------------------------------------------------------------------------------
-loadDataExample <- function()
-{
-    tbl <- read.table(file="genemania-interactions.txt", header=TRUE, sep="\t", stringsAsFactors=FALSE)
-    
-    gnel <- new("graphNEL", edgemode = "undirected")
-   
-    all.nodes <- c(unique(c(tbl$Gene.1, tbl$Gene.2)))
-
-    gnel <- addNode(all.nodes, gnel)
-    gnel <- graph::addEdge(tbl$Gene.1, tbl$Gene.2, gnel)
-     
-    nodeDataDefaults(gnel, attr = "type") <- "undefined"
-    #nodeDataDefaults(gnel, attr="newman") <- 0
-    edgeDataDefaults(gnel, attr = "type") <- "undefined"
-    
-    #nodeData(gnel, nodes(gnel), attr="newman") <- newman
-    edgeData(gnel, tbl$Gene.1, tbl$Gene.2, attr="type") <- tbl$Network.group
-    
-    g.json <- graphToJSON(gnel)
-
-    g.json
-}#loadData
-#------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------
 simpleGraph <- function() {
 
     all.nodes <- c("Gene A", "Gene B", "Gene C")
@@ -253,5 +191,4 @@ simpleGraph <- function() {
 }#simpleGraph
 #------------------------------------------------------------------------------------------
 graph <- simpleGraph()
-
 shinyApp(ui = ui, server = server)
