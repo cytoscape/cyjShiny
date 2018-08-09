@@ -20,7 +20,7 @@ ui = shinyUI(fluidPage(
                                 "simpleStyle.js",
                                 "sillyStyle.js")),
                                 
-          actionButton("loadStyleFileButton", "LOAD style.js"),
+          #actionButton("loadStyleFileButton", "LOAD style.js"),
           selectInput("doLayout", "Select Layout:",
                       choices=c("",
                                 "cose",
@@ -39,7 +39,6 @@ ui = shinyUI(fluidPage(
                                   "Gene B",
                                   "Gene C")),
           actionButton("sfn", "Select First Neighbor"),
-         
           actionButton("getSelectedNodes", "Get Selected Nodes"),
           actionButton("clearSelection", "Unselect Nodes"),
 
@@ -70,9 +69,10 @@ server = function(input, output, session)
         session$sendCustomMessage(type="clearSelection", message=list())
     })
 
-    observeEvent(input$loadStyleFileButton, {
+    observeEvent(input$loadStyleFile, {
         printf("tinyApp.R, about to sendCustomMessage, loadStyle")
-        loadStyleFile(input$loadStyleFile)
+        if(input$loadStyleFile != "")
+            loadStyleFile(input$loadStyleFile)
     })
 
     observeEvent(input$getSelectedNodes, {

@@ -3,8 +3,8 @@
    {"selector": "node", "css": {
        "text-valign":"center",
        "text-halign":"center",
-       "border-color": "red",
-       "background-color": "lightgreen",
+       "border-color": "black",
+       "background-color": "gray",
        "content": "",
        "border-width": "3px"
        }},
@@ -15,7 +15,7 @@
        "text-halign":"center",
        "border-color": "red",
        "content": "data(id)",
-       "font-size":"10px",
+       "font-size":"7px",
        "border-width": "3px",
        "overlay-opacity": 0.2,
        "overlay-color": "gray"
