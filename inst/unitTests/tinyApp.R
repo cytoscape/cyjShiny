@@ -40,17 +40,15 @@ ui = shinyUI(fluidPage(
                                   "Gene A",
                                   "Gene B",
                                   "Gene C")),
-          #actionButton("selectNodes", "Select Node"),
-          actionButton("clearSelection", "Unselect Nodes"),
+          actionButton("sfn", "Select First Neighbor"),
           actionButton("loadStyleFileButton", "LOAD style.js"),
           actionButton("getSelectedNodes", "Get Selected Nodes"),
-          actionButton("sfn", "Select First Neighbor"),
+          actionButton("clearSelection", "Unselect Nodes"),
 
           hr(),
           width=2
       ),
-      mainPanel(
-          cyjShinyOutput('cyjShiny'),
+      mainPanel(cyjShinyOutput('cyjShiny'),
           width=10
       )
   ) # sidebarLayout
@@ -64,9 +62,8 @@ server = function(input, output, session)
     })
     
     observeEvent(input$selectName, {
-        printf("about to sendCustomMessage, selectNodes, clearSelection")
+        printf("about to sendCustomMessage, selectNodes")
         session$sendCustomMessage(type="selectNodes", message=list(input$selectName))
-        session$sendCustomMessage(type="clearSelection", message=list())
     })
 
     observeEvent(input$clearSelection, {
@@ -74,9 +71,9 @@ server = function(input, output, session)
         session$sendCustomMessage(type="clearSelection", message=list())
     })
 
-    observeEvent(input$loadStyleFileButton, { #DOESNT WORK
+    observeEvent(input$loadStyleFileButton, {
         printf("tinyApp.R, about to sendCustomMessage, loadStyle")
-        loadStyleFile("newStyle.js")
+        loadStyleFile("style.js")
     })
 
     observeEvent(input$getSelectedNodes, {

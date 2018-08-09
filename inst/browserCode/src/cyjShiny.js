@@ -32,54 +32,12 @@ HTMLWidgets.widget({
 		var data = JSON.parse(x.graph);
 		console.log(data);
 
-		//htmlElement = el;
+		var cyDiv = el;
 
 		cyj = cytoscape({
 		    container: cyDiv,
 		    elements: data.elements,
 		    layout: {name: 'cose'},
-		    style: [{selector: "node", css: {
-			"shape": "ellipse",
-			"text-valign":"center",
-			"text-halign":"center",
-
-			"content": "data(id)",
-			"border-width": "3px",
-			"background-color": "#4E4646",
-			"border-color":"black",
-			"width": "80px",
-			"height": "80px",
-			"font-size":"15px",
-			"color":"white"
-		    }},		    
-
-		    {selector:"node:selected", css: {
-			"text-valign":"center",
-			"text-halign":"center",
-			"border-color": "black",
-			"content": "data(id)",
-			"border-width": "3px",
-			"overlay-opacity": 0.2,
-			"overlay-color": "gray"
-		    }},
-
-
-		    {selector:"edge", css: {
-			"line-color": "rgb(50,50,50)",
-			'target-arrow-color': 'rgb(50,50,50)',
-			'target-arrow-shape': 'triangle',
-			"width": "1px",
-			'curve-style': 'bezier',
-			'haystack-radius': 0.5
-		    }},
-
-
-		    {"selector": "edge:selected", css: {
-			"overlay-opacity": 0.2,
-			"overlay-color": "gray",
-			"width": "2px",
-		    }}],
-
 
 		    ready: function(){
 			$("#cyjShiny").height(0.8 * window.innerHeight);
