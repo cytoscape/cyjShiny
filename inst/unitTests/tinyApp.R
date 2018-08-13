@@ -6,8 +6,12 @@ library(jsonlite)
 
 styleList <- c("", "Yeast-Galactose"="yeastGalactoseStyle.js")
 load("yeastGalactoseGraphNEL.RData")
+load("yeastGalactose.RData")
+tbl.mrna <- as.data.frame(tbl.mrna)
 nodeAttrs <- nodeData(g, attr="label")
 yeastGalactoseNodes <- as.character(nodeAttrs)
+nodeDataDefaults(g, attr="lfc") <- 0
+condition <- c("", "gal1RGexp"=tbl.mrnn$gal1RGexp, "gal4RGexp"=tbl.mrna$gal4Gexp, "gal80Rexp"=tbl.mrna$gal80Rexp)
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
 
@@ -19,7 +23,10 @@ ui = shinyUI(fluidPage(
   sidebarLayout(
       sidebarPanel(
           actionButton("fit", "Fit Graph"),
-          selectInput("loadStyleFile", "Choose Style: ",
+          hr(),
+          selectInput("setNodeAttributes", "Select Condition:",
+                      choices=condition),
+          selectInput("loadStyleFile", "Select Style: ",
                       choices=styleList),
           selectInput("doLayout", "Select Layout:",
                       choices=c("",
@@ -55,6 +62,11 @@ server = function(input, output, session)
         printf("about to sendCustomMessage, fit")
         session$sendCustomMessage(type="fit", message=list(50))
     })
+
+    observeEvent(input$setNodeAttributes, {
+
+    })
+        
     
     observeEvent(input$doLayout, {
         printf("about to sendCustomMessage, doLayout")
