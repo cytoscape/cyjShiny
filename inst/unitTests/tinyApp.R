@@ -3,6 +3,11 @@ library(cyjShiny)
 library(htmlwidgets)
 library(graph)
 library(jsonlite)
+
+styleList <- c("", "Yeast-Galactose"="yeastGalactoseStyle.js")
+load("yeastGalactoseGraphNEL.RData")
+nodeAttrs <- nodeData(g, attr="label")
+yeastGalactoseNodes <- as.character(nodeAttrs)
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
 
@@ -15,12 +20,7 @@ ui = shinyUI(fluidPage(
       sidebarPanel(
           actionButton("fit", "Fit Graph"),
           selectInput("loadStyleFile", "Choose Style: ",
-                      choices=c("",
-                                "geneStyle.js",
-                                "simpleStyle.js",
-                                "sillyStyle.js")),
-                                
-          #actionButton("loadStyleFileButton", "LOAD style.js"),
+                      choices=styleList),
           selectInput("doLayout", "Select Layout:",
                       choices=c("",
                                 "cose",
@@ -34,15 +34,13 @@ ui = shinyUI(fluidPage(
                                 "cose-bilkent")),
 
           selectInput("selectName", "Node Name:",
-                      choices = c("",
-                                  "Gene A",
-                                  "Gene B",
-                                  "Gene C")),
+                      choices = yeastGalactoseNodes),
           actionButton("sfn", "Select First Neighbor"),
           actionButton("getSelectedNodes", "Get Selected Nodes"),
           actionButton("clearSelection", "Unselect Nodes"),
 
           hr(),
+          actionButton("redraw", "Update"),
           width=2
       ),
       mainPanel(cyjShinyOutput('cyjShiny'),
@@ -52,13 +50,17 @@ ui = shinyUI(fluidPage(
 ))
 #----------------------------------------------------------------------------------------------------
 server = function(input, output, session)
-{
+{           
+    observeEvent(input$fit, {
+        printf("about to sendCustomMessage, fit")
+        session$sendCustomMessage(type="fit", message=list(50))
+    })
     
     observeEvent(input$doLayout, {
         printf("about to sendCustomMessage, doLayout")
         session$sendCustomMessage(type="doLayout", message=list(input$doLayout))
     })
-    
+         
     observeEvent(input$selectName, {
         printf("about to sendCustomMessage, selectNodes")
         session$sendCustomMessage(type="selectNodes", message=list(input$selectName))
@@ -80,11 +82,6 @@ server = function(input, output, session)
         session$sendCustomMessage(type="getSelectedNodes", message=list())
     })
 
-    observeEvent(input$fit, {
-        printf("about to sendCustomMessage, fit")
-        session$sendCustomMessage(type="fit", message=list(50))
-    })
-
     observeEvent(input$sfn, {
         printf("about to sendCustomMessage, sfn")
         session$sendCustomMessage(type="sfn", message=list())
@@ -92,7 +89,7 @@ server = function(input, output, session)
 
     output$value <- renderPrint({ input$action })
     output$cyjShiny <- renderCyjShiny(
-        cyjShiny(graph)
+        cyjShiny(graphYG)
     )
     
 } # server
@@ -190,5 +187,6 @@ simpleGraph <- function() {
     gnel.json
 }#simpleGraph
 #------------------------------------------------------------------------------------------
-graph <- simpleGraph()
+graph <- simpleGraph() #Change in output$cyjShiny
+graphYG <- graphToJSON(g)
 shinyApp(ui = ui, server = server)

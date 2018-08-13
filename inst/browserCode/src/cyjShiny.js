@@ -31,7 +31,8 @@ HTMLWidgets.widget({
 		
 		var data = JSON.parse(x.graph);
 		console.log(data);
-
+		
+		
 		var cyDiv = el;
 
 		cyj = cytoscape({
@@ -40,11 +41,14 @@ HTMLWidgets.widget({
 		    layout: {name: 'cose'},
 
 		    ready: function(){
-			$("#cyjShiny").height(0.8 * window.innerHeight);
+			$("#cyjShiny").height(0.95*window.innerHeight);
 			var cyj = this;
 			window.cyj = this;   // terrible hack.  but gives us a simple way to call cytosacpe functions
 			console.log("small cyjs network ready, with " + cyj.nodes().length + " nodes.");
-
+			cyj.nodes().map(function(node){node.data({degree: node.degree()})});
+			setTimeout(function() {
+			    cyj.fit()
+			}, 600);
 		    } // ready
 		}) // cytoscape()
             }, // renderValue
