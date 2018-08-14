@@ -10,6 +10,7 @@ load("yeastGalactose.RData")
 tbl.mrna <- as.data.frame(tbl.mrna)
 nodeAttrs <- nodeData(g, attr="label")
 nodeDataDefaults(g, attr="lfc") <- 0
+#nodeData(g, nodes(g), attr="lfc") <- tbl.mrna$gal1RGexp
 attribute <- "lfc"
 
 yeastGalactoseNodes <- as.character(nodeAttrs)
