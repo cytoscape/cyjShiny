@@ -9,9 +9,11 @@ load("yeastGalactoseGraphNEL.RData")
 load("yeastGalactose.RData")
 tbl.mrna <- as.data.frame(tbl.mrna)
 nodeAttrs <- nodeData(g, attr="label")
-yeastGalactoseNodes <- as.character(nodeAttrs)
 nodeDataDefaults(g, attr="lfc") <- 0
-condition <- c("", "gal1RGexp"=tbl.mrnn$gal1RGexp, "gal4RGexp"=tbl.mrna$gal4Gexp, "gal80Rexp"=tbl.mrna$gal80Rexp)
+attribute <- "lfc"
+
+yeastGalactoseNodes <- as.character(nodeAttrs)
+condition <- c("", "gal1RGexp", "gal4RGexp", "gal80Rexp")
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
 
@@ -63,8 +65,17 @@ server = function(input, output, session)
         session$sendCustomMessage(type="fit", message=list(50))
     })
 
-    observeEvent(input$setNodeAttributes, {
-
+    observeEvent(input$redraw, {
+        printf("about to sendCustomMessage, redraw, setNodeAttributes")
+        session$sendCustomMessage(type="redraw", message=list())
+  
+        if(input$setNodeAttributes == "gal1RGexp"){
+            session$sendCustomMessage(type="setNodeAttributes", message=list(attribute=attribute, nodes=yeastGalactoseNodes, values=tbl.mrna$gal1RGexp))
+        } else if(input$setNodeAttributes == "gal4RGexp"){
+            session$sendCustomMessage(type="setNodeAttributes", message=list(tbl.mrna$gal4RGexp))
+        } else {
+            session$sendCustomMessage(type="setNodeAttributes", message=list(tbl.mrna$gal80Rexp))
+        }
     })
         
     

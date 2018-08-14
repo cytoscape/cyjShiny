@@ -80,6 +80,31 @@ Shiny.addCustomMessageHandler("doLayout", function(message){
 
 })
 //------------------------------------------------------------------------------------------------------------------------
+Shiny.addCustomMessageHandler("redraw", function(message){
+    
+    console.log("redraw requested");
+    
+    self.cyj.style().update();
+})
+//------------------------------------------------------------------------------------------------------------------------
+Shiny.addCustomMessageHandler("setNodeAttributes", function(message){
+
+    console.log("setNodeAttributes requested")
+
+    var nodeIDs = message.nodes;
+    
+    var attributeName = message.attribute;
+    
+    for(var i=0; i < nodeIDs.length; i++){
+	var id = nodeIDs[i];
+	var newValue = message.values[i];
+	var filterString = "[id='" + id + "']";
+	var dataObj = self.cyj.nodes().filter(filterString).data();
+	Object.defineProperty(dataObj, attributeName, {value: newValue});
+    };
+    
+})
+//------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("selectNodes", function(message){
 
    console.log("selectNodes requested: " + message);
