@@ -73,9 +73,9 @@ server = function(input, output, session)
         if(input$setNodeAttributes == "gal1RGexp"){
             session$sendCustomMessage(type="setNodeAttributes", message=list(attribute=attribute, nodes=yeastGalactoseNodes, values=tbl.mrna$gal1RGexp))
         } else if(input$setNodeAttributes == "gal4RGexp"){
-            session$sendCustomMessage(type="setNodeAttributes", message=list(tbl.mrna$gal4RGexp))
+            session$sendCustomMessage(type="setNodeAttributes", message=list(attribute=attribute, nodes=yeastGalactoseNodes, values=tbl.mrna$gal4RGexp))
         } else {
-            session$sendCustomMessage(type="setNodeAttributes", message=list(tbl.mrna$gal80Rexp))
+            session$sendCustomMessage(type="setNodeAttributes", message=list(attribute=attribute, nodes=yeastGalactoseNodes, values=tbl.mrna$gal80Rexp))
         }
     })
         
