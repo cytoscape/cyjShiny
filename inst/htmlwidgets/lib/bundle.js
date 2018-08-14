@@ -99812,7 +99812,8 @@ HTMLWidgets.widget({
 		
 		var data = JSON.parse(x.graph);
 		console.log(data);
-
+		
+		
 		var cyDiv = el;
 
 		cyj = cytoscape({
@@ -99821,11 +99822,14 @@ HTMLWidgets.widget({
 		    layout: {name: 'cose'},
 
 		    ready: function(){
-			$("#cyjShiny").height(0.8 * window.innerHeight);
+			$("#cyjShiny").height(0.95*window.innerHeight);
 			var cyj = this;
 			window.cyj = this;   // terrible hack.  but gives us a simple way to call cytosacpe functions
 			console.log("small cyjs network ready, with " + cyj.nodes().length + " nodes.");
-
+			cyj.nodes().map(function(node){node.data({degree: node.degree()})});
+			setTimeout(function() {
+			    cyj.fit()
+			}, 600);
 		    } // ready
 		}) // cytoscape()
             }, // renderValue
@@ -99855,6 +99859,31 @@ Shiny.addCustomMessageHandler("doLayout", function(message){
 
     self.cyj.layout({name: strategy}).run()
 
+})
+//------------------------------------------------------------------------------------------------------------------------
+Shiny.addCustomMessageHandler("redraw", function(message){
+    
+    console.log("redraw requested");
+    self.cyj.style().update();
+})
+//------------------------------------------------------------------------------------------------------------------------
+Shiny.addCustomMessageHandler("setNodeAttributes", function(message){
+
+    console.log("setNodeAttributes requested")
+
+    var nodeIDs = message.nodes;    
+    var attributeName = message.attribute;
+    
+    for(var i=0; i < nodeIDs.length; i++){
+	var id = nodeIDs[i];	
+	var newValue = message.values[i];
+	var filterString = "[id='" + id + "']";
+	var dataObj = self.cyj.nodes().filter(filterString).data();
+	
+	Object.defineProperty(dataObj, attributeName, {value: newValue});
+    };
+
+    self.cyj.style().update();
 })
 //------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("selectNodes", function(message){

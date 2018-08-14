@@ -4,16 +4,16 @@ library(htmlwidgets)
 library(graph)
 library(jsonlite)
 
-styleList <- c("", "Yeast-Galactose"="yeastGalactoseStyle.js")
 load("yeastGalactoseGraphNEL.RData")
 load("yeastGalactose.RData")
 tbl.mrna <- as.data.frame(tbl.mrna)
 nodeAttrs <- nodeData(g, attr="label")
-nodeDataDefaults(g, attr="lfc") <- 0
-#nodeData(g, nodes(g), attr="lfc") <- tbl.mrna$gal1RGexp
+g <- removeNode("YER056CA", g)
 attribute <- "lfc"
 
-yeastGalactoseNodes <- as.character(nodeAttrs)
+yeastGalactoseNodeNames <- as.character(nodeAttrs)
+yeastGalactoseNodeId <- nodes(g)
+styleList <- c("", "Yeast-Galactose"="yeastGalactoseStyle.js")
 condition <- c("", "gal1RGexp", "gal4RGexp", "gal80Rexp")
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
@@ -43,14 +43,13 @@ ui = shinyUI(fluidPage(
                                 "dagre",
                                 "cose-bilkent")),
 
-          selectInput("selectName", "Node Name:",
-                      choices = yeastGalactoseNodes),
+          selectInput("selectName", "Node ID:",
+                      choices = c("", nodes(g))),
           actionButton("sfn", "Select First Neighbor"),
           actionButton("getSelectedNodes", "Get Selected Nodes"),
           actionButton("clearSelection", "Unselect Nodes"),
 
           hr(),
-          actionButton("redraw", "Update"),
           width=2
       ),
       mainPanel(cyjShinyOutput('cyjShiny'),
@@ -66,19 +65,26 @@ server = function(input, output, session)
         session$sendCustomMessage(type="fit", message=list(50))
     })
 
-    observeEvent(input$redraw, {
+    observeEvent(input$setNodeAttributes, {
         printf("about to sendCustomMessage, redraw, setNodeAttributes")
-        session$sendCustomMessage(type="redraw", message=list())
-  
+
         if(input$setNodeAttributes == "gal1RGexp"){
-            session$sendCustomMessage(type="setNodeAttributes", message=list(attribute=attribute, nodes=yeastGalactoseNodes, values=tbl.mrna$gal1RGexp))
+            session$sendCustomMessage(type="setNodeAttributes",
+                                      message=list(attribute=attribute, nodes=yeastGalactoseNodeId, values=tbl.mrna$gal1RGexp))
         } else if(input$setNodeAttributes == "gal4RGexp"){
-            session$sendCustomMessage(type="setNodeAttributes", message=list(attribute=attribute, nodes=yeastGalactoseNodes, values=tbl.mrna$gal4RGexp))
+            session$sendCustomMessage(type="setNodeAttributes",
+                                      message=list(attribute=attribute, nodes=yeastGalactoseNodeId, values=tbl.mrna$gal4RGexp))
         } else {
-            session$sendCustomMessage(type="setNodeAttributes", message=list(attribute=attribute, nodes=yeastGalactoseNodes, values=tbl.mrna$gal80Rexp))
+            session$sendCustomMessage(type="setNodeAttributes",
+                                      message=list(attribute=attribute, nodes=yeastGalactoseNodeId, values=tbl.mrna$gal80Rexp))
         }
+    })    
+
+    observeEvent(input$loadStyleFile, {
+        printf("tinyApp.R, about to sendCustomMessage, loadStyle")
+        if(input$loadStyleFile != "")
+            loadStyleFile(input$loadStyleFile)
     })
-        
     
     observeEvent(input$doLayout, {
         printf("about to sendCustomMessage, doLayout")
@@ -90,30 +96,24 @@ server = function(input, output, session)
         session$sendCustomMessage(type="selectNodes", message=list(input$selectName))
     })
 
-    observeEvent(input$clearSelection, {
-        printf("about to sendCustomMessage, clearSelection")
-        session$sendCustomMessage(type="clearSelection", message=list())
-    })
-
-    observeEvent(input$loadStyleFile, {
-        printf("tinyApp.R, about to sendCustomMessage, loadStyle")
-        if(input$loadStyleFile != "")
-            loadStyleFile(input$loadStyleFile)
+    observeEvent(input$sfn, {
+        printf("about to sendCustomMessage, sfn")
+        session$sendCustomMessage(type="sfn", message=list())
     })
 
     observeEvent(input$getSelectedNodes, {
         printf("about to sendCustomMessage, getSelectedNodes")
         session$sendCustomMessage(type="getSelectedNodes", message=list())
     })
-
-    observeEvent(input$sfn, {
-        printf("about to sendCustomMessage, sfn")
-        session$sendCustomMessage(type="sfn", message=list())
+    
+    observeEvent(input$clearSelection, {
+        printf("about to sendCustomMessage, clearSelection")
+        session$sendCustomMessage(type="clearSelection", message=list())
     })
 
     output$value <- renderPrint({ input$action })
     output$cyjShiny <- renderCyjShiny(
-        cyjShiny(graphYG)
+        cyjShiny(graph)
     )
     
 } # server
@@ -194,23 +194,5 @@ graphToJSON <- function(g) #Copied from RCyjs/R/utils.R
 
 } # .graphToJSON
 #----------------------------------------------------------------------------------------------------------
-simpleGraph <- function() {
-
-    all.nodes <- c("Gene A", "Gene B", "Gene C")
-
-    edge.a <- c("Gene A", "Gene B", "Gene C")
-    edge.b <- c("Gene B", "Gene C", "Gene A")
-
-    gnel <- new("graphNEL", edgemode = "undirected")
-
-    gnel <- addNode(all.nodes, gnel)
-    gnel <- addEdge(edge.a, edge.b, gnel)
-
-    gnel.json <- graphToJSON(gnel)
-
-    gnel.json
-}#simpleGraph
-#------------------------------------------------------------------------------------------
-graph <- simpleGraph() #Change in output$cyjShiny
-graphYG <- graphToJSON(g)
+graph <- graphToJSON(g)
 shinyApp(ui = ui, server = server)
