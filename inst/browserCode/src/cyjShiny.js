@@ -149,6 +149,23 @@ Shiny.addCustomMessageHandler("sfn", function(message){
 
 })
 //------------------------------------------------------------------------------------------------------------------------
+Shiny.addCustomMessageHandler("fitSelected", function(message){
+
+    console.log("fitSelected requested");
+
+    //var self = this;
+    var selectedNodes = self.cyj.filter("node:selected");
+    var padding = 200;
+    
+    if(selectedNodes.length == 0){
+	console.log("no nodes currently selected")
+     }
+   else{
+       console.log("fitSelected, with padding " + padding);
+       self.cyj.fit(selectedNodes, padding)
+   }
+})
+//------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("fit", function(message){
 
     console.log("fit requested", + message);

@@ -48,6 +48,7 @@ ui = shinyUI(fluidPage(
           selectInput("selectName", "Node ID:",
                       choices = c("", nodes(g))),
           actionButton("sfn", "Select First Neighbor"),
+          actionButton("fitSelected", "Fit Selected"),
           actionButton("getSelectedNodes", "Get Selected Nodes"),
           actionButton("clearSelection", "Unselect Nodes"),
 
@@ -102,6 +103,11 @@ server = function(input, output, session)
     observeEvent(input$sfn, {
         printf("about to sendCustomMessage, sfn")
         session$sendCustomMessage(type="sfn", message=list())
+    })
+
+    observeEvent(input$fitSelected, {
+        printf("about to sendCustomMessage, fitSelected")
+        session$sendCustomMessage(type="fitSelected", message=list())
     })
 
     observeEvent(input$getSelectedNodes, {
