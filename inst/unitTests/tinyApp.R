@@ -13,6 +13,10 @@ attribute <- "lfc"
 
 yeastGalactoseNodeNames <- as.character(nodeAttrs)
 yeastGalactoseNodeId <- nodes(g)
+
+g <- addNode("gal1RGexp", g)
+nodeDataDefaults(g, attr="special") <- "undefined"
+nodeData(g, "gal1RGexp", attr="special") <- "special"
 styleList <- c("", "Yeast-Galactose"="yeastGalactoseStyle.js")
 condition <- c("", "gal1RGexp", "gal4RGexp", "gal80Rexp")
 #----------------------------------------------------------------------------------------------------
@@ -50,6 +54,7 @@ ui = shinyUI(fluidPage(
           actionButton("clearSelection", "Unselect Nodes"),
 
           hr(),
+          actionButton("loopConditions", "Loop Conditions"),
           width=2
       ),
       mainPanel(cyjShinyOutput('cyjShiny'),
@@ -109,6 +114,22 @@ server = function(input, output, session)
     observeEvent(input$clearSelection, {
         printf("about to sendCustomMessage, clearSelection")
         session$sendCustomMessage(type="clearSelection", message=list())
+    })
+
+    observeEvent(input$loopConditions, {
+        printf("about to sendCustomMessage, setNodeAttributes")
+        Sys.sleep(1)
+        session$sendCustomMessage(type="setNodeAttributes",
+                                  message=list(attribute=attribute, nodes=yeastGalactoseNodeId, values=tbl.mrna$gal4RGexp))
+        updateSelectInput(session, "setNodeAttributes", selected="gal4RGexp")
+        Sys.sleep(2)
+        session$sendCustomMessage(type="setNodeAttributes",
+                                  message=list(attribute=attribute, nodes=yeastGalactoseNodeId, values=tbl.mrna$gal80Rexp))
+        updateSelectInput(session, "setNodeAttributes", selected="gal80Rexp")
+        Sys.sleep(2)
+        session$sendCustomMessage(type="setNodeAttributes",
+                                  message=list(attribute=attribute, nodes=yeastGalactoseNodeId, values=tbl.mrna$gal1RGexp))
+        updateSelectInput(session, "setNodeAttributes", selected="gal1RGexp")
     })
 
     output$value <- renderPrint({ input$action })
