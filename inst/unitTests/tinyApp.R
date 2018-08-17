@@ -8,15 +8,13 @@ load("yeastGalactoseGraphNEL.RData")
 load("yeastGalactose.RData")
 tbl.mrna <- as.data.frame(tbl.mrna)
 nodeAttrs <- nodeData(g, attr="label")
-g <- removeNode("YER056CA", g)
+g <- removeNode("YER056CA", g) #not used in all three experimental conditions
 attribute <- "lfc"
 
 yeastGalactoseNodeNames <- as.character(nodeAttrs)
 yeastGalactoseNodeId <- nodes(g)
 
 g <- addNode("gal1RGexp", g)
-nodeDataDefaults(g, attr="special") <- "undefined"
-nodeData(g, "gal1RGexp", attr="special") <- "special"
 styleList <- c("", "Yeast-Galactose"="yeastGalactoseStyle.js")
 condition <- c("", "gal1RGexp", "gal4RGexp", "gal80Rexp")
 #----------------------------------------------------------------------------------------------------
