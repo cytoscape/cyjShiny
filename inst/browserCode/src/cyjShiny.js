@@ -155,7 +155,7 @@ Shiny.addCustomMessageHandler("fitSelected", function(message){
 
     //var self = this;
     var selectedNodes = self.cyj.filter("node:selected");
-    var padding = 200;
+    var padding = 50;
     
     if(selectedNodes.length == 0){
 	console.log("no nodes currently selected")

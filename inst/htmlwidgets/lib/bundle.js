@@ -23460,6 +23460,11 @@ BRp.getLabelText = function (ele, prefix) {
     }
   };
 
+  // for empty text, skip all processing
+  if (!text) {
+    return '';
+  }
+
   if (textTransform == 'none') {
     // passthrough
   } else if (textTransform == 'uppercase') {
@@ -28946,7 +28951,7 @@ CRp.drawText = function (context, ele, prefix) {
     textX += marginX;
     textY += marginY;
 
-    var rotation = ele.pstyle('text-rotation');
+    var rotation = ele.pstyle(pdash + 'text-rotation');
     var theta;
 
     if (rotation.strValue === 'autorotate') {
@@ -30535,7 +30540,7 @@ module.exports = Stylesheet;
 "use strict";
 
 
-module.exports = "3.2.15";
+module.exports = "3.2.16";
 
 /***/ })
 /******/ ]);
@@ -99928,6 +99933,23 @@ Shiny.addCustomMessageHandler("sfn", function(message){
     console.log("sfn requested: " + message);
     self.cyj.nodes(':selected').neighborhood().nodes().select();
 
+})
+//------------------------------------------------------------------------------------------------------------------------
+Shiny.addCustomMessageHandler("fitSelected", function(message){
+
+    console.log("fitSelected requested");
+
+    //var self = this;
+    var selectedNodes = self.cyj.filter("node:selected");
+    var padding = 50;
+    
+    if(selectedNodes.length == 0){
+	console.log("no nodes currently selected")
+     }
+   else{
+       console.log("fitSelected, with padding " + padding);
+       self.cyj.fit(selectedNodes, padding)
+   }
 })
 //------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("fit", function(message){
