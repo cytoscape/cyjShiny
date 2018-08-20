@@ -48,3 +48,24 @@ loadStyleFile <- function(filename)
 
 } # loadStyleFile
 #------------------------------------------------------------------------------------------------------------------------
+fit <- function(session)
+{
+   session$sendCustomMessage("fit", list())
+
+} # fitSelected
+#------------------------------------------------------------------------------------------------------------------------
+fitSelected <- function(session)
+{
+   session$sendCustomMessage("fitSelected", list())
+
+} # fitSelected
+#------------------------------------------------------------------------------------------------------------------------
+setNodeAttributes <- function(session, attributeName, nodes, values)
+{
+   printf("R version of setNodeAttributes")
+   session$sendCustomMessage(type="setNodeAttributes",
+                             message=list(attribute=attributeName,
+                                          nodes=nodes,
+                                          values=values))
+} # setNodeAttributes
+#------------------------------------------------------------------------------------------------------------------------

@@ -2,5 +2,7 @@ export(
    cyjShiny,
    cyjShinyOutput,
    renderCyjShiny,
-   loadStyleFile
+   loadStyleFile,
+   fitSelected,
+   setNodeAttributes
    )

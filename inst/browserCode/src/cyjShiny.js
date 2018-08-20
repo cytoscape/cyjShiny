@@ -26,15 +26,9 @@ HTMLWidgets.widget({
 	return {
 	    renderValue: function(x, instance) {
 		console.log("---- ~/github/cyjsShiny/inst/browserCode/src/cyjShiny.js, renderValue")
-
-		console.log(x.graph);
-		
 		var data = JSON.parse(x.graph);
 		console.log(data);
-		
-		
 		var cyDiv = el;
-
 		cyj = cytoscape({
 		    container: cyDiv,
 		    elements: data.elements,
@@ -81,7 +75,7 @@ Shiny.addCustomMessageHandler("doLayout", function(message){
 })
 //------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("redraw", function(message){
-    
+
     console.log("redraw requested");
     self.cyj.style().update();
 })
@@ -90,15 +84,15 @@ Shiny.addCustomMessageHandler("setNodeAttributes", function(message){
 
     console.log("setNodeAttributes requested")
 
-    var nodeIDs = message.nodes;    
+    var nodeIDs = message.nodes;
     var attributeName = message.attribute;
-    
+
     for(var i=0; i < nodeIDs.length; i++){
-	var id = nodeIDs[i];	
+	var id = nodeIDs[i];
 	var newValue = message.values[i];
 	var filterString = "[id='" + id + "']";
 	var dataObj = self.cyj.nodes().filter(filterString).data();
-	
+
 	Object.defineProperty(dataObj, attributeName, {value: newValue});
     };
 
@@ -156,7 +150,7 @@ Shiny.addCustomMessageHandler("fitSelected", function(message){
     //var self = this;
     var selectedNodes = self.cyj.filter("node:selected");
     var padding = 50;
-    
+
     if(selectedNodes.length == 0){
 	console.log("no nodes currently selected")
      }

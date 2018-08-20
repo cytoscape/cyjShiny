@@ -8,11 +8,11 @@ load("yeastGalactoseGraphNEL.RData")
 load("yeastGalactose.RData")
 tbl.mrna <- as.data.frame(tbl.mrna)
 nodeAttrs <- nodeData(g, attr="label")
+
 g <- removeNode("YER056CA", g) #not used in all three experimental conditions
-attribute <- "lfc"
 
 yeastGalactoseNodeNames <- as.character(nodeAttrs)
-yeastGalactoseNodeId <- nodes(g)
+yeastGalactodeNodeIDs <- nodes(g)
 
 g <- addNode("gal1RGexp", g)
 styleList <- c("", "Yeast-Galactose"="yeastGalactoseStyle.js")
@@ -63,38 +63,33 @@ ui = shinyUI(fluidPage(
 ))
 #----------------------------------------------------------------------------------------------------
 server = function(input, output, session)
-{           
+{
     observeEvent(input$fit, {
         printf("about to sendCustomMessage, fit")
         session$sendCustomMessage(type="fit", message=list(50))
     })
 
     observeEvent(input$setNodeAttributes, {
-        printf("about to sendCustomMessage, redraw, setNodeAttributes")
-
-        if(input$setNodeAttributes == "gal1RGexp"){
-            session$sendCustomMessage(type="setNodeAttributes",
-                                      message=list(attribute=attribute, nodes=yeastGalactoseNodeId, values=tbl.mrna$gal1RGexp))
-        } else if(input$setNodeAttributes == "gal4RGexp"){
-            session$sendCustomMessage(type="setNodeAttributes",
-                                      message=list(attribute=attribute, nodes=yeastGalactoseNodeId, values=tbl.mrna$gal4RGexp))
-        } else {
-            session$sendCustomMessage(type="setNodeAttributes",
-                                      message=list(attribute=attribute, nodes=yeastGalactoseNodeId, values=tbl.mrna$gal80Rexp))
-        }
-    })    
+       printf("about to sendCustomMessage, redraw, setNodeAttributes")
+       attribute <- "lfc"
+       expression.vector <- switch(input$setNodeAttributes,
+                                   "gal1RGexp" = tbl.mrna$gal1RGexp,
+                                   "gal4RGexp" = tbl.mrna$gal4RGexp,
+                                   "gal80Rexp" = tbl.mrna$gal80Rexp)
+       setNodeAttributes(session, attributeName=attribute, nodes=yeastGalactodeNodeIDs, values=expression.vector)
+       })
 
     observeEvent(input$loadStyleFile, {
         printf("tinyApp.R, about to sendCustomMessage, loadStyle")
         if(input$loadStyleFile != "")
             loadStyleFile(input$loadStyleFile)
     })
-    
+
     observeEvent(input$doLayout, {
         printf("about to sendCustomMessage, doLayout")
         session$sendCustomMessage(type="doLayout", message=list(input$doLayout))
     })
-         
+
     observeEvent(input$selectName, {
         printf("about to sendCustomMessage, selectNodes")
         session$sendCustomMessage(type="selectNodes", message=list(input$selectName))
@@ -106,15 +101,16 @@ server = function(input, output, session)
     })
 
     observeEvent(input$fitSelected, {
-        printf("about to sendCustomMessage, fitSelected")
-        session$sendCustomMessage(type="fitSelected", message=list())
+        printf("about to call R function fitSelected")
+        fitSelected(session)
+        #session$sendCustomMessage(type="fitSelected", message=list())
     })
 
     observeEvent(input$getSelectedNodes, {
         printf("about to sendCustomMessage, getSelectedNodes")
         session$sendCustomMessage(type="getSelectedNodes", message=list())
     })
-    
+
     observeEvent(input$clearSelection, {
         printf("about to sendCustomMessage, clearSelection")
         session$sendCustomMessage(type="clearSelection", message=list())
@@ -122,25 +118,20 @@ server = function(input, output, session)
 
     observeEvent(input$loopConditions, {
         printf("about to sendCustomMessage, setNodeAttributes")
-        Sys.sleep(1)
-        session$sendCustomMessage(type="setNodeAttributes",
-                                  message=list(attribute=attribute, nodes=yeastGalactoseNodeId, values=tbl.mrna$gal4RGexp))
-        updateSelectInput(session, "setNodeAttributes", selected="gal4RGexp")
-        Sys.sleep(2)
-        session$sendCustomMessage(type="setNodeAttributes",
-                                  message=list(attribute=attribute, nodes=yeastGalactoseNodeId, values=tbl.mrna$gal80Rexp))
-        updateSelectInput(session, "setNodeAttributes", selected="gal80Rexp")
-        Sys.sleep(2)
-        session$sendCustomMessage(type="setNodeAttributes",
-                                  message=list(attribute=attribute, nodes=yeastGalactoseNodeId, values=tbl.mrna$gal1RGexp))
+        condition.names <- c("gal1RGexp", "gal4RGexp", "gal80Rexp")
+        for(condition.name in condition.names){
+           expression.vector <- tbl.mrna[, condition.name]
+           setNodeAttributes(session, attributeName="lfc", nodes=yeastGalactodeNodeIDs, values=expression.vector)
+           Sys.sleep(1)
+           } # for condition.name
         updateSelectInput(session, "setNodeAttributes", selected="gal1RGexp")
-    })
+        })
 
     output$value <- renderPrint({ input$action })
     output$cyjShiny <- renderCyjShiny(
         cyjShiny(graph)
     )
-    
+
 } # server
 #----------------------------------------------------------------------------------------------------
 graphToJSON <- function(g) #Copied from RCyjs/R/utils.R
@@ -217,7 +208,7 @@ graphToJSON <- function(g) #Copied from RCyjs/R/utils.R
    #printf("%d strings used in constructing json", length(vec.trimmed))
    paste0(vec.trimmed, collapse=" ")
 
-} # .graphToJSON
+} # graphToJSON
 #----------------------------------------------------------------------------------------------------------
 graph <- graphToJSON(g)
-shinyApp(ui = ui, server = server)
+app <- shinyApp(ui = ui, server = server)
