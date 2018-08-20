@@ -29,10 +29,8 @@ ui = shinyUI(fluidPage(
       sidebarPanel(
           actionButton("fit", "Fit Graph"),
           hr(),
-          selectInput("setNodeAttributes", "Select Condition:",
-                      choices=condition),
-          selectInput("loadStyleFile", "Select Style: ",
-                      choices=styleList),
+          selectInput("setNodeAttributes", "Select Condition:", choices=condition),
+          selectInput("loadStyleFile", "Select Style: ", choices=styleList),
           selectInput("doLayout", "Select Layout:",
                       choices=c("",
                                 "cose",
@@ -64,12 +62,13 @@ ui = shinyUI(fluidPage(
 #----------------------------------------------------------------------------------------------------
 server = function(input, output, session)
 {
-    observeEvent(input$fit, {
-        printf("about to sendCustomMessage, fit")
-        session$sendCustomMessage(type="fit", message=list(50))
-    })
+    observeEvent(input$fit, ignoreInit=TRUE, {
+       printf("about to sendCustomMessage, fit")
+       fit(session, 80)
+       #session$sendCustomMessage(type="fit", message=list(140))
+       })
 
-    observeEvent(input$setNodeAttributes, {
+    observeEvent(input$setNodeAttributes, ignoreInit=TRUE, {
        printf("about to sendCustomMessage, redraw, setNodeAttributes")
        attribute <- "lfc"
        expression.vector <- switch(input$setNodeAttributes,
@@ -79,44 +78,44 @@ server = function(input, output, session)
        setNodeAttributes(session, attributeName=attribute, nodes=yeastGalactodeNodeIDs, values=expression.vector)
        })
 
-    observeEvent(input$loadStyleFile, {
+    observeEvent(input$loadStyleFile,  ignoreInit=TRUE, {
         printf("tinyApp.R, about to sendCustomMessage, loadStyle")
         if(input$loadStyleFile != "")
             loadStyleFile(input$loadStyleFile)
     })
 
-    observeEvent(input$doLayout, {
+    observeEvent(input$doLayout,  ignoreInit=TRUE,{
         printf("about to sendCustomMessage, doLayout")
         session$sendCustomMessage(type="doLayout", message=list(input$doLayout))
     })
 
-    observeEvent(input$selectName, {
+    observeEvent(input$selectName,  ignoreInit=TRUE,{
         printf("about to sendCustomMessage, selectNodes")
         session$sendCustomMessage(type="selectNodes", message=list(input$selectName))
     })
 
-    observeEvent(input$sfn, {
+    observeEvent(input$sfn,  ignoreInit=TRUE,{
         printf("about to sendCustomMessage, sfn")
         session$sendCustomMessage(type="sfn", message=list())
     })
 
-    observeEvent(input$fitSelected, {
+    observeEvent(input$fitSelected,  ignoreInit=TRUE,{
         printf("about to call R function fitSelected")
-        fitSelected(session)
+        fitSelected(session, 100)
         #session$sendCustomMessage(type="fitSelected", message=list())
     })
 
-    observeEvent(input$getSelectedNodes, {
+    observeEvent(input$getSelectedNodes, ignoreInit=TRUE, {
         printf("about to sendCustomMessage, getSelectedNodes")
         session$sendCustomMessage(type="getSelectedNodes", message=list())
     })
 
-    observeEvent(input$clearSelection, {
+    observeEvent(input$clearSelection,  ignoreInit=TRUE, {
         printf("about to sendCustomMessage, clearSelection")
         session$sendCustomMessage(type="clearSelection", message=list())
     })
 
-    observeEvent(input$loopConditions, {
+    observeEvent(input$loopConditions, ignoreInit=TRUE, {
         printf("about to sendCustomMessage, setNodeAttributes")
         condition.names <- c("gal1RGexp", "gal4RGexp", "gal80Rexp")
         for(condition.name in condition.names){

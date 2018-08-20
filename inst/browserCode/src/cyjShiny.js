@@ -35,13 +35,14 @@ HTMLWidgets.widget({
 		    layout: {name: 'cose'},
 
 		    ready: function(){
+                        console.log("cyjShiny cyjs ready");
 			$("#cyjShiny").height(0.95*window.innerHeight);
 			var cyj = this;
 			window.cyj = this;   // terrible hack.  but gives us a simple way to call cytosacpe functions
 			console.log("small cyjs network ready, with " + cyj.nodes().length + " nodes.");
 			cyj.nodes().map(function(node){node.data({degree: node.degree()})});
 			setTimeout(function() {
-			    cyj.fit()
+			    cyj.fit(100)
 			}, 600);
 		    } // ready
 		}) // cytoscape()
@@ -146,10 +147,9 @@ Shiny.addCustomMessageHandler("sfn", function(message){
 Shiny.addCustomMessageHandler("fitSelected", function(message){
 
     console.log("fitSelected requested");
+    var padding = message.padding;
 
-    //var self = this;
     var selectedNodes = self.cyj.filter("node:selected");
-    var padding = 50;
 
     if(selectedNodes.length == 0){
 	console.log("no nodes currently selected")
@@ -161,13 +161,10 @@ Shiny.addCustomMessageHandler("fitSelected", function(message){
 })
 //------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("fit", function(message){
-
     console.log("fit requested", + message);
-    var padding = message;
+    var padding = message.padding;
     self.cyj.fit(padding);
-   });
-
-
+    });
 //------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("loadStyle", function(message) {
 
