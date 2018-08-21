@@ -4,16 +4,21 @@
 \alias{fitSelected}
 \title{Set zoom and center of the graph display so that the currently selected nodes fill the display}
 \usage{
-fitSelected(session)
+fitSelected(session, padding = 50)
 }
 \arguments{
 \item{session}{a Shiny server session object}
+
+\item{padding}{integer, default 50 pixels}
 }
 \description{
 Set zoom and center of the graph display so that the currently selected nodes fill the display
 }
 \examples{
 
-  fitSelected(session)
+  fitSelected(session, 100)
 
+}
+\seealso{
+\code{\link{fit}}
 }

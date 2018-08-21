@@ -2,6 +2,7 @@
 
 export(cyjShiny)
 export(cyjShinyOutput)
+export(doLayout)
 export(fit)
 export(fitSelected)
 export(loadStyleFile)

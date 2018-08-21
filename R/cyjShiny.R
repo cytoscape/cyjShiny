@@ -190,3 +190,25 @@ setNodeAttributes <- function(session, attributeName, nodes, values)
                                           values=values))
 } # setNodeAttributes
 #------------------------------------------------------------------------------------------------------------------------
+#' Layout the current graph using the specified strategy.
+#'
+#' @param session a Shiny Server session object
+#' @param layoutStrategy character string, one of cola, cose, circle, concentric, grid, breadthfirst, random, dagre, cose-bilkent
+#'
+#' @export
+#'
+#' @examples
+#'   doLayout(session, "cola")
+#'
+#' @aliases doLayout
+#' @rdname doLayout
+#----------------------------------------------------------------------------------------------------
+doLayout <- function(session, strategy)
+{
+   stopifnot(strategy %in% c("cola", "cose", "circle", "concentric", "grid", "breadthfirst", "random",
+                             "dagre", "cose-bilkent"))
+
+   session$sendCustomMessage(type="doLayout", message=list(strategy=strategy))
+
+} # doLayout
+#------------------------------------------------------------------------------------------------------------------------

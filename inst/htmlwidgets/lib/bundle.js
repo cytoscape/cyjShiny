@@ -87493,14 +87493,9 @@ HTMLWidgets.widget({
 // });
 //------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("doLayout", function(message){
-
-    console.log("doLayout requested: " + message);
-
-    var strategy = message
-
+    var strategy = message.strategy;
     self.cyj.layout({name: strategy}).run()
-
-})
+    })
 //------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("redraw", function(message){
 
@@ -87588,8 +87583,9 @@ Shiny.addCustomMessageHandler("fitSelected", function(message){
 })
 //------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("fit", function(message){
-    console.log("fit requested", + message);
+    console.log("fit requested: ");
     var padding = message.padding;
+    console.log("   padding: " + padding)
     self.cyj.fit(padding);
     });
 //------------------------------------------------------------------------------------------------------------------------

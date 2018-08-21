@@ -27,9 +27,6 @@ ui = shinyUI(fluidPage(
                     href = "http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css")),
   sidebarLayout(
       sidebarPanel(
-          actionButton("fit", "Fit Graph"),
-          hr(),
-          selectInput("setNodeAttributes", "Select Condition:", choices=condition),
           selectInput("loadStyleFile", "Select Style: ", choices=styleList),
           selectInput("doLayout", "Select Layout:",
                       choices=c("",
@@ -43,9 +40,10 @@ ui = shinyUI(fluidPage(
                                 "dagre",
                                 "cose-bilkent")),
 
-          selectInput("selectName", "Node ID:",
-                      choices = c("", nodes(g))),
+          selectInput("setNodeAttributes", "Select Condition:", choices=condition),
+          selectInput("selectName", "Select Node by ID:", choices = c("", nodes(g))),
           actionButton("sfn", "Select First Neighbor"),
+          actionButton("fit", "Fit Graph"),
           actionButton("fitSelected", "Fit Selected"),
           actionButton("getSelectedNodes", "Get Selected Nodes"),
           actionButton("clearSelection", "Unselect Nodes"),
@@ -63,13 +61,10 @@ ui = shinyUI(fluidPage(
 server = function(input, output, session)
 {
     observeEvent(input$fit, ignoreInit=TRUE, {
-       printf("about to sendCustomMessage, fit")
        fit(session, 80)
-       #session$sendCustomMessage(type="fit", message=list(140))
        })
 
     observeEvent(input$setNodeAttributes, ignoreInit=TRUE, {
-       printf("about to sendCustomMessage, redraw, setNodeAttributes")
        attribute <- "lfc"
        expression.vector <- switch(input$setNodeAttributes,
                                    "gal1RGexp" = tbl.mrna$gal1RGexp,
@@ -79,14 +74,15 @@ server = function(input, output, session)
        })
 
     observeEvent(input$loadStyleFile,  ignoreInit=TRUE, {
-        printf("tinyApp.R, about to sendCustomMessage, loadStyle")
         if(input$loadStyleFile != "")
             loadStyleFile(input$loadStyleFile)
     })
 
     observeEvent(input$doLayout,  ignoreInit=TRUE,{
-        printf("about to sendCustomMessage, doLayout")
-        session$sendCustomMessage(type="doLayout", message=list(input$doLayout))
+        strategy <- input$doLayout
+        printf("about to sendCustomMessage, doLayout: %s", strategy)
+        doLayout(session, strategy)
+        #session$sendCustomMessage(type="doLayout", message=list(input$doLayout))
     })
 
     observeEvent(input$selectName,  ignoreInit=TRUE,{
@@ -102,7 +98,6 @@ server = function(input, output, session)
     observeEvent(input$fitSelected,  ignoreInit=TRUE,{
         printf("about to call R function fitSelected")
         fitSelected(session, 100)
-        #session$sendCustomMessage(type="fitSelected", message=list())
     })
 
     observeEvent(input$getSelectedNodes, ignoreInit=TRUE, {
