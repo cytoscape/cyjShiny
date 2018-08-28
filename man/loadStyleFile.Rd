@@ -7,7 +7,7 @@
 loadStyleFile(filename)
 }
 \arguments{
-\item{filename}{character string, either relative or absolute path}
+\item{filename}{character string, either relative or absolute path.}
 }
 \value{
 nothing
@@ -16,7 +16,8 @@ nothing
 load a standard cytoscape.js style file
 }
 \examples{
-
-loadStyleFile(system.file(package="cyjShiny", "extdata", "yeastGalactoseStyle.js"))
+\dontrun{
+  loadStyleFile(system.file(package="cyjShiny", "extdata", "yeastGalactoseStyle.js"))
+}
 
 }

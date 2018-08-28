@@ -3,7 +3,7 @@ build: webpack  package
 webpack:
 	npm update
 	node_modules/webpack/bin/webpack.js
-	cp dist/bundle.js ../htmlwidgets/lib/
+	mv dist/bundle.js ../htmlwidgets/lib/
 
 package:
 	(cd ../..; R CMD install .)

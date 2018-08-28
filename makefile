@@ -1,4 +1,4 @@
-all:  docs install
+all:  npm docs install build check
 
 docs:
 	R -e "devtools::document()"
@@ -9,13 +9,13 @@ npm:
 	(cd inst/browserCode; make)
 
 build:
-	(cd ..; R CMD build --no-build-vignettes RCyjs)
+	(cd ..; R CMD build --no-build-vignettes cyjShiny)
 
 install:
 	(cd ..; R CMD INSTALL cyjShiny)
 
 check:
-	(cd ..; R CMD check `ls -t RCyjs_* | head -1`)
+	(cd ..; R CMD check `ls -t cyjShiny_* | head -1`)
 
 biocCheck:
-	(cd ..; R CMD BiocCheck `ls -t RCyjs_* | head -1`)
+	(cd ..; R CMD BiocCheck `ls -t cyjShiny_* | head -1`)

@@ -2,31 +2,29 @@
 % Please edit documentation in R/cyjShiny.R
 \name{cyjShiny}
 \alias{cyjShiny}
-\title{Constructor for the cyjShiny widget}
+\title{cyjShiny
+cyjShiny}
 \usage{
 cyjShiny(graph, width = NULL, height = NULL, elementId = NULL)
 }
 \arguments{
-\item{graph}{an R graphNEL instance (igraph support coming soon)}
+\item{graph}{an R graphNEL instance (igraph support coming soon).}
 
-\item{width}{integer  initial width of the widget}
+\item{width}{integer  initial width of the widget.}
 
-\item{height}{integer initial height of the widget}
+\item{height}{integer initial height of the widget.}
 
-\item{elementId}{string the DOM id into which the widget is rendered, default NULL is best}
+\item{elementId}{string the DOM id into which the widget is rendered, default NULL is best.}
 }
 \value{
-a reference to an htmlwidget
+a reference to an htmlwidget.
 }
 \description{
-Constructor for the cyjShiny widget
+This widget wraps cytoscape.js, a full-featured Javsscript network library for visualization and analysis.
 }
 \examples{
-  in ui:
-    mainPanel(cyjShinyOutput('cyjShiny'), width=10)
-
-  in server:
-     ouptu$cyjShiny <- renderCyjShiny(cyjShiny(graph))
-
+\dontrun{
+  output$cyjShiny <- renderCyjShiny(cyjShiny(graph))
+}
 
 }

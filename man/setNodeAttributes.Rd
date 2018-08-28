@@ -2,26 +2,28 @@
 % Please edit documentation in R/cyjShiny.R
 \name{setNodeAttributes}
 \alias{setNodeAttributes}
-\title{Assign the supplied node attribute values to the graph structure contained in the browser}
+\title{Assign the supplied node attribute values to the graph structure contained in the browser.}
 \usage{
 setNodeAttributes(session, attributeName, nodes, values)
 }
 \arguments{
-\item{session}{a Shiny Server session object}
+\item{session}{a Shiny Server session object.}
 
-\item{attributeName}{character string, the attribute to update}
+\item{attributeName}{character string, the attribute to update.}
 
-\item{nodes}{a character vector the names of the nodes whose attributes are updated}
+\item{nodes}{a character vector the names of the nodes whose attributes are updated.}
 
-\item{values}{a character, logical or numeric vector, the new values}
+\item{values}{a character, logical or numeric vector, the new values.}
 }
 \description{
-Assign the supplied node attribute values to the graph structure contained in the browser
+Assign the supplied node attribute values to the graph structure contained in the browser.
 }
 \examples{
+\dontrun{
   setNodeAttributes(session,
                     attributeName=attribute,
                     nodes=yeastGalactodeNodeIDs,
                     values=expression.vector)
+}
 
 }

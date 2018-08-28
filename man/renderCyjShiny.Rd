@@ -2,20 +2,20 @@
 % Please edit documentation in R/cyjShiny.R
 \name{renderCyjShiny}
 \alias{renderCyjShiny}
-\title{More shiny plumbing - now sure exactly what this does}
+\title{More shiny plumbing -  a cyjShiny wrapper for htmlwidget standard rendering operation}
 \usage{
 renderCyjShiny(expr, env = parent.frame(), quoted = FALSE)
 }
 \arguments{
-\item{expr}{not sure...}
+\item{expr}{an expression that generates an HTML widget.}
 
-\item{env}{environment not sure ...}
+\item{env}{environment in which to evaluate expr.}
 
-\item{quoteed}{logical not sure ...}
+\item{quoted}{logical specifies whether expr is quoted ("useuful if you want to save an expression in a variable").}
 }
 \value{
 not sure
 }
 \description{
-More shiny plumbing - now sure exactly what this does
+More shiny plumbing -  a cyjShiny wrapper for htmlwidget standard rendering operation
 }

@@ -7,11 +7,11 @@
 cyjShinyOutput(outputId, width = "100\%", height = "400px")
 }
 \arguments{
-\item{width}{integer  optional initial width of the widget}
+\item{outputId}{the name of the DOM element to create.}
 
-\item{height}{integer optional initial height of the widget}
+\item{width}{integer  optional initial width of the widget.}
 
-\item{outputID}{the name of the DOM element to create}
+\item{height}{integer optional initial height of the widget.}
 }
 \value{
 a reference to an htmlwidget
@@ -20,11 +20,8 @@ a reference to an htmlwidget
 Standard shiny ui rendering construct
 }
 \examples{
-  in ui:
-    mainPanel(cyjShinyOutput('cyjShiny'), width=10)
-
-  in server:
-     ouptu$cyjShiny <- renderCyjShiny(cyjShiny(graph))
-
+\dontrun{
+  mainPanel(cyjShinyOutput('cyjShiny'), width=10)
+}
 
 }

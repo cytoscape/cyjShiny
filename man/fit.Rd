@@ -2,21 +2,22 @@
 % Please edit documentation in R/cyjShiny.R
 \name{fit}
 \alias{fit}
-\title{Set zoom and center of the graph display so that graph fills the display}
+\title{Set zoom and center of the graph display so that graph fills the display.}
 \usage{
 fit(session, padding = 50)
 }
 \arguments{
-\item{session}{a Shiny server session object}
+\item{session}{a Shiny server session object.}
 
-\item{padding}{integer, default 50 pixels}
+\item{padding}{integer, default 50 pixels.}
 }
 \description{
-Set zoom and center of the graph display so that graph fills the display
+Set zoom and center of the graph display so that graph fills the display.
 }
 \examples{
-
+\dontrun{
   fit(session, 100)
+}
 
 }
 \seealso{

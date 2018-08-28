@@ -7,16 +7,17 @@
 fitSelected(session, padding = 50)
 }
 \arguments{
-\item{session}{a Shiny server session object}
+\item{session}{a Shiny server session object.}
 
-\item{padding}{integer, default 50 pixels}
+\item{padding}{integer, default 50 pixels.}
 }
 \description{
 Set zoom and center of the graph display so that the currently selected nodes fill the display
 }
 \examples{
-
+\dontrun{
   fitSelected(session, 100)
+}
 
 }
 \seealso{

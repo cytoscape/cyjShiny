@@ -7,14 +7,15 @@
 doLayout(session, strategy)
 }
 \arguments{
-\item{session}{a Shiny Server session object}
+\item{session}{a Shiny Server session object.}
 
-\item{layoutStrategy}{character string, one of cola, cose, circle, concentric, grid, breadthfirst, random, dagre, cose-bilkent}
+\item{strategy}{a character string, one of cola, cose, circle, concentric, grid, breadthfirst, random, dagre, cose-bilkent.}
 }
 \description{
 Layout the current graph using the specified strategy.
 }
 \examples{
+\dontrun{
   doLayout(session, "cola")
-
+}
 }
