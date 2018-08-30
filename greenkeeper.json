@@ -1,0 +1,9 @@
+{
+  "groups": {
+    "default": {
+      "packages": [
+        "inst/browserCode/package.json"
+      ]
+    }
+  }
+}
