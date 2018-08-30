@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1345344.svg)](https://doi.org/10.5281/zenodo.1345344)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1345344.svg)](https://doi.org/10.5281/zenodo.1345344) [![Greenkeeper badge](https://badges.greenkeeper.io/cytoscape/cyjShiny.svg)](https://greenkeeper.io/)
 
 # r-cytoscape.js: Update **August 27, 2018** 
 
