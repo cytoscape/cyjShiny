@@ -9,4 +9,7 @@ Depends: R (>= 3.5.0), htmlwidgets, shiny, jsonlite
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+Collate:
+   'graphsToJSON.R'
+   'cyjShiny.R'
 RoxygenNote: 6.1.0
