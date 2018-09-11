@@ -45,11 +45,13 @@ ui = shinyUI(fluidPage(
           actionButton("sfn", "Select First Neighbor"),
           actionButton("fit", "Fit Graph"),
           actionButton("fitSelected", "Fit Selected"),
-          actionButton("getSelectedNodes", "Get Selected Nodes"),
           actionButton("clearSelection", "Unselect Nodes"),
-
-          hr(),
+          HTML("<br>"),
           actionButton("loopConditions", "Loop Conditions"),
+          HTML("<br>"),
+          actionButton("getSelectedNodes", "Get Selected Nodes"),
+          HTML("<br><br>"),
+          htmlOutput("selectedNodesDisplay"),
           width=2
       ),
       mainPanel(cyjShinyOutput('cyjShiny'),
@@ -80,38 +82,32 @@ server = function(input, output, session)
 
     observeEvent(input$doLayout,  ignoreInit=TRUE,{
         strategy <- input$doLayout
-        printf("about to sendCustomMessage, doLayout: %s", strategy)
         doLayout(session, strategy)
         #session$sendCustomMessage(type="doLayout", message=list(input$doLayout))
     })
 
     observeEvent(input$selectName,  ignoreInit=TRUE,{
-        printf("about to sendCustomMessage, selectNodes")
         session$sendCustomMessage(type="selectNodes", message=list(input$selectName))
     })
 
     observeEvent(input$sfn,  ignoreInit=TRUE,{
-        printf("about to sendCustomMessage, sfn")
         session$sendCustomMessage(type="sfn", message=list())
     })
 
     observeEvent(input$fitSelected,  ignoreInit=TRUE,{
-        printf("about to call R function fitSelected")
         fitSelected(session, 100)
     })
 
     observeEvent(input$getSelectedNodes, ignoreInit=TRUE, {
-        printf("about to sendCustomMessage, getSelectedNodes")
-        session$sendCustomMessage(type="getSelectedNodes", message=list())
+        output$selectedNodesDisplay <- renderText({" "})
+        getSelectedNodes(session)
     })
 
     observeEvent(input$clearSelection,  ignoreInit=TRUE, {
-        printf("about to sendCustomMessage, clearSelection")
         session$sendCustomMessage(type="clearSelection", message=list())
     })
 
     observeEvent(input$loopConditions, ignoreInit=TRUE, {
-        printf("about to sendCustomMessage, setNodeAttributes")
         condition.names <- c("gal1RGexp", "gal4RGexp", "gal80Rexp")
         for(condition.name in condition.names){
            expression.vector <- tbl.mrna[, condition.name]
@@ -119,6 +115,13 @@ server = function(input, output, session)
            Sys.sleep(1)
            } # for condition.name
         updateSelectInput(session, "setNodeAttributes", selected="gal1RGexp")
+        })
+
+    observeEvent(input$selectedNodes, {
+        newNodes <- input$selectedNodes;
+        output$selectedNodesDisplay <- renderText({
+           paste(newNodes)
+           })
         })
 
     output$value <- renderPrint({ input$action })

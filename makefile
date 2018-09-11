@@ -12,7 +12,7 @@ build:
 	(cd ..; R CMD build --no-build-vignettes cyjShiny)
 
 install:
-	(cd ..; R CMD INSTALL cyjShiny)
+	(cd ..; R CMD INSTALL --no-test-load cyjShiny)
 
 check:
 	(cd ..; R CMD check `ls -t cyjShiny_* | head -1`)

@@ -170,6 +170,26 @@ fitSelected <- function(session, padding=50)
 
 } # fitSelected
 #------------------------------------------------------------------------------------------------------------------------
+#' getSelectedNodes
+#'
+#' \code{getSelectedNodes} get the selected nodes
+#'
+#' @rdname getSelectedNodes
+#' @aliases getSelectedNodes
+#'
+#' @param session a Shiny server session object.
+#'
+#' @return a data.frame with (at least) an id column
+#'
+#' @export
+#'
+
+getSelectedNodes <- function(session)
+{
+   session$sendCustomMessage("getSelectedNodes", message=list())
+
+} # getSelectedNodes
+#----------------------------------------------------------------------------------------------------
 #' Assign the supplied node attribute values to the graph structure contained in the browser.
 #'
 #' @param session a Shiny Server session object.

@@ -66,14 +66,17 @@ HTMLWidgets.widget({
 // });
 //------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("doLayout", function(message){
+
     var strategy = message.strategy;
     self.cyj.layout({name: strategy}).run()
     })
+
 //------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("redraw", function(message){
 
     console.log("redraw requested");
     self.cyj.style().update();
+
 })
 //------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("setNodeAttributes", function(message){
@@ -128,7 +131,14 @@ Shiny.addCustomMessageHandler("clearSelection", function(message){
 Shiny.addCustomMessageHandler("getSelectedNodes", function(message){
 
     console.log("getSelectedNodes requested: " + message);
+    var value = self.cyj.filter("node:selected")
+        .map(function(node) {
+            return(node.data().id)})
+             //return {id: node.data().id, label: node.data().label}})
+
     console.log(self.cyj.filter("node:selected"));
+    console.log(value)
+    Shiny.setInputValue("selectedNodes", value, {priority: "event"});
 
 });
 //------------------------------------------------------------------------------------------------------------------------
