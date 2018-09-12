@@ -1,0 +1,69 @@
+# Convert R dataframes objects to cytoscape.js JSON
+
+#Takes in nodeData and edgeData dataframes with ("id", "name") and ("source", "target") columns respectively 
+#nodeShepe, nodeHeight, nodeWidth, nodeLabelColor, edgeColor, edgeSourceShape, edgeTargetgetShape, and nodeHref are preset but can be changed if desired
+#returns a list of lists with nodes and edge information 
+createcyjNetwork <- function (nodeData, edgeData, nodeColor = "#888888", nodeShape = "ellipse", 
+                              nodeHeight = "70", nodeWidth = "70", nodeLabelColor = "#FFFFFF", 
+                              edgeColor = "#888888", edgeSourceShape = "none", edgeTargetShape = "triangle", 
+                              nodeHref = "") 
+{
+  if (nrow(nodeData) == 0 || !(all(c("id", "name") %in% names(nodeData)))) {
+    stop("ERROR: nodeData must have 'id' and 'name' columns")
+  }
+  if (nrow(edgeData) == 0 || !(all(c("source", "target") %in% 
+                                   names(edgeData)))) {
+    stop("ERROR: edgeData must have 'source' and 'target' columns")
+  }
+  if (!("color" %in% colnames(nodeData))) {
+    nodeData$color <- rep(nodeColor, nrow(nodeData))
+  }
+  if (!("shape" %in% colnames(nodeData))) {
+    nodeData$shape <- rep(nodeShape, nrow(nodeData))
+  }
+  if (!("href" %in% colnames(nodeData))) {
+    nodeData$href <- rep(nodeHref, nrow(nodeData))
+  }
+  if (!("height" %in% colnames(nodeData))) {
+    nodeData$height <- rep(nodeHeight, nrow(nodeData))
+  }
+  if (!("width" %in% colnames(nodeData))) {
+    nodeData$width <- rep(nodeWidth, nrow(nodeData))
+  }
+  if (!("nodeLabelColor" %in% colnames(nodeData))) {
+    nodeData$nodeLabelColor <- rep(nodeLabelColor, nrow(nodeData))
+  }
+  rownames(nodeData) <- NULL
+  nodeEntries <- apply(nodeData, 1, function(x) {
+    list(data = as.list(x))
+  })
+  if (!("color" %in% colnames(edgeData))) {
+    edgeData$color <- rep(edgeColor, nrow(edgeData))
+  }
+  if (!("sourceShape" %in% colnames(edgeData))) {
+    edgeData$edgeSourceShape <- rep(edgeSourceShape, nrow(edgeData))
+  }
+  if (!("targetShape" %in% colnames(edgeData))) {
+    edgeData$edgeTargetShape <- rep(edgeTargetShape, nrow(edgeData))
+  }
+  rownames(edgeData) <- NULL
+  edgeEntries <- apply(edgeData, 1, function(x) {
+    list(data = as.list(x))
+  })
+  network <- list(nodes = nodeEntries, edges = edgeEntries)
+  return(network)
+}
+
+cyjShinyRender <- function (nodeEntries, edgeEntries, layout = "cose", width = NULL, 
+                            height = NULL, showPanzoom = TRUE, highlightConnectedNodes = TRUE, 
+                            boxSelectionEnabled = TRUE){
+  x = list()
+  x$nodeEntries <- nodeEntries
+  x$edgeEntries <- edgeEntries
+  x$layout <- layout
+  x$showPanzoom <- showPanzoom
+  x$highlightConnectedNodes <- highlightConnectedNodes
+  x$boxSelectionEnabled <- boxSelectionEnabled
+  htmlwidgets::createWidget(name = 'cyjShiny', x, width = width, 
+                            height = height, package = 'cyjShiny')
+}
