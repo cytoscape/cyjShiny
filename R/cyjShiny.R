@@ -37,9 +37,9 @@ cyjShiny <- function(graph, width = NULL, height = NULL, elementId = NULL)
        x,
        width = width,
        height = height,
-                     package = 'cyjShiny',
+       package = 'cyjShiny',
        elementId = elementId
-    )
+       )
 
 } # cyjShiny constructor
 #------------------------------------------------------------------------------------------------------------------------
@@ -117,7 +117,6 @@ loadStyleFile <- function(filename)
       }
 
    jsonText <- toJSON(fromJSON(filename))
-   print(jsonText)
    message <- list(json=jsonText)
    session <- shiny::getDefaultReactiveDomain()
    session$sendCustomMessage("loadStyle", message)

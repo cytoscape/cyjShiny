@@ -4,15 +4,15 @@
 #'
 #' @examples
 #' \dontrun{
-#'   g.json <- graphToJSON(graphNEL())
+#'   g.json <- graphNELtoJSON(graphNEL())
 #' }
 #'
-#' @aliases graphToJSON
-#' @rdname graphToJSON
+#' @aliases graphNELtoJSON
+#' @rdname graphNELtoJSON
 #'
 #' @export
 
-graphToJSON <- function(g) #Copied from RCyjs/R/utils.R
+graphNELtoJSON <- function(g) #Copied from RCyjs/R/utils.R
 {
    if(length(nodes(g)) == 0)
       return ("{}")
@@ -86,5 +86,80 @@ graphToJSON <- function(g) #Copied from RCyjs/R/utils.R
    #printf("%d strings used in constructing json", length(vec.trimmed))
    paste0(vec.trimmed, collapse=" ")
 
-} # graphToJSON
+} # graphNELtoJSON
 #----------------------------------------------------------------------------------------------------------
+dataFramesToJSON <- function(tbl.edges, tbl.nodes=NULL)
+{
+      # catch any factor columns - they only cause trouble
+   stopifnot(!grepl("factor", as.character(lapply(tbl.edges, class))))
+   stopifnot(all(c("source", "target") %in% colnames(tbl.edges)))
+   stopifnot(any(c("edgeType", "interaction") %in% colnames(tbl.edges)))
+
+   nodes.implied.by.edgeData <- sort(unique(c(tbl.edges$source, tbl.edges$target)))
+
+   if(is.null(tbl.nodes)){ # derive one from tbl.edges, for consistent processing below
+      node.count <- length(nodes.implied.by.edgeData)
+      tbl.nodes <- data.frame(id=nodes.implied.by.edgeData,
+                              type=rep("unspecified", node.count),
+                              stringsAsFactors=FALSE)
+      } # no tbl.nodes supplied
+
+   nodes <- sort(unique(c(tbl.edges$source, tbl.edges$target, tbl.nodes$id)))
+
+   edgeCount <- nrow(tbl.edges)
+   vector.count <- 10 * (edgeCount + length(nodes))
+   vec <- vector(mode="character", length=vector.count)
+   i <- 1;
+
+   vec[i] <- '{"elements": {"nodes": ['; i <- i + 1;
+
+
+   noa.names <- colnames(tbl.nodes)[-1]
+   eda.names <- colnames(tbl.edges)[-(1:2)]
+   nodeCount <- length(nodes)
+
+   for(n in 1:nodeCount){
+      node <- nodes[n]
+      vec[i] <- '{"data": '; i <- i + 1
+      nodeList <- list(id=node)
+      if(ncol(tbl.nodes) > 1)
+         nodeList <- c(nodeList, as.list(tbl.nodes[n, -1, drop=FALSE]))
+      nodeList.json <- toJSON(nodeList, auto_unbox=TRUE)
+      vec[i] <- nodeList.json; i <- i + 1
+      if(n != nodeCount){
+          vec [i] <- "},"; i <- i + 1 # sprintf("%s},", x)  # another node coming, add a comma
+          }
+       } # for n
+
+    vec [i] <- "}]"; i <- i + 1  # close off the last node, the node array ], the nodes element }
+
+    if(edgeCount > 0){
+       vec[i] <- ', "edges": [' ; i <- i + 1
+       for(e in seq_len(edgeCount)) {
+          vec[i] <- '{"data": '; i <- i + 1
+          sourceNode <- tbl.edges[e, "source"]
+          targetNode <- tbl.edges[e, "target"]
+          interaction <- tbl.edges[e, "interaction"]
+          edgeName <- sprintf("%s-(%s)-%s", sourceNode, interaction, targetNode)
+
+          edgeList <- list(id=edgeName, source=sourceNode, target=targetNode)
+          if(ncol(tbl.edges) > 3)
+             edgeList <- c(edgeList, as.list(tbl.edges[e, -(1:3), drop=FALSE]))
+          edgeList.json <- toJSON(edgeList, auto_unbox=TRUE)
+          vec[i] <- edgeList.json; i <- i + 1
+          if(e != edgeCount){          # add a comma, ready for the next edge element
+             vec [i] <- '},'; i <- i + 1
+             }
+          } # for e
+      vec [i] <- "}]"; i <- i + 1
+      } # if edgeCount > 0
+
+   vec [i] <- "}"  # close the edges object
+   i <- i + 1;
+   vec [i] <- "}"  # close the elements object
+   vec.trimmed <- vec [which(vec != "")]
+   paste0(vec.trimmed, collapse=" ")
+
+} # dataFramesToJSON
+#----------------------------------------------------------------------------------------------------------
+

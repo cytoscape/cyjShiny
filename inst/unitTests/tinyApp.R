@@ -15,7 +15,7 @@ yeastGalactoseNodeNames <- as.character(nodeAttrs)
 yeastGalactodeNodeIDs <- nodes(g)
 
 g <- addNode("gal1RGexp", g)
-graph <- graphToJSON(g)
+graph <- graphNELtoJSON(g)
 
 styleList <- c("", "Yeast-Galactose"="yeastGalactoseStyle.js")
 condition <- c("", "gal1RGexp", "gal4RGexp", "gal80Rexp")

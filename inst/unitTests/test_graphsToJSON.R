@@ -33,7 +33,17 @@ runTests <- function()
    test_2000_nodes_2000_edges_no_attributes()
    test_1669_3260()
 
+   runDataFrameTests()
+
 } # runTests
+#------------------------------------------------------------------------------------------------------------------------
+runDataFrameTests <- function()
+{
+   test_dataFramesToJSON_edgeTableOnly_noExtraAttributes()
+   test_dataFramesToJSON_edgeTableOnly_orhpanNodeInNodeTable()
+   test_dataFramesToJSON_edgeTableOnly_addEdgeAttributes()
+
+} # runDataFrameTests
 #------------------------------------------------------------------------------------------------------------------------
 createTestGraph <- function(nodeCount, edgeCount)
 {
@@ -239,7 +249,7 @@ test_2_nodes_1_edge <- function(display=FALSE)
    g2 <- fromJSON(g.json, flatten=TRUE)
    checkEquals(names(g2$elements), c("nodes", "edges"))
    tbl.nodes <- g2$elements$nodes
-   checkEquals(dim(tbl.nodes), c(2,1))
+   checkEquals(dim(tbl.nodes), c(2,2))
    checkEquals(tbl.nodes$data.id, c("X", "Y"))
 
    tbl.edges <- g2$elements$edges
@@ -296,7 +306,7 @@ test_2_nodes_1_edge_2_edgeAttribute <- function(display=FALSE)
    g2 <- fromJSON(g.json, flatten=TRUE)
    checkEquals(names(g2$elements), c("nodes", "edges"))
    tbl.nodes <- g2$elements$nodes
-   checkEquals(dim(tbl.nodes), c(2,1))
+   checkEquals(dim(tbl.nodes), c(2,2))
    checkEquals(tbl.nodes$data.id, c("X", "Y"))
 
    tbl.edges <- g2$elements$edges
@@ -379,4 +389,89 @@ simpleDemoGraph = function ()
 
 } # simpleDemoGraph
 #----------------------------------------------------------------------------------------------------
+test_dataFramesToJSON_edgeTableOnly_noExtraAttributes <- function()
+{
+   printf("--- test_dataFramesToJSON_edgeTableOnly_noExtraAttributes")
 
+   tbl.edges <- data.frame(source=c("A"),
+                           target=c("B"),
+                           interaction=c("eats"),
+                           stringsAsFactors=FALSE)
+
+   g.json <- dataFramesToJSON(tbl.edges)
+   x <- fromJSON(g.json)
+   checkEquals(names(x), "elements")
+   checkEquals(names(x$elements), c("nodes", "edges"))
+
+   tbl.nodes <- x$elements$nodes$data
+   checkEquals(dim(tbl.nodes), c(2, 2))
+   checkEquals(tbl.nodes$id, c("A", "B"))
+
+   tbl.edges <- x$elements$edges$data
+   checkEquals(dim(tbl.edges), c(1, 3))
+   checkEquals(colnames(tbl.edges), c("id", "source", "target"))
+   checkEquals(as.character(tbl.edges[1,]), c("A-(eats)-B", "A", "B"))
+
+} # test_dataFramesToJSON
+#----------------------------------------------------------------------------------------------------
+test_dataFramesToJSON_edgeTableOnly_orhpanNodeInNodeTable <- function()
+{
+   printf("--- test_dataFramesToJSON_edgeTableOnly_orhpanNodeInNodeTable")
+
+   tbl.edges <- data.frame(source=c("A"),
+                           target=c("B"),
+                           interaction=c("eats"),
+                           stringsAsFactors=FALSE)
+
+   tbl.nodes <- data.frame(id=c("A", "B", "C"),
+                           type=c("animal", "vegetable", "mineral"),
+                           age=c("recent", "old", "ancient"),
+                           stringsAsFactors=FALSE)
+
+   g.json <- dataFramesToJSON(tbl.edges, tbl.nodes)
+   x <- fromJSON(g.json)
+   checkEquals(names(x), "elements")
+   checkEquals(names(x$elements), c("nodes", "edges"))
+
+   tbl.nodes <- x$elements$nodes$data
+   checkEquals(dim(tbl.nodes), c(3, 3))
+   checkEquals(tbl.nodes$id, c("A", "B", "C"))
+
+   tbl.edges <- x$elements$edges$data
+   checkEquals(dim(tbl.edges), c(1, 3))
+   checkEquals(colnames(tbl.edges), c("id", "source", "target"))
+   checkEquals(as.character(tbl.edges[1,]), c("A-(eats)-B", "A", "B"))
+
+}  # test_dataFramesToJSON_edgeTableOnly_orhpanNodeInNodeTable
+#----------------------------------------------------------------------------------------------------
+test_dataFramesToJSON_edgeTableOnly_addEdgeAttributes <- function()
+{
+   printf("--- test_dataFramesToJSON_edgeTableOnly_orhpanNodeInNodeTable")
+
+   tbl.edges <- data.frame(source=c("A"),
+                           target=c("B"),
+                           interaction=c("eats"),
+                           duration="long",
+                           intensity=3.2,
+                           stringsAsFactors=FALSE)
+
+   g.json <- dataFramesToJSON(tbl.edges)
+   x <- fromJSON(g.json)
+   checkEquals(names(x), "elements")
+   checkEquals(names(x$elements), c("nodes", "edges"))
+
+   tbl.nodes <- x$elements$nodes$data
+   checkEquals(dim(tbl.nodes), c(2, 2))
+   checkEquals(tbl.nodes$id, c("A", "B"))
+
+   tbl.edges <- x$elements$edges$data
+   checkEquals(dim(tbl.edges), c(1, 5))
+   checkEquals(colnames(tbl.edges), c("id", "source", "target", "duration", "intensity"))
+   checkEquals(tbl.edges[1, "id"], "A-(eats)-B")
+   checkEquals(tbl.edges[1, "source"], "A")
+   checkEquals(tbl.edges[1, "target"], "B")
+   checkEquals(tbl.edges[1, "duration"], "long")
+   checkEquals(tbl.edges[1, "intensity"], 3.2)
+
+}  # test_dataFramesToJSON_edgeTableOnly_addEdgeAttributes
+#----------------------------------------------------------------------------------------------------
