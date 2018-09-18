@@ -4,7 +4,7 @@
 
 The r-cytoscape.js package has been updated to a new code base making use of the latest cytoscape.js. The code is very bleeding edge. Testing and documentation are still being finalized. Users can grab the the lastest version of r-cytoscape.js 0.0.7 from the [releases](https://github.com/cytoscape/cyjShiny/releases) and install with devtools::install(). 
 
-# cyjsShiny
+# cyjShiny
 
 cytoscape.js as a shiny widget, with an API based on RCyjs (and ancestrally, RCy3)
 
