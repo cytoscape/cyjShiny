@@ -162,4 +162,3 @@ dataFramesToJSON <- function(tbl.edges, tbl.nodes=NULL)
 
 } # dataFramesToJSON
 #----------------------------------------------------------------------------------------------------------
-

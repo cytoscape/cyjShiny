@@ -240,3 +240,23 @@ doLayout <- function(session, strategy)
 
 } # doLayout
 #------------------------------------------------------------------------------------------------------------------------
+#' remove the current graph
+#'
+#' @param session a Shiny Server session object.
+#'
+#' @examples
+#' \dontrun{
+#'   removeGraph(session)
+#' }
+#' @aliases removeGraph
+#' @rdname removeGraph
+#'
+#' @export
+
+removeGraph <- function(session)
+{
+   printf("entering cyjShiny::removeGraph")
+   session$sendCustomMessage(type="removeGraph", message=list())
+
+} # removeGraph
+#------------------------------------------------------------------------------------------------------------------------

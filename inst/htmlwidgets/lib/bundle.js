@@ -87499,6 +87499,12 @@ Shiny.addCustomMessageHandler("doLayout", function(message){
     })
 
 //------------------------------------------------------------------------------------------------------------------------
+Shiny.addCustomMessageHandler("removeGraph", function(message){
+
+    self.cyj.elements().remove();
+    })
+
+//------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("redraw", function(message){
 
     console.log("redraw requested");
