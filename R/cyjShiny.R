@@ -260,3 +260,34 @@ removeGraph <- function(session)
 
 } # removeGraph
 #------------------------------------------------------------------------------------------------------------------------
+#' add graphFromDataFrame
+#'
+#' @param session a Shiny Server session object.
+#' @param tbl.edges a data.frame with source, traget, interaction columns (and option other attributes)
+#' @param tbl.nodes (optional; nodes can be deduced from tbl.edges) a data.frame with nodes and their attributes
+#'
+#' @examples
+#' \dontrun{
+#'   add graphFromDataFrame (session)
+#' }
+#' @aliases addGraphFromDataFrame
+#' @rdname addGraphFromDataFrame
+#'
+#' @export
+
+addGraphFromDataFrame <- function(session, tbl.edges, tbl.nodes=NULL)
+{
+   illegal.tbl <- ncol(tbl.edges) < 3
+   illegal.colnames <- !(all(colnames(tbl.edges)[1:3] == c("source", "target", "interaction")))
+
+   if(illegal.tbl | illegal.colnames){
+      msg <- sprintf("required colnames for tbl.edges: 'source'  'target'  'interaction'")
+      cat(msg)
+      return()
+      }
+
+   g.json <- dataFramesToJSON(tbl.edges, tbl.nodes)
+   session$sendCustomMessage(type="addGraph", message=list(graph=g.json))
+
+} # removeGraph
+#------------------------------------------------------------------------------------------------------------------------

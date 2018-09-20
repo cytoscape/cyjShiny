@@ -88,6 +88,17 @@ graphNELtoJSON <- function(g) #Copied from RCyjs/R/utils.R
 
 } # graphNELtoJSON
 #----------------------------------------------------------------------------------------------------------
+#' Create a cytoscape.js JSON graph from one or two data.frames.
+#'
+#' @param tbl.edges data.frame, with source, target and interaction columns, others option for edge attributes
+#' @param tbl.nodes data.frame, options, useful for orphan nodes, and necessary for adding node attributes
+#'
+
+#' @aliases dataFramesToJSON
+#' @rdname dataFramesToJSON
+#'
+#' @export
+
 dataFramesToJSON <- function(tbl.edges, tbl.nodes=NULL)
 {
       # catch any factor columns - they only cause trouble
@@ -142,7 +153,7 @@ dataFramesToJSON <- function(tbl.edges, tbl.nodes=NULL)
           interaction <- tbl.edges[e, "interaction"]
           edgeName <- sprintf("%s-(%s)-%s", sourceNode, interaction, targetNode)
 
-          edgeList <- list(id=edgeName, source=sourceNode, target=targetNode)
+          edgeList <- list(id=edgeName, source=sourceNode, target=targetNode, interaction=interaction)
           if(ncol(tbl.edges) > 3)
              edgeList <- c(edgeList, as.list(tbl.edges[e, -(1:3), drop=FALSE]))
           edgeList.json <- toJSON(edgeList, auto_unbox=TRUE)

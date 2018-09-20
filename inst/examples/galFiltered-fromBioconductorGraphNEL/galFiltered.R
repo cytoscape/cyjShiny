@@ -17,7 +17,9 @@ yeastGalactodeNodeIDs <- nodes(g)
 g <- addNode("gal1RGexp", g)
 graph <- graphNELtoJSON(g)
 
-styleList <- c("", "Yeast-Galactose"="yeastGalactoseStyle.js")
+styleList <- c(" ", "Yeast-Galactose"="yeastGalactoseStyle.js",
+                   "Random Graph Style"="randomGraph.style")
+
 condition <- c("", "gal1RGexp", "gal4RGexp", "gal80Rexp")
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
@@ -51,7 +53,9 @@ ui = shinyUI(fluidPage(
           HTML("<br>"),
           actionButton("loopConditions", "Loop Conditions"),
           HTML("<br>"),
-          actionButton("removeGraphButton", "RemoveGraph"),
+          actionButton("removeGraphButton", "Remove Graph"),
+          HTML("<br>"),
+          actionButton("addRandomGraphFromDataFramesButton", "Add Random Graph"),
           HTML("<br>"),
           actionButton("getSelectedNodes", "Get Selected Nodes"),
           HTML("<br><br>"),
@@ -122,9 +126,18 @@ server = function(input, output, session)
         })
 
     observeEvent(input$removeGraphButton, ignoreInit=TRUE, {
-        printf("about to call cyjShiny::removeGraph()");
         removeGraph(session)
         })
+
+    observeEvent(input$addRandomGraphFromDataFramesButton, ignoreInit=TRUE, {
+        source.nodes <-  LETTERS[sample(1:5, 5)]
+        target.nodes <-  LETTERS[sample(1:5, 5)]
+        tbl.edges <- data.frame(source=source.nodes, target=target.nodes, interaction=rep("generic", length(source.nodes)),
+                                stringsAsFactors=FALSE)
+        addGraphFromDataFrame(session, tbl.edges)
+        })
+
+
 
     observeEvent(input$selectedNodes, {
         newNodes <- input$selectedNodes;

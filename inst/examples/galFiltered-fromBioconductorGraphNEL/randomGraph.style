@@ -1,0 +1,31 @@
+[
+   {"selector":"node", "css": {
+       "text-valign":"center",
+       "text-halign":"center",
+       "border-color": "black",
+       "content": "data(id)",
+       "border-width": "1px",
+       "width": "40px",
+       "height": "40px"
+       }},
+
+
+    {"selector": "node:selected", "css": {
+       "overlay-opacity": 0.3,
+       "overlay-color": "gray"
+       }},
+
+    {"selector": "edge", "css": {
+        "curve-style": "bezier"
+    }},
+
+    {"selector": "edge[interaction='generic']", "css": {
+        "line-color": "blue",
+        "source-arrow-shape": "circle",
+        "source-arrow-color": "lightgreen",
+        "target-arrow-shape": "triangle",
+        "target-arrow-color": "blue",
+        "arrow-scale": 1,
+        "curve-style": "bundled-bezier"
+        }}
+]

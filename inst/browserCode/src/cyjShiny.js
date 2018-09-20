@@ -78,6 +78,15 @@ Shiny.addCustomMessageHandler("removeGraph", function(message){
     })
 
 //------------------------------------------------------------------------------------------------------------------------
+Shiny.addCustomMessageHandler("addGraph", function(message){
+
+    var jsonString = message.graph;
+    var g = JSON.parse(jsonString);
+    self.cyj.json(g);
+    self.cyj.fit(50)
+    })
+
+//------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("redraw", function(message){
 
     console.log("redraw requested");
