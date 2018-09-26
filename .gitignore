@@ -36,4 +36,5 @@ vignettes/*.pdf
 rsconnect/
 
 
-inst/browserCode/node_modules/
+browserCode/node_modules/
+.Rproj.user

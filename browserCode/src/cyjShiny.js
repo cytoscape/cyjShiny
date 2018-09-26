@@ -83,8 +83,8 @@ Shiny.addCustomMessageHandler("addGraph", function(message){
 
     var jsonString = message.graph;
     var g = JSON.parse(jsonString);
-    self.cyj.json(g);
-    self.cyj.fit(50)
+    self.cyj.add(g.elements);
+    self.cyj.fit(50);
     })
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -92,8 +92,8 @@ Shiny.addCustomMessageHandler("redraw", function(message){
 
     console.log("redraw requested");
     self.cyj.style().update();
+    })
 
-})
 //------------------------------------------------------------------------------------------------------------------------
 Shiny.addCustomMessageHandler("setNodeAttributes", function(message){
 
@@ -191,8 +191,10 @@ Shiny.addCustomMessageHandler("fit", function(message){
 Shiny.addCustomMessageHandler("loadStyle", function(message) {
 
     console.log("loading style");
-    var stringStyleSheet = message.json;
-    window.cyj.style(stringStyleSheet);
+    var styleSheet = message.json;
+    // debugger;
+    //console.log(styleSheet);
+    window.cyj.style(styleSheet);
     });
 
 //------------------------------------------------------------------------------------------------------------------------

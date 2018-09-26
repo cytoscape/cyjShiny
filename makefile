@@ -6,7 +6,7 @@ vig:
 	R -e "devtools::build_vignettes()"
 
 npm:
-	(cd inst/browserCode; make)
+	(cd browserCode; make)
 
 build:
 	(cd ..; R CMD build --no-build-vignettes cyjShiny)

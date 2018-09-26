@@ -48,7 +48,14 @@ cyjShiny <- function(graph, layoutName, styleFile=NA, width = NULL, height = NUL
       width = width,
       height = height,
       package = 'cyjShiny',
-      elementId = elementId
+      elementId = elementId,
+      sizingPolicy = htmlwidgets::sizingPolicy(
+                                     defaultWidth=500,
+                                     defaultHeight=500,
+                                     viewer.padding=0,
+                                     viewer.suppress=FALSE,
+                                     viewer.paneHeight=500,
+                                     browser.fill=TRUE)
       )
 
 } # cyjShiny constructor
@@ -126,7 +133,9 @@ loadStyleFile <- function(filename)
       return();
       }
 
-   jsonText <- toJSON(fromJSON(filename))
+   jsonText <- toJSON(fromJSON(filename))   # very strict parser, no unquoted field names
+   #lines <- scan(filename, what=character(), strip.white=TRUE, quote="'")
+   #jsonText <- paste(lines, collapse=" ")
    message <- list(json=jsonText)
    session <- shiny::getDefaultReactiveDomain()
    session$sendCustomMessage("loadStyle", message)
@@ -315,7 +324,7 @@ addGraphFromDataFrame <- function(session, tbl.edges, tbl.nodes=NULL)
 #' @rdname addGraphFromJsonFile
 #'
 #' @export
-
+#'
 addGraphFromJsonFile <- function(session, jsonFilename)
 {
    g.json <- readLines(jsonFilename)
@@ -323,4 +332,50 @@ addGraphFromJsonFile <- function(session, jsonFilename)
    session$sendCustomMessage(type="addGraph", message=list(graph=g.json))
 
 } # addGraphFromJSON
+#------------------------------------------------------------------------------------------------------------------------
+#' selectNodes
+#'
+#' @param session a Shiny Server session object.
+#' @param nodeNames character, a list of node IDs
+#'
+#' @aliases selectNodes
+#' @rdname selectNodes
+#'
+#' @export
+#'
+selectNodes <- function(session, nodeNames)
+{
+   session$sendCustomMessage(type="selectNodes", message=list(nodeNames))
+
+} # selectNodes
+#------------------------------------------------------------------------------------------------------------------------
+#' selectFirstNeighbors of the currently selected nodes
+#'
+#' @param session a Shiny Server session object.
+#'
+#' @aliases selectFirstNeighbors
+#' @rdname  selectFirstNeighbors
+#'
+#' @export
+#'
+selectFirstNeighbors <- function(session)
+{
+   session$sendCustomMessage(type="sfn", message=list())
+
+} # selectFirstNeighbors
+#------------------------------------------------------------------------------------------------------------------------
+#' clearSelection all node and edge selections removed
+#'
+#' @param session a Shiny Server session object.
+#'
+#' @aliases clearSelection
+#' @rdname clearSelection
+#'
+#' @export
+#'
+clearSelection <- function(session)
+{
+   session$sendCustomMessage(type="clearSelection", message=list())
+
+} # clearSelection
 #------------------------------------------------------------------------------------------------------------------------
