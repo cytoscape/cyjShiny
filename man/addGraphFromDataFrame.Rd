@@ -2,7 +2,7 @@
 % Please edit documentation in R/cyjShiny.R
 \name{addGraphFromDataFrame}
 \alias{addGraphFromDataFrame}
-\title{add graphFromDataFrame}
+\title{addGraphFromDataFrame}
 \usage{
 addGraphFromDataFrame(session, tbl.edges, tbl.nodes = NULL)
 }
@@ -14,10 +14,11 @@ addGraphFromDataFrame(session, tbl.edges, tbl.nodes = NULL)
 \item{tbl.nodes}{(optional; nodes can be deduced from tbl.edges) a data.frame with nodes and their attributes}
 }
 \description{
-add graphFromDataFrame
+addGraphFromDataFrame
 }
 \examples{
 \dontrun{
-  add graphFromDataFrame (session)
+  addGraphFromDataFrame (session)
 }
+
 }

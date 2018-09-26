@@ -27,19 +27,29 @@
 #'
 #' @export
 
-
-cyjShiny <- function(graph, width = NULL, height = NULL, elementId = NULL)
+cyjShiny <- function(graph, layoutName, styleFile=NA, width = NULL, height = NULL, elementId = NULL)
 {
-    x <- list(graph = graph)
+   stopifnot(layoutName %in% c("preset",
+                               "cose",
+                               "cola",
+                               "circle",
+                               "concentric",
+                               "breadthfirst",
+                               "grid",
+                               "random",
+                               "dagre",
+                               "cose-bilkent"))
 
-    htmlwidgets::createWidget(
-       name = 'cyjShiny',
-       x,
-       width = width,
-       height = height,
-       package = 'cyjShiny',
-       elementId = elementId
-       )
+   x <- list(graph=graph, layoutName=layoutName) # , styleFile=styleFile)
+
+   htmlwidgets::createWidget(
+      name = 'cyjShiny',
+      x,
+      width = width,
+      height = height,
+      package = 'cyjShiny',
+      elementId = elementId
+      )
 
 } # cyjShiny constructor
 #------------------------------------------------------------------------------------------------------------------------
@@ -260,7 +270,7 @@ removeGraph <- function(session)
 
 } # removeGraph
 #------------------------------------------------------------------------------------------------------------------------
-#' add graphFromDataFrame
+#' addGraphFromDataFrame
 #'
 #' @param session a Shiny Server session object.
 #' @param tbl.edges a data.frame with source, traget, interaction columns (and option other attributes)
@@ -268,8 +278,9 @@ removeGraph <- function(session)
 #'
 #' @examples
 #' \dontrun{
-#'   add graphFromDataFrame (session)
+#'   addGraphFromDataFrame (session)
 #' }
+#'
 #' @aliases addGraphFromDataFrame
 #' @rdname addGraphFromDataFrame
 #'
@@ -289,5 +300,27 @@ addGraphFromDataFrame <- function(session, tbl.edges, tbl.nodes=NULL)
    g.json <- dataFramesToJSON(tbl.edges, tbl.nodes)
    session$sendCustomMessage(type="addGraph", message=list(graph=g.json))
 
-} # removeGraph
+} # addGraphFromDataFrame
+#------------------------------------------------------------------------------------------------------------------------
+#' addGraphFromJsonFile
+#'
+#' @param session a Shiny Server session object.
+#' @param name of a text file with JSON representation of a cytoscape.js graph
+#'
+#' @examples
+#' \dontrun{
+#'   addGraphFromJsonFile (session)
+#' }
+#' @aliases addGraphFromJsonFile
+#' @rdname addGraphFromJsonFile
+#'
+#' @export
+
+addGraphFromJsonFile <- function(session, jsonFilename)
+{
+   g.json <- readLines(jsonFilename)
+   browser()
+   session$sendCustomMessage(type="addGraph", message=list(graph=g.json))
+
+} # addGraphFromJSON
 #------------------------------------------------------------------------------------------------------------------------

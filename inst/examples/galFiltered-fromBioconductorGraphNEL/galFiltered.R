@@ -15,7 +15,7 @@ yeastGalactoseNodeNames <- as.character(nodeAttrs)
 yeastGalactodeNodeIDs <- nodes(g)
 
 g <- addNode("gal1RGexp", g)
-graph <- graphNELtoJSON(g)
+graphAsJSON <- graphNELtoJSON(g)
 
 styleList <- c(" ", "Yeast-Galactose"="yeastGalactoseStyle.js",
                    "Random Graph Style"="randomGraph.style")
@@ -132,12 +132,16 @@ server = function(input, output, session)
     observeEvent(input$addRandomGraphFromDataFramesButton, ignoreInit=TRUE, {
         source.nodes <-  LETTERS[sample(1:5, 5)]
         target.nodes <-  LETTERS[sample(1:5, 5)]
-        tbl.edges <- data.frame(source=source.nodes, target=target.nodes, interaction=rep("generic", length(source.nodes)),
+        tbl.edges <- data.frame(source=source.nodes,
+                                target=target.nodes,
+                                interaction=rep("generic", length(source.nodes)),
                                 stringsAsFactors=FALSE)
-        addGraphFromDataFrame(session, tbl.edges)
+        all.nodes <- sort(unique(c(source.nodes, target.nodes, "orphan")))
+        tbl.nodes <- data.frame(id=all.nodes,
+                                type=rep("unspecified", length(all.nodes)),
+                                stringsAsFactors=FALSE)
+        addGraphFromDataFrame(session, tbl.edges, tbl.nodes)
         })
-
-
 
     observeEvent(input$selectedNodes, {
         newNodes <- input$selectedNodes;
@@ -148,7 +152,7 @@ server = function(input, output, session)
 
     output$value <- renderPrint({ input$action })
     output$cyjShiny <- renderCyjShiny(
-        cyjShiny(graph)
+        cyjShiny(graphAsJSON)
     )
 
 } # server

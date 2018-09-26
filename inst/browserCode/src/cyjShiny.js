@@ -27,12 +27,13 @@ HTMLWidgets.widget({
 	    renderValue: function(x, instance) {
 		console.log("---- ~/github/cyjsShiny/inst/browserCode/src/cyjShiny.js, renderValue")
 		var data = JSON.parse(x.graph);
+                var layoutName = x.layoutName;
 		console.log(data);
 		var cyDiv = el;
 		cyj = cytoscape({
 		    container: cyDiv,
 		    elements: data.elements,
-		    layout: {name: 'cose'},
+		    layout: {name: layoutName},
 
 		    ready: function(){
                         console.log("cyjShiny cyjs ready");
