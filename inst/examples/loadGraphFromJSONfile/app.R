@@ -44,9 +44,8 @@ ui = shinyUI(fluidPage(
           htmlOutput("selectedNodesDisplay"),
           width=2
       ),
-      mainPanel(cyjShinyOutput('cyjShiny'),
-          width=10
-      )
+     mainPanel(cyjShinyOutput('cyjShiny'), width=10),
+     fluid=FALSE
   ) # sidebarLayout
 ))
 #----------------------------------------------------------------------------------------------------

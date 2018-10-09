@@ -49,13 +49,13 @@ cyjShiny <- function(graph, layoutName, styleFile=NA, width = NULL, height = NUL
       height = height,
       package = 'cyjShiny',
       elementId = elementId,
-      sizingPolicy = htmlwidgets::sizingPolicy(
-                                     defaultWidth=500,
-                                     defaultHeight=500,
-                                     viewer.padding=0,
-                                     viewer.suppress=FALSE,
-                                     viewer.paneHeight=500,
-                                     browser.fill=TRUE)
+      sizingPolicy = htmlwidgets::sizingPolicy(browser.fill=TRUE, )
+                                    # defaultWidth=500,
+                                    # defaultHeight=500,
+                                    # viewer.padding=0,
+                                    # viewer.suppress=FALSE,
+                                    # viewer.paneHeight=500,
+                                    # browser.fill=TRUE)
       )
 
 } # cyjShiny constructor
@@ -80,7 +80,7 @@ cyjShiny <- function(graph, layoutName, styleFile=NA, width = NULL, height = NUL
 #'
 #' @export
 
-cyjShinyOutput <- function(outputId, width = '100%', height = '400px')
+cyjShinyOutput <- function(outputId, width = '100%', height = '800')
 {
     htmlwidgets::shinyWidgetOutput(outputId, 'cyjShiny', width, height, package = 'cyjShiny')
 }

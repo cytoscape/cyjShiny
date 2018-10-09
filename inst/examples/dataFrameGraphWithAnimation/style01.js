@@ -5,6 +5,9 @@
        "text-halign":"center",
        "background-color": "lightgreen",
        "border-color": "black",
+       "shape": "ellipse",
+       "width": "mapData(count, 0, 300, 30, 80)",
+       "height": "mapData(count, 0, 300, 30, 80)",
        "content": "data(id)",
        "border-width": "1px"
        }},
