@@ -5,8 +5,8 @@
 \title{cyjShiny
 cyjShiny}
 \usage{
-cyjShiny(graph, layoutName, styleFile = NA, width = NULL,
-  height = NULL, elementId = NULL)
+cyjShiny(graph, layoutName, width = NULL, height = NULL,
+  elementId = NULL)
 }
 \arguments{
 \item{graph}{an R graphNEL instance (igraph support coming soon).}

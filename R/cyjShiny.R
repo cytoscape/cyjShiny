@@ -27,7 +27,7 @@
 #'
 #' @export
 
-cyjShiny <- function(graph, layoutName, styleFile=NA, width = NULL, height = NULL, elementId = NULL)
+cyjShiny <- function(graph, layoutName, width = NULL, height = NULL, elementId = NULL)
 {
    stopifnot(layoutName %in% c("preset",
                                "cose",
@@ -40,7 +40,7 @@ cyjShiny <- function(graph, layoutName, styleFile=NA, width = NULL, height = NUL
                                "dagre",
                                "cose-bilkent"))
 
-   x <- list(graph=graph, layoutName=layoutName) # , styleFile=styleFile)
+   x <- list(graph=graph, layoutName=layoutName)
 
    htmlwidgets::createWidget(
       name = 'cyjShiny',

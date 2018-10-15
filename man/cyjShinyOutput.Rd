@@ -4,7 +4,7 @@
 \alias{cyjShinyOutput}
 \title{Standard shiny ui rendering construct}
 \usage{
-cyjShinyOutput(outputId, width = "100\%", height = "400px")
+cyjShinyOutput(outputId, width = "100\%", height = "800")
 }
 \arguments{
 \item{outputId}{the name of the DOM element to create.}

@@ -92261,6 +92261,14 @@ cytoscape.use(coseBilkent);
 
 $ = __webpack_require__(14);
 __webpack_require__(31);
+
+//----------------------------------------------------------------------------------------------------
+var executionMode = "prod";
+const log = function(msg)
+{
+  if(window.executionMode == "devel")
+      console.log(msg);
+}
 //----------------------------------------------------------------------------------------------------
 HTMLWidgets.widget({
 
@@ -92271,10 +92279,10 @@ HTMLWidgets.widget({
 	var cyj;
 	return {
 	    renderValue: function(x, instance) {
-		console.log("---- ~/github/cyjsShiny/inst/browserCode/src/cyjShiny.js, renderValue")
+		log("---- ~/github/cyjsShiny/inst/browserCode/src/cyjShiny.js, renderValue")
 		var data = JSON.parse(x.graph);
                 var layoutName = x.layoutName;
-		console.log(data);
+		log(data);
 		var cyDiv = el;
 		cyj = cytoscape({
 		    container: cyDiv,
@@ -92282,15 +92290,15 @@ HTMLWidgets.widget({
 		    layout: {name: layoutName},
 
 		    ready: function(){
-                        console.log("cyjShiny cyjs ready");
+                        log("cyjShiny cyjs ready");
 			//$("#cyjShiny").height(0.95*window.innerHeight);
-                        console.log("cyjShiny widget, initial dimensions: " + allocatedWidth + ", " + allocatedHeight)
+                        log("cyjShiny widget, initial dimensions: " + allocatedWidth + ", " + allocatedHeight)
 			$("#cyjShiny").height(allocatedHeight)
 			$("#cyjShiny").width(allocatedWidth)
 			var cyj = this;
 			window.cyj = this;   // terrible hack.  but gives us a simple way to call cytosacpe functions
-			console.log("small cyjs network ready, with " + cyj.nodes().length + " nodes.");
-		        console.log("  initial widget dimensions: " +
+			log("small cyjs network ready, with " + cyj.nodes().length + " nodes.");
+		        log("  initial widget dimensions: " +
                             $("#cyjShiny").width() + ", " +
                             $("#cyjShiny").height());
 
@@ -92302,11 +92310,11 @@ HTMLWidgets.widget({
 		}) // cytoscape()
             }, // renderValue
             resize: function(newWidth, newHeight, instance){
-		console.log("cyjShiny widget, resize: " + newWidth + ", " + newHeight)
+		log("cyjShiny widget, resize: " + newWidth + ", " + newHeight)
 		//$("#cyjShiny").height(0.95 * window.innerHeight);
 		$("#cyjShiny").height(newHeight);
 		cyj.resize()
-		console.log("  after resize, widget dimensions: " +
+		log("  after resize, widget dimensions: " +
                             $("#cyjShiny").width() + ", " +
                             $("#cyjShiny").height());
             },
@@ -92339,14 +92347,14 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("addGraph", function(mes
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("redraw", function(message){
 
-    console.log("redraw requested");
+    log("redraw requested");
     self.cyj.style().update();
     })
 
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("setNodeAttributes", function(message){
 
-    console.log("setNodeAttributes requested")
+    log("setNodeAttributes requested")
 
     var nodeIDs = message.nodes;
     var attributeName = message.attribute;
@@ -92361,7 +92369,7 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("setNodeAttributes", fun
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("selectNodes", function(message){
 
-   console.log("selectNodes requested: " + message);
+   log("selectNodes requested: " + message);
 
    var nodeIDs = message;
 
@@ -92375,7 +92383,7 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("selectNodes", function(
      filterStrings.push(s);
      } // for i
 
-   console.log("filtersStrings, joined: " + filterStrings);
+   log("filtersStrings, joined: " + filterStrings);
 
    var nodesToSelect = window.cyj.nodes(filterStrings.join());
    nodesToSelect.select()
@@ -92384,89 +92392,63 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("selectNodes", function(
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("clearSelection", function(message){
 
-    console.log("clearSelection requested: " + message);
+    log("clearSelection requested: " + message);
     self.cyj.filter("node:selected").unselect();
 
 })
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("getSelectedNodes", function(message){
 
-    console.log("getSelectedNodes requested: " + message);
+    log("getSelectedNodes requested: " + message);
     var value = self.cyj.filter("node:selected")
         .map(function(node) {
             return(node.data().id)})
              //return {id: node.data().id, label: node.data().label}})
 
-    console.log(self.cyj.filter("node:selected"));
-    console.log(value)
+    log(self.cyj.filter("node:selected"));
+    log(value)
     Shiny.setInputValue("selectedNodes", value, {priority: "event"});
 
 });
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("sfn", function(message){
 
-    console.log("sfn requested: " + message);
+    log("sfn requested: " + message);
     self.cyj.nodes(':selected').neighborhood().nodes().select();
 
 })
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("fitSelected", function(message){
 
-    console.log("fitSelected requested");
+    log("fitSelected requested");
     var padding = message.padding;
 
     var selectedNodes = self.cyj.filter("node:selected");
 
     if(selectedNodes.length == 0){
-	console.log("no nodes currently selected")
+	log("no nodes currently selected")
      }
    else{
-       console.log("fitSelected, with padding " + padding);
+       log("fitSelected, with padding " + padding);
        self.cyj.fit(selectedNodes, padding)
    }
 })
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("fit", function(message){
-    console.log("fit requested: ");
+    log("fit requested: ");
     var padding = message.padding;
-    console.log("   padding: " + padding)
+    log("   padding: " + padding)
     self.cyj.fit(padding);
     });
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("loadStyle", function(message) {
 
-    console.log("loading style");
+    log("loading style");
     var styleSheet = message.json;
-    // debugger;
-    //console.log(styleSheet);
     window.cyj.style(styleSheet);
     });
 
 //------------------------------------------------------------------------------------------------------------------------
-// requires an http server at localhost, started in the directory where filename is found
-// expected file contents:  vizmap = [{selector:"node",css: {...
-//function loadStyle(filename)
-// {
-//    var self = this;
-//     console.log("rcyjs.loadStyle, filename: ", + filename);
-//
-//     var s = window.location.href + "?", + filename;
-//    console.log("=== about to getScript on " + s);
-//
-//    $.getScript(s)
-//      .done(function(script, textStatus) {
-//         console.log(textStatus);
-//         //console.log("style elements " + layout.length);
-//         window.cyj.style(vizmap);
-//        })
-//     .fail(function( jqxhr, settings, exception ) {
-//        console.log("getScript error trying to read " + filename);
-//        console.log("exception: ");
-//        console.log(exception);
-//        });
-//
-// } // loadStyle
-// //----------------------------------------------------------------------------------------------------
 
 
 /***/ })
