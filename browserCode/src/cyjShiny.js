@@ -17,10 +17,10 @@ $ = require('jquery');
 require('jquery-ui-bundle');
 
 //----------------------------------------------------------------------------------------------------
-var executionMode = "prod";
+var executionMode = "beta";
 const log = function(msg)
 {
-  if(window.executionMode == "devel")
+  if(executionMode == "devel")
       console.log(msg);
 }
 //----------------------------------------------------------------------------------------------------

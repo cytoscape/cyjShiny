@@ -92263,10 +92263,10 @@ $ = __webpack_require__(14);
 __webpack_require__(31);
 
 //----------------------------------------------------------------------------------------------------
-var executionMode = "prod";
+var executionMode = "beta";
 const log = function(msg)
 {
-  if(window.executionMode == "devel")
+  if(executionMode == "devel")
       console.log(msg);
 }
 //----------------------------------------------------------------------------------------------------
