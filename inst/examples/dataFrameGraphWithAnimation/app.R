@@ -162,6 +162,8 @@ server = function(input, output, session)
         })
 
     observeEvent(input$selectedNodes, {
+          #  communicated here via assignement in cyjShiny.js
+          #     Shiny.setInputValue("selectedNodes", value, {priority: "event"});
         newNodes <- input$selectedNodes;
         output$selectedNodesDisplay <- renderText({
            paste(newNodes)
