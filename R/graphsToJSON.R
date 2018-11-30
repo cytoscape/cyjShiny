@@ -104,7 +104,7 @@ dataFramesToJSON <- function(tbl.edges, tbl.nodes=NULL)
       # catch any factor columns - they only cause trouble
    stopifnot(!grepl("factor", as.character(lapply(tbl.edges, class))))
    stopifnot(all(c("source", "target") %in% colnames(tbl.edges)))
-   stopifnot(any(c("edgeType", "interaction") %in% colnames(tbl.edges)))
+   stopifnot("interaction" %in% colnames(tbl.edges))
 
    nodes.implied.by.edgeData <- sort(unique(c(tbl.edges$source, tbl.edges$target)))
 

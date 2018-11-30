@@ -3580,6 +3580,37 @@ elesfn.json = function (obj) {
 
     if (obj.data) {
       ele.data(obj.data);
+
+      var data = p.data;
+
+      if (ele.isEdge()) {
+        // source and target are immutable via data()
+        var move = false;
+        var spec = {};
+        var src = obj.data.source;
+        var tgt = obj.data.target;
+
+        if (src != null && src !== data.source) {
+          spec.source = src;
+          move = true;
+        }
+
+        if (tgt != null && tgt !== data.target) {
+          spec.target = tgt;
+          move = true;
+        }
+
+        if (move) {
+          ele = ele.move(spec);
+        }
+      } else {
+        // parent is immutable via data()
+        var parent = obj.data.parent;
+
+        if (parent != null && parent !== data.parent) {
+          ele = ele.move({ parent: parent });
+        }
+      }
     }
 
     if (obj.position) {
@@ -4818,6 +4849,8 @@ util.extend(corefn, {
         var idInJson = {};
 
         var updateEles = function updateEles(jsons, gr) {
+          var toAdd = [];
+
           for (var i = 0; i < jsons.length; i++) {
             var json = jsons[i];
             var id = json.data.id;
@@ -4831,12 +4864,14 @@ util.extend(corefn, {
             } else {
               // otherwise should be added
               if (gr) {
-                cy.add(util.extend({ group: gr }, json));
+                toAdd.push(util.extend({ group: gr }, json));
               } else {
-                cy.add(json);
+                toAdd.push(json);
               }
             }
           }
+
+          cy.add(toAdd);
         };
 
         if (is.array(obj.elements)) {
@@ -16299,16 +16334,49 @@ styfn.getStylePropertyValue = function (ele, propName, isRenderedVal) {
 
     var type = prop.type;
     var styleProp = ele.pstyle(prop.name);
-    var zoom = ele.cy().zoom();
 
     if (styleProp) {
-      var units = styleProp.units ? type.implicitUnits || 'px' : null;
-      var val = units ? [].concat(styleProp.pfValue).map(function (pfValue) {
-        return pfValue * (isRenderedVal ? zoom : 1) + units;
-      }).join(' ') : styleProp.strValue;
+      var value = styleProp.value,
+          units = styleProp.units,
+          strValue = styleProp.strValue;
 
-      return val;
+
+      if (isRenderedVal && type.number && value != null && is.number(value)) {
+        var zoom = ele.cy().zoom();
+        var getRenderedValue = function getRenderedValue(val) {
+          return val * zoom;
+        };
+        var getValueStringWithUnits = function getValueStringWithUnits(val, units) {
+          return getRenderedValue(val) + units;
+        };
+        var isArrayValue = is.array(value);
+        var haveUnits = isArrayValue ? units.every(function (u) {
+          return u != null;
+        }) : units != null;
+
+        if (haveUnits) {
+          if (isArrayValue) {
+            return value.map(function (v, i) {
+              return getValueStringWithUnits(v, units[i]);
+            }).join(' ');
+          } else {
+            return getValueStringWithUnits(value, units);
+          }
+        } else {
+          if (isArrayValue) {
+            return value.map(function (v) {
+              return is.string(v) ? v : '' + getRenderedValue(v);
+            }).join(' ');
+          } else {
+            return '' + getRenderedValue(value);
+          }
+        }
+      } else if (strValue != null) {
+        return strValue;
+      }
     }
+
+    return null;
   }
 };
 
@@ -20109,7 +20177,7 @@ CoseLayout.prototype.run = function () {
     do {
       var f = 0;
 
-      while (f < options.refresh && i < options.numIter) {
+      while ((f < options.refresh || options.refresh === 0) && i < options.numIter) {
         var loopRet = mainLoop(i);
         if (!loopRet) {
           break;
@@ -21685,7 +21753,7 @@ BRp.findNearestElements = function (x, y, interactiveElementsOnly, isTouch) {
       if (nearEdge) {
         // then replace existing edge
         // can replace only if same z-index
-        if (nearEdge.pstyle('z-index').value === ele.pstyle('z-index').value) {
+        if (nearEdge.pstyle('z-compound-depth').value === ele.pstyle('z-compound-depth').value && nearEdge.pstyle('z-compound-depth').value === ele.pstyle('z-compound-depth').value) {
           for (var i = 0; i < near.length; i++) {
             if (near[i].isEdge()) {
               near[i] = ele;
@@ -22299,6 +22367,8 @@ BRp.findEdgeControlPoints = function (edges) {
       var ctrlptDist = ctrlptDists ? ctrlptDists.pfValue[0] : undefined;
       var ctrlptWeight = ctrlptWs.value[0];
       var edgeDistances = edge.pstyle('edge-distances').value;
+      var srcDistFNode = edge.pstyle('source-distance-from-node').pfValue;
+      var tgtDistFNode = edge.pstyle('target-distance-from-node').pfValue;
       var segmentWs = edge.pstyle('segment-weights');
       var segmentDs = edge.pstyle('segment-distances');
       var segmentsN = Math.min(segmentWs.pfValue.length, segmentDs.pfValue.length);
@@ -22346,6 +22416,12 @@ BRp.findEdgeControlPoints = function (edges) {
       var edgeDistances1 = rs.lastEdgeDistances;
       var edgeDistances2 = edgeDistances;
 
+      var srcDistFNode1 = rs.lastSrcDistFNode;
+      var srcDistFNode2 = srcDistFNode;
+
+      var tgtDistFNode1 = rs.lastTgtDistFNode;
+      var tgtDistFNode2 = tgtDistFNode;
+
       var srcEndpt1 = rs.lastSrcEndpt;
       var srcEndpt2 = srcEndpt;
 
@@ -22372,7 +22448,7 @@ BRp.findEdgeControlPoints = function (edges) {
 
       var ptCacheHit;
 
-      if (srcX1 === srcX2 && srcY1 === srcY2 && srcW1 === srcW2 && srcH1 === srcH2 && tgtX1 === tgtX2 && tgtY1 === tgtY2 && tgtW1 === tgtW2 && tgtH1 === tgtH2 && curveStyle1 === curveStyle2 && ctrlptDists1 === ctrlptDists2 && ctrlptWs1 === ctrlptWs2 && segmentWs1 === segmentWs2 && segmentDs1 === segmentDs2 && stepSize1 === stepSize2 && loopDir1 === loopDir2 && loopSwp1 === loopSwp2 && edgeDistances1 === edgeDistances2 && srcEndpt1 === srcEndpt2 && tgtEndpt1 === tgtEndpt2 && srcArr1 === srcArr2 && tgtArr1 === tgtArr2 && lineW1 === lineW2 && arrScl1 === arrScl2 && (edgeIndex1 === edgeIndex2 && numEdges1 === numEdges2 || edgeIsUnbundled)) {
+      if (srcX1 === srcX2 && srcY1 === srcY2 && srcW1 === srcW2 && srcH1 === srcH2 && tgtX1 === tgtX2 && tgtY1 === tgtY2 && tgtW1 === tgtW2 && tgtH1 === tgtH2 && curveStyle1 === curveStyle2 && ctrlptDists1 === ctrlptDists2 && ctrlptWs1 === ctrlptWs2 && segmentWs1 === segmentWs2 && segmentDs1 === segmentDs2 && stepSize1 === stepSize2 && loopDir1 === loopDir2 && loopSwp1 === loopSwp2 && edgeDistances1 === edgeDistances2 && srcDistFNode1 === srcDistFNode2 && tgtDistFNode1 === tgtDistFNode2 && srcEndpt1 === srcEndpt2 && tgtEndpt1 === tgtEndpt2 && srcArr1 === srcArr2 && tgtArr1 === tgtArr2 && lineW1 === lineW2 && arrScl1 === arrScl2 && (edgeIndex1 === edgeIndex2 && numEdges1 === numEdges2 || edgeIsUnbundled)) {
         ptCacheHit = true; // then the control points haven't changed and we can skip calculating them
       } else {
         ptCacheHit = false;
@@ -22396,6 +22472,8 @@ BRp.findEdgeControlPoints = function (edges) {
         rs.lastLoopDir = loopDir2;
         rs.lastLoopSwp = loopSwp2;
         rs.lastEdgeDistances = edgeDistances2;
+        rs.lastSrcDistFNode = srcDistFNode2;
+        rs.lastTgtDistFNode = tgtDistFNode2;
         rs.lastSrcEndpt = srcEndpt2;
         rs.lastTgtEndpt = tgtEndpt2;
         rs.lastSrcArr = srcArr2;
@@ -30537,7 +30615,7 @@ module.exports = Stylesheet;
 "use strict";
 
 
-module.exports = "3.2.17";
+module.exports = "3.2.21";
 
 /***/ })
 /******/ ]);
@@ -62456,6 +62534,8 @@ ColaLayout.prototype.run = function () {
       // kick off the simulation
       //let skip = 0;
 
+      var firstTick = true;
+
       var inftick = function inftick() {
         if (layout.manuallyStopped) {
           onDone();
@@ -62464,6 +62544,12 @@ ColaLayout.prototype.run = function () {
         }
 
         var ret = adaptor.tick();
+
+        if (!options.infinite && !firstTick) {
+          adaptor.convergenceThreshold(options.convergenceThreshold);
+        }
+
+        firstTick = false;
 
         if (ret && options.infinite) {
           // resume layout if done
@@ -62806,7 +62892,9 @@ module.exports = Object.assign != null ? Object.assign.bind(Object) : function (
     srcs[_key - 1] = arguments[_key];
   }
 
-  srcs.forEach(function (src) {
+  srcs.filter(function (src) {
+    return src != null;
+  }).forEach(function (src) {
     Object.keys(src).forEach(function (k) {
       return tgt[k] = src[k];
     });
@@ -62841,6 +62929,7 @@ var defaults = {
   randomize: false, // use random node positions at beginning of layout
   avoidOverlap: true, // if true, prevents overlap of node bounding boxes
   handleDisconnected: true, // if true, avoids disconnected components from overlapping
+  convergenceThreshold: 0.01, // when the alpha value (system energy) falls below this value, the layout stops
   nodeSpacing: function nodeSpacing(node) {
     return 10;
   }, // extra spacing around nodes
@@ -62902,7 +62991,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 var raf = void 0;
 
 if ((typeof window === "undefined" ? "undefined" : _typeof(window)) !== ( true ? "undefined" : _typeof(undefined))) {
-  raf = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.msRequestAnimationFrame;
+  raf = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.msRequestAnimationFrame || function (fn) {
+    return setTimeout(fn, 16);
+  };
 } else {
   // if not available, all you get is immediate calls
   raf = function raf(cb) {
@@ -68912,7 +69003,7 @@ $.widget = function( name, base, prototype ) {
 	}
 
 	// Create selector for plugin
-	$.expr[ ":" ][ fullName.toLowerCase() ] = function( elem ) {
+	$.expr.pseudos[ fullName.toLowerCase() ] = function( elem ) {
 		return !!$.data( elem, fullName );
 	};
 
@@ -69346,7 +69437,7 @@ $.Widget.prototype = {
 			for ( i = 0; i < classes.length; i++ ) {
 				current = that.classesElementLookup[ classes[ i ] ] || $();
 				if ( options.add ) {
-					current = $( $.unique( current.get().concat( options.element.get() ) ) );
+					current = $( $.uniqueSort( current.get().concat( options.element.get() ) ) );
 				} else {
 					current = $( current.not( options.element ).get() );
 				}
@@ -70078,7 +70169,7 @@ var position = $.ui.position;
 //>>docs: http://api.jqueryui.com/data-selector/
 
 
-var data = $.extend( $.expr[ ":" ], {
+var data = $.extend( $.expr.pseudos, {
 	data: $.expr.createPseudo ?
 		$.expr.createPseudo( function( dataName ) {
 			return function( elem ) {
@@ -70193,7 +70284,7 @@ function visible( element ) {
 	return visibility !== "hidden";
 }
 
-$.extend( $.expr[ ":" ], {
+$.extend( $.expr.pseudos, {
 	focusable: function( element ) {
 		return $.ui.focusable( element, $.attr( element, "tabindex" ) != null );
 	}
@@ -70503,7 +70594,7 @@ var scrollParent = $.fn.scrollParent = function( includeHidden ) {
 
 
 
-var tabbable = $.extend( $.expr[ ":" ], {
+var tabbable = $.extend( $.expr.pseudos, {
 	tabbable: function( element ) {
 		var tabIndex = $.attr( element, "tabindex" ),
 			hasTabindex = tabIndex != null;
@@ -77623,7 +77714,7 @@ var widgetsControlgroup = $.widget( "ui.controlgroup", {
 				} );
 		} );
 
-		this.childWidgets = $( $.unique( childWidgets ) );
+		this.childWidgets = $( $.uniqueSort( childWidgets ) );
 		this._addClass( this.childWidgets, "ui-controlgroup-item" );
 	},
 
@@ -79293,7 +79384,7 @@ $.extend( Datepicker.prototype, {
 			inst = this._getInst( obj ),
 			isRTL = this._get( inst, "isRTL" );
 
-		while ( obj && ( obj.type === "hidden" || obj.nodeType !== 1 || $.expr.filters.hidden( obj ) ) ) {
+		while ( obj && ( obj.type === "hidden" || obj.nodeType !== 1 || $.expr.pseudos.hidden( obj ) ) ) {
 			obj = obj[ isRTL ? "previousSibling" : "nextSibling" ];
 		}
 
@@ -85883,12 +85974,12 @@ $.fn.extend( {
 
 ( function() {
 
-if ( $.expr && $.expr.filters && $.expr.filters.animated ) {
-	$.expr.filters.animated = ( function( orig ) {
+if ( $.expr && $.expr.pseudos && $.expr.pseudos.animated ) {
+	$.expr.pseudos.animated = ( function( orig ) {
 		return function( elem ) {
 			return !!$( elem ).data( dataSpaceAnimated ) || orig( elem );
 		};
-	} )( $.expr.filters.animated );
+	} )( $.expr.pseudos.animated );
 }
 
 if ( $.uiBackCompat !== false ) {
