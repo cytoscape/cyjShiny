@@ -96,14 +96,19 @@ server = function(input, output, session)
 
     observeEvent(input$loadStyleFile,  ignoreInit=TRUE, {
        if(input$loadStyleFile != ""){
+          filename <- input$loadStyleFile
+          if(!file.exists(filename)){
+             msg <- sprintf("%s style file not found", filename)
+             showModal(modalDialog(title="Style file error", msg))
+          } else {
           tryCatch({
-             loadStyleFile(input$loadStyleFile)
+             loadStyleFile()
              }, error=function(e) {
                 msg <- sprintf("ERROR in stylesheet file '%s': %s", input$loadStyleFile, e$message)
                 showNotification(msg, duration=NULL, type="error")
                 })
            later(function() {updateSelectInput(session, "loadStyleFile", selected=character(0))}, 0.5)
-          }
+          }}
        })
 
     observeEvent(input$doLayout,  ignoreInit=TRUE,{
