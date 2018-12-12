@@ -93146,7 +93146,10 @@ cytoscape.use(coseBilkent);
 
 $ = __webpack_require__(14);
 __webpack_require__(31);
-
+// apparently two version of jquery loaded: by shiny, and just above
+// see https://api.jquery.com/jquery.noconflict/ and
+// this stackoverflow discussion: https://stackoverflow.com/questions/31227844/typeerror-datatable-is-not-a-function
+$.noConflict();
 //----------------------------------------------------------------------------------------------------
 var executionMode = "devel";
 const log = function(msg)

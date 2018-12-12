@@ -15,7 +15,10 @@ cytoscape.use(coseBilkent);
 
 $ = require('jquery');
 require('jquery-ui-bundle');
-
+// apparently two version of jquery loaded: by shiny, and just above
+// see https://api.jquery.com/jquery.noconflict/ and
+// this stackoverflow discussion: https://stackoverflow.com/questions/31227844/typeerror-datatable-is-not-a-function
+$.noConflict();
 //----------------------------------------------------------------------------------------------------
 var executionMode = "devel";
 const log = function(msg)
