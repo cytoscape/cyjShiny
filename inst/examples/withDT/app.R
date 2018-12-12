@@ -1,4 +1,5 @@
 library(cyjShiny)
+library(DT)
 library(later)
 #----------------------------------------------------------------------------------------------------
 styles <- c("",
@@ -66,7 +67,11 @@ ui = shinyUI(fluidPage(
           htmlOutput("selectedNodesDisplay"),
           width=2
       ),
-      mainPanel(cyjShinyOutput('cyjShiny', height=400),width=10)
+     mainPanel(fluidRow(
+        cyjShinyOutput('cyjShiny', width="400px", height="200px"),
+        DTOutput("table")
+        ),
+        width=10)
   ) # sidebarLayout
 ))
 #----------------------------------------------------------------------------------------------------
@@ -171,9 +176,21 @@ server = function(input, output, session)
         })
 
     output$value <- renderPrint({ input$action })
+
     output$cyjShiny <- renderCyjShiny({
-       cyjShiny(graph=graph.json, layoutName="cola")
+       cyjShiny(graph=graph.json, layoutName="cola", height=300)
        })
+
+   output$table = DT::renderDataTable(tbl.count,
+                                      width="400px",
+                                      class='nowrap display',
+                                      selection="single",
+                                      extensions="FixedColumns",
+                                      options=list(dom='t',
+                                                   paging=FALSE,
+                                                   autowWdth=TRUE
+                                                   ))
+
 
 } # server
 #----------------------------------------------------------------------------------------------------

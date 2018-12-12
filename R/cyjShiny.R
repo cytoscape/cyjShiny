@@ -80,7 +80,7 @@ cyjShiny <- function(graph, layoutName, width = NULL, height = NULL, elementId =
 #'
 #' @export
 
-cyjShinyOutput <- function(outputId, width = '100%', height = '800')
+cyjShinyOutput <- function(outputId, width = '100%', height = '400')
 {
     htmlwidgets::shinyWidgetOutput(outputId, 'cyjShiny', width, height, package = 'cyjShiny')
 }

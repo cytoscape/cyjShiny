@@ -17,7 +17,7 @@ $ = require('jquery');
 require('jquery-ui-bundle');
 
 //----------------------------------------------------------------------------------------------------
-var executionMode = "beta";
+var executionMode = "devel";
 const log = function(msg)
 {
   if(executionMode == "devel")
@@ -30,6 +30,7 @@ HTMLWidgets.widget({
     type: 'output',
 
     factory: function(el, allocatedWidth, allocatedHeight) {
+        log("---- entering factory, initial dimensions: " + allocatedWidth + ", " + allocatedHeight);
 	var cyj;
 	return {
 	    renderValue: function(x, instance) {
@@ -82,9 +83,9 @@ HTMLWidgets.widget({
                             $("#cyjShiny").height());
 
 			cyj.nodes().map(function(node){node.data({degree: node.degree()})});
-			setTimeout(function() {
-			    cyj.fit(100)
-			}, 600);
+			//setTimeout(function() {
+			//    cyj.fit(10)
+			//}, 600);
 		    } // ready
 		}) // cytoscape()
             }, // renderValue
