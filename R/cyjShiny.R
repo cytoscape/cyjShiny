@@ -259,6 +259,40 @@ doLayout <- function(session, strategy)
 
 } # doLayout
 #------------------------------------------------------------------------------------------------------------------------
+#' get node positions
+#'
+#' @param session a Shiny Server session object.
+#'
+#' @aliases getNodePositions
+#' @rdname getNodePositions
+#'
+#' @export
+
+getNodePositions <- function(session)
+{
+   x <- session$sendCustomMessage(type="getNodePositions", message=list())
+
+} # getNodePositions
+#------------------------------------------------------------------------------------------------------------------------
+#' set node positions from the supplied data.frame
+#'
+#' @param session a Shiny Server session object.
+#' @param tbl.positions a data.frame with three columns: id, x, y
+#'
+#' @aliases setNodePositions
+#' @rdname setNodePositions
+#'
+#' @export
+
+setNodePositions <- function(session, tbl.positions)
+{
+   stopifnot(colnames(tbl.positions) == c("id", "x", "y"))
+
+   tbl.json <- toJSON(tbl.positions) # force a json representation which is an array of {id,x,y{ objects
+   session$sendCustomMessage(type="setNodePositions", message=list(tbl=tbl.json))
+
+} # setNodePositions
+#------------------------------------------------------------------------------------------------------------------------
 #' remove the current graph
 #'
 #' @param session a Shiny Server session object.

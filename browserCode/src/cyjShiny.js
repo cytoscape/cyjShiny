@@ -113,6 +113,34 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("doLayout", function(mes
     })
 
 //------------------------------------------------------------------------------------------------------------------------
+if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("getNodePositions", function(message){
+
+    log("--- entering getNodePositions, customMessangeHandler")
+    var tbl = JSON.stringify(self.cyj.nodes().map(function(n){return{id: n.id(),
+                                                                     x: n.position().x,
+                                                                     y: n.position().y}}));
+
+    log(tbl)
+    Shiny.onInputChange("tbl.nodePositions", tbl)
+    })
+
+//------------------------------------------------------------------------------------------------------------------------
+if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("setNodePositions", function(message){
+
+    log("--- entering setNodePositions, customMessangeHandler")
+    log(message.tbl)
+
+    var tbl = message.tbl; // JSON.parse(message.tbl)
+
+    console.log("calling setPosition map");
+    tbl.map(function(e){
+       var tag="[id='" + e.id + "']";
+       self.cyj.$(tag).position({x: e.x, y:e.y});
+       });
+
+    })
+
+//------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("removeGraph", function(message){
 
     self.cyj.elements().remove();
