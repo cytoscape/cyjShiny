@@ -236,6 +236,40 @@ setNodeAttributes <- function(session, attributeName, nodes, values)
                                           values=values))
 } # setNodeAttributes
 #------------------------------------------------------------------------------------------------------------------------
+#' Assign the supplied edge attribute values to the graph structure contained in the browser.
+#'
+#' @param session a Shiny Server session object.
+#' @param attributeName character string, the attribute to update.
+#' @param sourceNodes a character vector, the names of the source nodes of the edges
+#' @param targetNodes a character vector, the names of the target nodes of the edgees
+#' @param edgeType a character vector, further identifying the specific edge whose attributes are updated.
+#' @param values a character, logical or numeric vector, the new values.
+#'
+#' @examples
+#' \dontrun{
+#'   setEdgeAttributes(session,
+#'                     attributeName="score",
+#'                     sourceNodes=c("A", "B", "C"),
+#'                     targetNodes=c("D", "E", "A"),
+#'                     edgeType=c("promotes", "promotes", "inhibits"),
+#'                     values=new.scores)
+#' }
+#'
+#' @aliases setEdgeAttributes
+#' @rdname setEdgeAttributes
+#'
+#' @export
+
+setEdgeAttributes <- function(session, attributeName, sourceNodes, targetNodes, edgeTypes, values)
+{
+   session$sendCustomMessage(type="setEdgeAttributes",
+                             message=list(attribute=attributeName,
+                                          sourceNodes=sourceNodes,
+                                          targetNodes=targetNodes,
+                                          edgeTypes=edgeTypes,
+                                          values=values))
+} # setEdgeAttributes
+#------------------------------------------------------------------------------------------------------------------------
 #' Layout the current graph using the specified strategy.
 #'
 #' @param session a Shiny Server session object.

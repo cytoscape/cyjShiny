@@ -93328,6 +93328,28 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("setNodeAttributes", fun
        };
 })
 //------------------------------------------------------------------------------------------------------------------------
+if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("setEdgeAttributes", function(message){
+
+    log("setEdgeAttributes requested")
+
+    var attributeName = message.attributeName;
+    var sourceNodes = message.sourceNodes;
+    var targetNodes = message.targetNodes;
+    var edgeTypes = message.edgeTypes;
+    var values = message.values
+
+   for(var i=0; i < sourceNodes.length; i++){
+      var selectorString = "edge[source='" + sourceNodes[i] + "'][target='" + targetNodes[i] +
+                           "'][edgeType='" + edgeTypes[i] + "']";
+      log(selectorString);
+      var dataObj = self.cyj.edges().filter(selectorString).data();
+      if(dataObj != undefined){
+         Object.defineProperty(dataObj, attributeName, {value: values[i]});
+         }
+      } // for i
+
+}) // setEdgeAttributes
+//----------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("selectNodes", function(message){
 
    log("selectNodes requested: " + message);

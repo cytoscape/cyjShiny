@@ -8,7 +8,7 @@ styles <- c("",
 # create  read json text for graph, two simulated experimental variables in data.frames, 3 conditions
 #----------------------------------------------------------------------------------------------------
 json.filename <- "simpleGraph.json"
-graph.json <- readLines(json.filename)
+graph.json <- paste(readLines(json.filename), collapse="")
 
 tbl.lfc <- data.frame(A=c(0, 1,   1, -3),
                       B=c(0, 3,   2,  3),
@@ -21,8 +21,15 @@ tbl.count <- data.frame(A=c(1, 10,  100, 150),
                         B=c(1, 5,   80,  3),
                         C=c(1, 100, 50,  300),
                         stringsAsFactors=FALSE)
-
 rownames(tbl.count) <- c("baseline", "cond1", "cond2", "cond3")
+
+tbl.interactionScores <- data.frame(sourceNode=c("A", "B", "C"),
+                                    targetNode=c("B", "C", "A"),
+                                    interaction=c("phosphorylates", "synthetic lethal", "unknown"),
+                                    cond1=c(-1, 3, 10),
+                                    cond2=c(10, -1, 3),
+                                    cond3=c(20, 25, 30),
+                                    stringsAsFactors=FALSE)
 
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
@@ -54,10 +61,10 @@ ui = shinyUI(fluidPage(
           actionButton("addRandomGraphFromDataFramesButton", "Add Random Graph"), HTML("<br>"),
           actionButton("getSelectedNodes", "Get Selected Nodes"), HTML("<br><br>"),
           htmlOutput("selectedNodesDisplay"),
-          width=2
+          width=3
       ),
       mainPanel(cyjShinyOutput('cyjShiny'),
-          width=10
+          width=9
       )
   ) # sidebarLayout
 ))
@@ -70,15 +77,20 @@ server = function(input, output, session)
 
     observeEvent(input$showCondition, ignoreInit=TRUE, {
        condition.name <- isolate(input$showCondition)
-       #printf(" condition.name: %s", condition.name)
+
        values <- as.numeric(tbl.lfc[condition.name,])
        node.names <- colnames(tbl.lfc)
-       #printf("sending lfc values for %s: %s", paste(node.names, collapse=", "), paste(values, collapse=", "))
        setNodeAttributes(session, attributeName="lfc", nodes=node.names, values)
        values <- as.numeric(tbl.count[condition.name,])
        node.names <- colnames(tbl.count)
-       #printf("sending count values for %s: %s", paste(node.names, collapse=", "), paste(values, collapse=", "))
        setNodeAttributes(session, attributeName="count", nodes=colnames(tbl.count), values)
+
+       setEdgeAttributes(session,
+                         attributeName="score",
+                         sourceNodes=tbl.interactionScores$sourceNode,
+                         targetNodes=tbl.interactionScores$targetNode,
+                         edgeTypes=tbl.interactionScores$interaction,
+                         values=tbl.interactionScores[, condition.name])
        })
 
     observeEvent(input$loadStyleFile,  ignoreInit=TRUE, {
