@@ -46,22 +46,31 @@
         "curve-style": "bezier"
         }},
 
-    {"selector": "edge[score<=0]", "css": {
-        "line-color": "mapData(score, -30, 0, red, lightGray)",
-        "source-arrow-shape": "circle",
-        "source-arrow-color": "orange",
+    {"selector": "edge[interaction='unknown']", "css": {
+        "source-arrow-shape": "none",
+        "target-arrow-shape": "none"
+        }},
+
+
+    {"selector": "edge[interaction='phosphorylates']", "css": {
+        "source-arrow-shape": "none",
+        "target-arrow-shape": "triangle",
+        "target-arrow-color": "black"
+        }},
+
+    {"selector": "edge[interaction='synthetic lethal']", "css": {
+        "source-arrow-shape": "square",
+        "source-arrow-color": "black",
         "target-arrow-shape": "tee",
-        "target-arrow-color": "black",
-        "curve-style": "bezier"
+        "target-arrow-color": "red"
+        }},
+
+    {"selector": "edge[score<=0]", "css": {
+        "line-color": "mapData(score, -30, 0, red, lightGray)"
         }},
 
     {"selector": "edge[score>0]", "css": {
-        "line-color": "mapData(score, 0, 30, lightGray, green)",
-        "source-arrow-shape": "circle",
-        "source-arrow-color": "orange",
-        "target-arrow-shape": "tee",
-        "target-arrow-color": "black",
-        "curve-style": "bezier"
+        "line-color": "mapData(score, 0, 30, lightGray, green)"
         }},
 
     {"selector": "edge:selected", "css": {

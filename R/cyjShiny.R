@@ -242,7 +242,7 @@ setNodeAttributes <- function(session, attributeName, nodes, values)
 #' @param attributeName character string, the attribute to update.
 #' @param sourceNodes a character vector, the names of the source nodes of the edges
 #' @param targetNodes a character vector, the names of the target nodes of the edgees
-#' @param edgeType a character vector, further identifying the specific edge whose attributes are updated.
+#' @param interactions a character vector, further identifying the specific edge whose attributes are updated.
 #' @param values a character, logical or numeric vector, the new values.
 #'
 #' @examples
@@ -251,7 +251,7 @@ setNodeAttributes <- function(session, attributeName, nodes, values)
 #'                     attributeName="score",
 #'                     sourceNodes=c("A", "B", "C"),
 #'                     targetNodes=c("D", "E", "A"),
-#'                     edgeType=c("promotes", "promotes", "inhibits"),
+#'                     interactions=c("promotes", "promotes", "inhibits"),
 #'                     values=new.scores)
 #' }
 #'
@@ -260,13 +260,13 @@ setNodeAttributes <- function(session, attributeName, nodes, values)
 #'
 #' @export
 
-setEdgeAttributes <- function(session, attributeName, sourceNodes, targetNodes, edgeTypes, values)
+setEdgeAttributes <- function(session, attributeName, sourceNodes, targetNodes, interactions, values)
 {
    session$sendCustomMessage(type="setEdgeAttributes",
-                             message=list(attribute=attributeName,
+                             message=list(attributeName=attributeName,
                                           sourceNodes=sourceNodes,
                                           targetNodes=targetNodes,
-                                          edgeTypes=edgeTypes,
+                                          interactions=interactions,
                                           values=values))
 } # setEdgeAttributes
 #------------------------------------------------------------------------------------------------------------------------

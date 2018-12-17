@@ -26,6 +26,7 @@ rownames(tbl.count) <- c("baseline", "cond1", "cond2", "cond3")
 tbl.interactionScores <- data.frame(sourceNode=c("A", "B", "C"),
                                     targetNode=c("B", "C", "A"),
                                     interaction=c("phosphorylates", "synthetic lethal", "unknown"),
+                                    baseline=c(0, 0, 0),
                                     cond1=c(-1, 3, 10),
                                     cond2=c(10, -1, 3),
                                     cond3=c(20, 25, 30),
@@ -89,7 +90,7 @@ server = function(input, output, session)
                          attributeName="score",
                          sourceNodes=tbl.interactionScores$sourceNode,
                          targetNodes=tbl.interactionScores$targetNode,
-                         edgeTypes=tbl.interactionScores$interaction,
+                         interactions=tbl.interactionScores$interaction,
                          values=tbl.interactionScores[, condition.name])
        })
 

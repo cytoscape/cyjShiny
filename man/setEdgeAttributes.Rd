@@ -5,7 +5,7 @@
 \title{Assign the supplied edge attribute values to the graph structure contained in the browser.}
 \usage{
 setEdgeAttributes(session, attributeName, sourceNodes, targetNodes,
-  edgeTypes, values)
+  interactions, values)
 }
 \arguments{
 \item{session}{a Shiny Server session object.}
@@ -16,9 +16,9 @@ setEdgeAttributes(session, attributeName, sourceNodes, targetNodes,
 
 \item{targetNodes}{a character vector, the names of the target nodes of the edgees}
 
-\item{values}{a character, logical or numeric vector, the new values.}
+\item{interactions}{a character vector, further identifying the specific edge whose attributes are updated.}
 
-\item{edgeType}{a character vector, further identifying the specific edge whose attributes are updated.}
+\item{values}{a character, logical or numeric vector, the new values.}
 }
 \description{
 Assign the supplied edge attribute values to the graph structure contained in the browser.
@@ -29,7 +29,7 @@ Assign the supplied edge attribute values to the graph structure contained in th
                     attributeName="score",
                     sourceNodes=c("A", "B", "C"),
                     targetNodes=c("D", "E", "A"),
-                    edgeType=c("promotes", "promotes", "inhibits"),
+                    interactions=c("promotes", "promotes", "inhibits"),
                     values=new.scores)
 }
 

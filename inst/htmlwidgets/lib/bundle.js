@@ -93335,17 +93335,27 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("setEdgeAttributes", fun
     var attributeName = message.attributeName;
     var sourceNodes = message.sourceNodes;
     var targetNodes = message.targetNodes;
-    var edgeTypes = message.edgeTypes;
+    var interactions = message.interactions;
     var values = message.values
 
    for(var i=0; i < sourceNodes.length; i++){
-      var selectorString = "edge[source='" + sourceNodes[i] + "'][target='" + targetNodes[i] +
-                           "'][edgeType='" + edgeTypes[i] + "']";
-      log(selectorString);
-      var dataObj = self.cyj.edges().filter(selectorString).data();
-      if(dataObj != undefined){
-         Object.defineProperty(dataObj, attributeName, {value: values[i]});
+      //var selectorString = "edge[source='" + sourceNodes[i] + "'][target='" + targetNodes[i] +
+      //                     "'][interaction='" + interactions[i] + "']";
+      //log(selectorString);
+      var id = sourceNodes[i] + "-(" + interactions[i] + ")-" + targetNodes[i];
+      log("edge id: " + id)
+      var edge = self.cyj.getElementById(id)
+      log(edge)
+      if(edge != undefined){
+         log("setting edge " + attributeName + " to " + values[i])
+         edge.data({[attributeName]: values[i]})
          }
+      //var dataObj = self.cyj.edges().filter(selectorString).data();
+      // log("--- edge object after filtering:")
+      // log(dataObj)
+      //if(dataObj != undefined){
+      //   Object.defineProperty(dataObj, attributeName, {value: values[i]});
+      //   }
       } // for i
 
 }) // setEdgeAttributes
