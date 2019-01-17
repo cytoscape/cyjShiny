@@ -1,59 +1,13 @@
-# r-cytoscape.js
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1345344.svg)](https://doi.org/10.5281/zenodo.1345344)
 
-## Overview 
+# r-cytoscape.js: Update **August 27, 2018** 
 
-An [HTMLWidgets](http://www.htmlwidgets.org/) package for CytoscapeJS which can be used to produce standalone figure or for embedding in [Shiny](http://shiny.rstudio.com/) applications. 
+The r-cytoscape.js package has been updated to a new code base making use of the latest cytoscape.js. The code is very bleeding edge. Testing and documentation are still being finalized. Users can grab the the lastest version of r-cytoscape.js 0.0.7 from the [releases](https://github.com/cytoscape/cyjShiny/releases) and install with devtools::install(). 
 
-## Install
-This package is currently not on CRAN, but you can install it from GitHub via `devtools`:
+# cyjShiny
 
-```r
-library("devtools");
-devtools::install_github("cytoscape/r-cytoscape.js");
-```
+cytoscape.js as a shiny widget, with an API based on RCyjs (and ancestrally, RCy3)
 
-## Sample network
-```
-# Load devtools 
-library(rcytoscapejs)
+For more information, please visit the cyjShiny [Wiki](https://github.com/paul-shannon/cyjShiny/wiki).
 
-id <- c("Jerry", "Elaine", "Kramer", "George")
-name <- id
-nodeData <- data.frame(id, name, stringsAsFactors=FALSE)
-
-source <- c("Jerry", "Jerry", "Jerry", "Elaine", "Elaine", "Kramer", "Kramer", "Kramer", "George")
-target <- c("Elaine", "Kramer", "George", "Jerry", "Kramer", "Jerry", "Elaine", "George", "Jerry")
-edgeData <- data.frame(source, target, stringsAsFactors=FALSE)
-
-network <- createCytoscapeJsNetwork(nodeData, edgeData)
-rcytoscapejs(network$nodes, network$edges, showPanzoom=FALSE)
-```
-##Customizing Network
-
-Customizing the network can be done by appending additional columns on to the original data.frames for the network. The current possible additional columns for nodes are "color", "shape", and "href" (an external link). The colors are hex colors and the options for shapes are from the [CytoscapeJS website](http://cytoscape.github.io/cytoscape.js/). For edges, the additional columns are: "color", "sourceShape", "targetShape". 
-
-```
-nodeData$color <- rep("#00FF00", nrow(nodeData)) 
-nodeData$color[which(grepl("^Elaine$", nodeData$id))] <- "#FF0000"
-
-nodeData$href <- paste0("http://www.google.com/search?q=Seinfeld%20", nodeData$name)
-
-network <- createCytoscapeJsNetwork(nodeData, edgeData)
-rcytoscapejs(network$nodes, network$edges, showPanzoom=FALSE)
-```
-
-##Embedding in Shiny
-
-It is possible embed Cytoscape.js networks into [Shiny applications](http://shiny.rstudio.com/). The example in current GitHub repository shows a small network with proteins that interact with topoisomerase TOP1, as well as drugs that target the protein. The example Shiny app can be run with the following commands and is stored in inst/examples.
-
-```
-library(shiny)
-runShinyApp()
-```
-
-CytoscapeJS possesses many options that are not all captured in the HTMLWidgets functionality; users can fork this repository and edit inst/htmlwidgets/rcytoscapejs.js The sample showcases the use tooltips (from "href" data column), usage of Cytoscape plugins (i.e. panzoom and qtip), returning values from click events on network. 
- 
-[Demo](http://sanderlab.org/rcytoscapejs/)
-
-### Screenshot 
-![screenshot](https://raw.githubusercontent.com/cytoscape/r-cytoscape.js/master/inst/screenshot.png) 
+![model](ygModelImage.png)

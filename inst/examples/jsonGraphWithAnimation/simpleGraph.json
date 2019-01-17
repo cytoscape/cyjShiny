@@ -1,0 +1,74 @@
+{"elements":{
+      "nodes":[
+         {
+            "data":{
+               "id":"A",
+               "type":"kinase",
+               "lfc":1,
+               "count":0,
+               "degree":2
+            },
+            "position":{
+               "x":771.3610776833497,
+               "y":201.3659616294034
+            }
+         },
+         {
+            "data":{
+               "id":"B",
+               "type":"TF",
+               "lfc":1,
+               "count":0,
+               "degree":2
+            },
+            "position":{
+               "x":671.447940853676,
+               "y":196.24628809271317
+            }
+         },
+         {
+            "data":{
+               "id":"C",
+               "type":"glycoprotein",
+               "lfc":1,
+               "count":0,
+               "degree":2
+            },
+            "position":{
+               "x":716.8418810208968,
+               "y":285.2498287526364
+            }
+         }
+      ],
+      "edges":[
+         {
+            "data":{
+               "id":"A-(phosphorylates)-B",
+               "source":"A",
+               "target":"B",
+               "interaction":"phosphorylates",
+               "score": 0
+            }
+         },
+         {
+            "data":{
+               "id":"B-(synthetic lethal)-C",
+               "source":"B",
+               "target":"C",
+               "interaction":"synthetic lethal",
+               "score": 0
+
+            }
+         },
+         {
+            "data":{
+               "id":"C-(unknown)-A",
+               "source":"C",
+               "target":"A",
+               "interaction":"unknown",
+               "score": 0
+            }
+         }
+      ]
+   }
+}
