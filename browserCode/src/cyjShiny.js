@@ -39,14 +39,15 @@ HTMLWidgets.widget({
 	    renderValue: function(x, instance) {
 		log("---- ~/github/cyjsShiny/inst/browserCode/src/cyjShiny.js, renderValue")
 		var data = JSON.parse(x.graph);
-                var layoutName = x.layoutName;
+        var layoutName = x.layoutName;
+        var style = x.style;
 		log(data);
 		var cyDiv = el;
 		cyj = cytoscape({
 		    container: cyDiv,
 		    elements: data.elements,
 		    layout: {name: layoutName},
-                    style:  [{selector: 'node', css: {
+		    style:  [{selector: 'node', css: {
                         'text-valign': 'center',
                         'text-halign': 'center',
                         'content': 'data(id)',
@@ -80,6 +81,10 @@ HTMLWidgets.widget({
 			$("#cyjShiny").width(allocatedWidth)
 			var cyj = this;
 			window.cyj = this;   // terrible hack.  but gives us a simple way to call cytosacpe functions
+			//If given a style, this is the place to set it!
+			if (style != null) {
+				cyj.style(style.json);
+			}
 			log("small cyjs network ready, with " + cyj.nodes().length + " nodes.");
 		        log("  initial widget dimensions: " +
                             $("#cyjShiny").width() + ", " +

@@ -27,7 +27,7 @@
 #'
 #' @export
 
-cyjShiny <- function(graph, layoutName, width = NULL, height = NULL, elementId = NULL)
+cyjShiny <- function(graph, layoutName, style_file=NULL, width = NULL, height = NULL, elementId = NULL)
 {
    stopifnot(layoutName %in% c("preset",
                                "cose",
@@ -40,7 +40,19 @@ cyjShiny <- function(graph, layoutName, width = NULL, height = NULL, elementId =
                                "dagre",
                                "cose-bilkent"))
 
-   x <- list(graph=graph, layoutName=layoutName)
+   if (is.null(style_file)) {
+      style = NULL
+   } else {
+      if(file.exists(style_file)){	  
+	     jsonText <- toJSON(fromJSON(style_file))   # very strict parser, no unquoted field names
+	     style <- list(json=jsonText)
+      } else {
+		 warning(sprintf("cannot read style file: %s, continuing with default", style_file))
+		 style = NULL
+      }
+   }
+
+   x <- list(graph=graph, layoutName=layoutName, style=style)
 
    htmlwidgets::createWidget(
       name = 'cyjShiny',
