@@ -22,11 +22,10 @@ condition <- c("", "gal1RGexp", "gal4RGexp", "gal80Rexp")
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
 
-  # includeScript("message-handler.js"),
-
   tags$head(
-          tags$link(rel = "stylesheet", type = "text/css",
-                    href = "http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css")),
+     tags$link(rel = "stylesheet", type = "text/css",
+               href = "http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css"),
+     tags$style("#cyjShiny{height:95vh !important;}")),
   sidebarLayout(
       sidebarPanel(
           selectInput("loadStyleFile", "Select Style: ", choices=styleList),
