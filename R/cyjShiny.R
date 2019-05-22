@@ -43,12 +43,12 @@ cyjShiny <- function(graph, layoutName, style_file=NULL, width = NULL, height = 
    if (is.null(style_file)) {
       style = NULL
    } else {
-      if(file.exists(style_file)){	  
+      if(file.exists(style_file)){
 	     jsonText <- toJSON(fromJSON(style_file))   # very strict parser, no unquoted field names
 	     style <- list(json=jsonText)
       } else {
-		 warning(sprintf("cannot read style file: %s, continuing with default", style_file))
-		 style = NULL
+              warning(sprintf("cannot read style file: %s, continuing with default", style_file))
+              style = NULL
       }
    }
 

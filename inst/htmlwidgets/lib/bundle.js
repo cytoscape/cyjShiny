@@ -2201,6 +2201,7 @@ var hashStringsArray = function hashStringsArray(strs) {
 };
 
 /*global console */
+var warningsEnabled = true;
 var warnSupported = console.warn != null; // eslint-disable-line no-console
 
 var traceSupported = console.trace != null; // eslint-disable-line no-console
@@ -2219,8 +2220,19 @@ var noop = function noop() {};
 var error = function error(msg) {
   throw new Error(msg);
 };
+var warnings = function warnings(enabled) {
+  if (enabled !== undefined) {
+    warningsEnabled = !!enabled;
+  } else {
+    return warningsEnabled;
+  }
+};
 var warn = function warn(msg) {
   /* eslint-disable no-console */
+  if (!warnings()) {
+    return;
+  }
+
   if (warnSupported) {
     console.warn(msg);
   } else {
@@ -2547,8 +2559,19 @@ var Element = function Element(cy, params, restore) {
     // cache of the current bounding box
     bbCacheShift: {
       x: 0,
-      y: 0 // shift applied to cached bb to be applied on next get
-
+      y: 0
+    },
+    // shift applied to cached bb to be applied on next get
+    bodyBounds: null,
+    // bounds cache of element body, w/o overlay
+    overlayBounds: null,
+    // bounds cache of element body, including overlay
+    labelBounds: {
+      // bounds cache of labels
+      all: null,
+      source: null,
+      target: null,
+      main: null
     }
   };
 
@@ -2589,14 +2612,13 @@ var Element = function Element(cy, params, restore) {
     _p.classes.add(cls);
   }
 
+  this.createEmitter();
   var bypass = params.style || params.css;
 
   if (bypass) {
     warn('Setting a `style` bypass at element creation is deprecated');
-    cy.style().applyBypass(this, bypass);
+    this.style(bypass);
   }
-
-  this.createEmitter();
 
   if (restore === undefined || restore) {
     this.restore();
@@ -2609,18 +2631,18 @@ var defineSearch = function defineSearch(params) {
     dfs: params.dfs || !params.bfs
   }; // from pseudocode on wikipedia
 
-  return function searchFn(roots, fn$$1, directed) {
+  return function searchFn(roots, fn$1, directed) {
     var options;
 
     if (plainObject(roots) && !elementOrCollection(roots)) {
       options = roots;
       roots = options.roots || options.root;
-      fn$$1 = options.visit;
+      fn$1 = options.visit;
       directed = options.directed;
     }
 
-    directed = arguments.length === 2 && !fn(fn$$1) ? fn$$1 : directed;
-    fn$$1 = fn(fn$$1) ? fn$$1 : function () {};
+    directed = arguments.length === 2 && !fn(fn$1) ? fn$1 : directed;
+    fn$1 = fn(fn$1) ? fn$1 : function () {};
     var cy = this._private.cy;
     var v = roots = string(roots) ? this.filter(roots) : roots;
     var Q = [];
@@ -2671,7 +2693,7 @@ var defineSearch = function defineSearch(params) {
       var tgt = prevEdge != null ? prevEdge.target() : null;
       var prevNode = prevEdge == null ? undefined : v.same(src) ? tgt[0] : src[0];
       var ret = void 0;
-      ret = fn$$1(v, prevEdge, prevNode, j++, depth);
+      ret = fn$1(v, prevEdge, prevNode, j++, depth);
 
       if (ret === true) {
         found = v;
@@ -3602,6 +3624,9 @@ var elesfn$6 = {
   }
 }; // elesfn
 
+var arePositionsSame = function arePositionsSame(p1, p2) {
+  return p1.x === p2.x && p1.y === p2.y;
+};
 var copyPosition = function copyPosition(p) {
   return {
     x: p.x,
@@ -3766,6 +3791,9 @@ var inPlaceSumNormalize = function inPlaceSumNormalize(v) {
 
   return v;
 };
+var normalize = function normalize(v) {
+  return inPlaceSumNormalize(v.slice());
+}; // from http://en.wikipedia.org/wiki/Bézier_curve#Quadratic_curves
 
 var qbezierAt = function qbezierAt(p0, p1, p2, t) {
   return (1 - t) * (1 - t) * p0 + 2 * (1 - t) * t * p1 + t * t * p2;
@@ -3792,6 +3820,16 @@ var lineAt = function lineAt(p0, p1, t, d) {
     x: p0.x + normVec.x * d,
     y: p0.y + normVec.y * d
   };
+};
+var lineAtDist = function lineAtDist(p0, p1, d) {
+  return lineAt(p0, p1, undefined, d);
+}; // get angle at A via cosine law
+
+var triangleAngle = function triangleAngle(A, B, C) {
+  var a = dist(B, C);
+  var b = dist(A, C);
+  var c = dist(A, B);
+  return Math.acos((a * a + b * b - c * c) / (2 * a * b));
 };
 var bound = function bound(min, val, max) {
   return Math.max(min, Math.min(max, val));
@@ -3829,6 +3867,16 @@ var makeBoundingBox = function makeBoundingBox(bb) {
     }
   }
 };
+var copyBoundingBox = function copyBoundingBox(bb) {
+  return {
+    x1: bb.x1,
+    x2: bb.x2,
+    w: bb.w,
+    y1: bb.y1,
+    y2: bb.y2,
+    h: bb.h
+  };
+};
 var clearBoundingBox = function clearBoundingBox(bb) {
   bb.x1 = Infinity;
   bb.y1 = Infinity;
@@ -3836,6 +3884,16 @@ var clearBoundingBox = function clearBoundingBox(bb) {
   bb.y2 = -Infinity;
   bb.w = 0;
   bb.h = 0;
+};
+var shiftBoundingBox = function shiftBoundingBox(bb, dx, dy) {
+  return {
+    x1: bb.x1 + dx,
+    x2: bb.x2 + dx,
+    y1: bb.y1 + dy,
+    y2: bb.y2 + dy,
+    w: bb.w,
+    h: bb.h
+  };
 };
 var updateBoundingBox = function updateBoundingBox(bb1, bb2) {
   // update bb1 with bb2 bounds
@@ -3864,6 +3922,20 @@ var expandBoundingBox = function expandBoundingBox(bb) {
   bb.h = bb.y2 - bb.y1;
   return bb;
 };
+
+var expandToInt = function expandToInt(x) {
+  return x > 0 ? Math.ceil(x) : Math.floor(x);
+};
+
+var expandBoundingBoxToInts = function expandBoundingBoxToInts(bb) {
+  var padding = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+  bb.x1 = expandToInt(bb.x1 - padding);
+  bb.y1 = expandToInt(bb.y1 - padding);
+  bb.x2 = expandToInt(bb.x2 + padding);
+  bb.y2 = expandToInt(bb.y2 + padding);
+  bb.w = bb.x2 - bb.x1;
+  bb.h = bb.y2 - bb.y1;
+}; // assign the values of bb2 into bb1
 
 var assignBoundingBox = function assignBoundingBox(bb1, bb2) {
   bb1.x1 = bb2.x1;
@@ -4382,6 +4454,28 @@ var intersectLineCircle = function intersectLineCircle(x1, y1, x2, y2, centerX, 
     return [nearIntersectionX, nearIntersectionY];
   }
 };
+var findCircleNearPoint = function findCircleNearPoint(centerX, centerY, radius, farX, farY) {
+  var displacementX = farX - centerX;
+  var displacementY = farY - centerY;
+  var distance = Math.sqrt(displacementX * displacementX + displacementY * displacementY);
+  var unitDisplacementX = displacementX / distance;
+  var unitDisplacementY = displacementY / distance;
+  return [centerX + unitDisplacementX * radius, centerY + unitDisplacementY * radius];
+};
+var findMaxSqDistanceToOrigin = function findMaxSqDistanceToOrigin(points) {
+  var maxSqDistance = 0.000001;
+  var sqDistance;
+
+  for (var i = 0; i < points.length / 2; i++) {
+    sqDistance = points[i * 2] * points[i * 2] + points[i * 2 + 1] * points[i * 2 + 1];
+
+    if (sqDistance > maxSqDistance) {
+      maxSqDistance = sqDistance;
+    }
+  }
+
+  return maxSqDistance;
+};
 var midOfThree = function midOfThree(a, b, c) {
   if (b <= a && a <= c || c <= a && a <= b) {
     return a;
@@ -4590,6 +4684,73 @@ var getBarrelCurveConstants = function getBarrelCurveConstants(width, height) {
     ctrlPtOffsetPct: 0.05
   };
 };
+
+var math = /*#__PURE__*/Object.freeze({
+  arePositionsSame: arePositionsSame,
+  copyPosition: copyPosition,
+  modelToRenderedPosition: modelToRenderedPosition,
+  renderedToModelPosition: renderedToModelPosition,
+  array2point: array2point,
+  min: min,
+  max: max,
+  mean: mean,
+  median: median,
+  deg2rad: deg2rad,
+  getAngleFromDisp: getAngleFromDisp,
+  log2: log2,
+  signum: signum,
+  dist: dist,
+  sqdist: sqdist,
+  inPlaceSumNormalize: inPlaceSumNormalize,
+  normalize: normalize,
+  qbezierAt: qbezierAt,
+  qbezierPtAt: qbezierPtAt,
+  lineAt: lineAt,
+  lineAtDist: lineAtDist,
+  triangleAngle: triangleAngle,
+  bound: bound,
+  makeBoundingBox: makeBoundingBox,
+  copyBoundingBox: copyBoundingBox,
+  clearBoundingBox: clearBoundingBox,
+  shiftBoundingBox: shiftBoundingBox,
+  updateBoundingBox: updateBoundingBox,
+  expandBoundingBoxByPoint: expandBoundingBoxByPoint,
+  expandBoundingBox: expandBoundingBox,
+  expandBoundingBoxToInts: expandBoundingBoxToInts,
+  assignBoundingBox: assignBoundingBox,
+  assignShiftToBoundingBox: assignShiftToBoundingBox,
+  boundingBoxesIntersect: boundingBoxesIntersect,
+  inBoundingBox: inBoundingBox,
+  pointInBoundingBox: pointInBoundingBox,
+  boundingBoxInBoundingBox: boundingBoxInBoundingBox,
+  roundRectangleIntersectLine: roundRectangleIntersectLine,
+  inLineVicinity: inLineVicinity,
+  inBezierVicinity: inBezierVicinity,
+  solveQuadratic: solveQuadratic,
+  solveCubic: solveCubic,
+  sqdistToQuadraticBezier: sqdistToQuadraticBezier,
+  sqdistToFiniteLine: sqdistToFiniteLine,
+  pointInsidePolygonPoints: pointInsidePolygonPoints,
+  pointInsidePolygon: pointInsidePolygon,
+  joinLines: joinLines,
+  expandPolygon: expandPolygon,
+  intersectLineEllipse: intersectLineEllipse,
+  checkInEllipse: checkInEllipse,
+  intersectLineCircle: intersectLineCircle,
+  findCircleNearPoint: findCircleNearPoint,
+  findMaxSqDistanceToOrigin: findMaxSqDistanceToOrigin,
+  midOfThree: midOfThree,
+  finiteLinesIntersect: finiteLinesIntersect,
+  polygonIntersectLine: polygonIntersectLine,
+  shortenIntersection: shortenIntersection,
+  generateUnitNgonPointsFitToSquare: generateUnitNgonPointsFitToSquare,
+  fitPolygonToSquare: fitPolygonToSquare,
+  generateUnitNgonPoints: generateUnitNgonPoints,
+  getRoundRectangleRadius: getRoundRectangleRadius,
+  getCutRectangleCornerLength: getCutRectangleCornerLength,
+  bezierPtsToQuadCoeff: bezierPtsToQuadCoeff,
+  getBarrelCurveConstants: getBarrelCurveConstants
+});
 
 var pageRankDefaults = defaults({
   dampingFactor: 0.8,
@@ -5499,17 +5660,20 @@ var setOptions$1 = function setOptions(options) {
 
 
 var getDist = function getDist(type, node, centroid, attributes, mode) {
-  var getP = mode === 'kMedoids' ? function (i) {
-    return attributes[i](centroid);
-  } : function (i) {
+  var noNodeP = mode !== 'kMedoids';
+  var getP = noNodeP ? function (i) {
     return centroid[i];
+  } : function (i) {
+    return attributes[i](centroid);
   };
 
   var getQ = function getQ(i) {
     return attributes[i](node);
   };
 
-  return clusteringDistance(type, attributes.length, getP, getQ);
+  var nodeP = centroid;
+  var nodeQ = node;
+  return clusteringDistance(type, attributes.length, getP, getQ, nodeP, nodeQ);
 };
 
 var randomCentroids = function randomCentroids(nodes, k, attributes) {
@@ -5994,7 +6158,7 @@ var mergeClosest = function mergeClosest(clusters, index, dists, mins, opts) {
       return attrs[i](n1);
     }, function (i) {
       return attrs[i](n2);
-    });
+    }, n1, n2);
   };
 
   for (var i = 0; i < clusters.length; i++) {
@@ -6174,7 +6338,7 @@ var hierarchicalClustering = function hierarchicalClustering(options) {
       return attrs[i](n1);
     }, function (i) {
       return attrs[i](n2);
-    });
+    }, n1, n2);
   }; // Begin hierarchical algorithm
 
 
@@ -6341,14 +6505,14 @@ var assignClusters = function assignClusters(n, S, exemplars) {
 
   for (var i = 0; i < n; i++) {
     var index = -1;
-    var max$$1 = -Infinity;
+    var max = -Infinity;
 
     for (var ei = 0; ei < exemplars.length; ei++) {
       var e = exemplars[ei];
 
-      if (S[i * n + e] > max$$1) {
+      if (S[i * n + e] > max) {
         index = e;
-        max$$1 = S[i * n + e];
+        max = S[i * n + e];
       }
     }
 
@@ -6483,7 +6647,7 @@ var affinityPropagation = function affinityPropagation(options) {
     // main algorithmic loop
     // Update R responsibility matrix
     for (var _i8 = 0; _i8 < n; _i8++) {
-      var max$$1 = -Infinity,
+      var max = -Infinity,
           max2 = -Infinity,
           maxI = -1,
           AS = 0.0;
@@ -6492,9 +6656,9 @@ var affinityPropagation = function affinityPropagation(options) {
         old[_j] = R[_i8 * n + _j];
         AS = A[_i8 * n + _j] + S[_i8 * n + _j];
 
-        if (AS >= max$$1) {
-          max2 = max$$1;
-          max$$1 = AS;
+        if (AS >= max) {
+          max2 = max;
+          max = AS;
           maxI = _j;
         } else if (AS > max2) {
           max2 = AS;
@@ -6502,7 +6666,7 @@ var affinityPropagation = function affinityPropagation(options) {
       }
 
       for (var _j2 = 0; _j2 < n; _j2++) {
-        R[_i8 * n + _j2] = (1 - opts.damping) * (S[_i8 * n + _j2] - max$$1) + opts.damping * old[_j2];
+        R[_i8 * n + _j2] = (1 - opts.damping) * (S[_i8 * n + _j2] - max) + opts.damping * old[_j2];
       }
 
       R[_i8 * n + maxI] = (1 - opts.damping) * (S[_i8 * n + maxI] - max2) + opts.damping * old[maxI];
@@ -7091,7 +7255,7 @@ extend(anifn, {
 
     return this;
   },
-  promise: function promise$$1(type) {
+  promise: function promise(type) {
     var _p = this._private;
     var arr;
 
@@ -7205,7 +7369,7 @@ var define = {
         return this;
       }
 
-      var style$$1 = cy.style();
+      var style = cy.style();
       properties = extend({}, properties, params);
       var propertiesEmpty = Object.keys(properties).length === 0;
 
@@ -7228,7 +7392,7 @@ var define = {
       }
 
       if (isEles) {
-        properties.style = style$$1.getPropsList(properties.style || properties.css);
+        properties.style = style.getPropsList(properties.style || properties.css);
         properties.css = undefined;
       }
 
@@ -7369,7 +7533,7 @@ var define = {
 var define$1 = {
   // access data field
   data: function data(params) {
-    var defaults$$1 = {
+    var defaults = {
       field: 'data',
       bindingEvent: 'data',
       allowBinding: false,
@@ -7388,7 +7552,7 @@ var define$1 = {
         return true;
       }
     };
-    params = extend({}, defaults$$1, params);
+    params = extend({}, defaults, params);
     return function dataImpl(name, value) {
       var p = params;
       var self = this;
@@ -7479,8 +7643,8 @@ var define$1 = {
 
       } else if (p.allowBinding && fn(name)) {
         // bind to event
-        var fn$$1 = name;
-        self.on(p.bindingEvent, fn$$1); // .data()
+        var fn$1 = name;
+        self.on(p.bindingEvent, fn$1); // .data()
       } else if (p.allowGetting && name === undefined) {
         // get whole object
         var _ret;
@@ -7499,7 +7663,7 @@ var define$1 = {
   // data
   // remove data field
   removeData: function removeData(params) {
-    var defaults$$1 = {
+    var defaults = {
       field: 'data',
       event: 'data',
       triggerFnName: 'trigger',
@@ -7507,7 +7671,7 @@ var define$1 = {
       immutableKeys: {} // key => true if immutable
 
     };
-    params = extend({}, defaults$$1, params);
+    params = extend({}, defaults, params);
     return function removeDataImpl(names) {
       var p = params;
       var self = this;
@@ -7611,12 +7775,21 @@ var elesfn$c = {
 
 var elesfn$d = {
   classes: function classes(_classes) {
-    if (!array(_classes)) {
+    var self = this;
+
+    if (_classes === undefined) {
+      var ret = [];
+
+      self[0]._private.classes.forEach(function (cls) {
+        return ret.push(cls);
+      });
+
+      return ret;
+    } else if (!array(_classes)) {
       // extract classes from string
       _classes = (_classes || '').match(/\S+/g) || [];
     }
 
-    var self = this;
     var changed = [];
     var classesSet = new Set$1(_classes); // check and update each ele
 
@@ -7724,6 +7897,7 @@ var elesfn$d = {
     return self;
   }
 };
+elesfn$d.className = elesfn$d.classNames = elesfn$d.classes;
 
 var tokens = {
   metaChar: '[\\!\\"\\#\\$\\%\\&\\\'\\(\\)\\*\\+\\,\\.\\/\\:\\;\\<\\=\\>\\?\\@\\[\\]\\^\\`\\{\\|\\}\\~]',
@@ -8993,7 +9167,7 @@ var filter = function filter(collection) {
 // does selector match a single element?
 
 
-var matches$1 = function matches$$1(ele) {
+var matches$1 = function matches$1(ele) {
   var self = this;
 
   for (var j = 0; j < self.length; j++) {
@@ -9153,7 +9327,7 @@ elesfn$e.allAreNeighbours = elesfn$e.allAreNeighbors;
 elesfn$e.has = elesfn$e.contains;
 elesfn$e.equal = elesfn$e.equals = elesfn$e.same;
 
-var cache = function cache(fn$$1, name) {
+var cache = function cache(fn, name) {
   return function traversalCache(arg1, arg2, arg3, arg4) {
     var selectorOrEles = arg1;
     var eles = this;
@@ -9175,10 +9349,10 @@ var cache = function cache(fn$$1, name) {
       if (cacheHit) {
         return cacheHit;
       } else {
-        return ch[hash] = fn$$1.call(eles, arg1, arg2, arg3, arg4);
+        return ch[hash] = fn.call(eles, arg1, arg2, arg3, arg4);
       }
     } else {
-      return fn$$1.call(eles, arg1, arg2, arg3, arg4);
+      return fn.call(eles, arg1, arg2, arg3, arg4);
     }
   };
 };
@@ -9674,7 +9848,10 @@ fn$2 = elesfn$i = {
     var delta;
 
     if (plainObject(dim)) {
-      delta = dim;
+      delta = {
+        x: number(dim.x) ? dim.x : 0,
+        y: number(dim.y) ? dim.y : 0
+      };
       silent = val;
     } else if (string(dim) && number(val)) {
       delta = {
@@ -9903,7 +10080,7 @@ elesfn$j.updateCompoundBounds = function () {
     var _p = parent._private;
     var children = parent.children();
     var includeLabels = parent.pstyle('compound-sizing-wrt-labels').value === 'include';
-    var min$$1 = {
+    var min = {
       width: {
         val: parent.pstyle('min-width').pfValue,
         left: parent.pstyle('min-width-bias-left'),
@@ -9915,7 +10092,12 @@ elesfn$j.updateCompoundBounds = function () {
         bottom: parent.pstyle('min-height-bias-bottom')
       }
     };
-    var bb = children.boundingBox({
+
+    var takesUpSpace = function takesUpSpace(ele) {
+      return ele.pstyle('display').value === 'element';
+    };
+
+    var bb = children.filter(takesUpSpace).boundingBox({
       includeLabels: includeLabels,
       includeOverlays: false,
       // updating the compound bounds happens outside of the regular
@@ -9980,40 +10162,40 @@ elesfn$j.updateCompoundBounds = function () {
       }
     }
 
-    var leftVal = min$$1.width.left.value;
+    var leftVal = min.width.left.value;
 
-    if (min$$1.width.left.units === 'px' && min$$1.width.val > 0) {
-      leftVal = leftVal * 100 / min$$1.width.val;
+    if (min.width.left.units === 'px' && min.width.val > 0) {
+      leftVal = leftVal * 100 / min.width.val;
     }
 
-    var rightVal = min$$1.width.right.value;
+    var rightVal = min.width.right.value;
 
-    if (min$$1.width.right.units === 'px' && min$$1.width.val > 0) {
-      rightVal = rightVal * 100 / min$$1.width.val;
+    if (min.width.right.units === 'px' && min.width.val > 0) {
+      rightVal = rightVal * 100 / min.width.val;
     }
 
-    var topVal = min$$1.height.top.value;
+    var topVal = min.height.top.value;
 
-    if (min$$1.height.top.units === 'px' && min$$1.height.val > 0) {
-      topVal = topVal * 100 / min$$1.height.val;
+    if (min.height.top.units === 'px' && min.height.val > 0) {
+      topVal = topVal * 100 / min.height.val;
     }
 
-    var bottomVal = min$$1.height.bottom.value;
+    var bottomVal = min.height.bottom.value;
 
-    if (min$$1.height.bottom.units === 'px' && min$$1.height.val > 0) {
-      bottomVal = bottomVal * 100 / min$$1.height.val;
+    if (min.height.bottom.units === 'px' && min.height.val > 0) {
+      bottomVal = bottomVal * 100 / min.height.val;
     }
 
-    var widthBiasDiffs = computeBiasValues(min$$1.width.val - bb.w, leftVal, rightVal);
+    var widthBiasDiffs = computeBiasValues(min.width.val - bb.w, leftVal, rightVal);
     var diffLeft = widthBiasDiffs.biasDiff;
     var diffRight = widthBiasDiffs.biasComplementDiff;
-    var heightBiasDiffs = computeBiasValues(min$$1.height.val - bb.h, topVal, bottomVal);
+    var heightBiasDiffs = computeBiasValues(min.height.val - bb.h, topVal, bottomVal);
     var diffTop = heightBiasDiffs.biasDiff;
     var diffBottom = heightBiasDiffs.biasComplementDiff;
     _p.autoPadding = computePaddingValues(bb.w, bb.h, parent.pstyle('padding'), parent.pstyle('padding-relative-to').value);
-    _p.autoWidth = Math.max(bb.w, min$$1.width.val);
+    _p.autoWidth = Math.max(bb.w, min.width.val);
     pos.x = (-diffLeft + bb.x1 + bb.x2 + diffRight) / 2;
-    _p.autoHeight = Math.max(bb.h, min$$1.height.val);
+    _p.autoHeight = Math.max(bb.h, min.height.val);
     pos.y = (-diffTop + bb.y1 + bb.y2 + diffBottom) / 2;
   }
 
@@ -10061,6 +10243,10 @@ var updateBounds = function updateBounds(b, x1, y1, x2, y2) {
 };
 
 var updateBoundsFromBox = function updateBoundsFromBox(b, b2) {
+  if (b2 == null) {
+    return b;
+  }
+
   return updateBounds(b, b2.x1, b2.y1, b2.x2, b2.y2);
 };
 
@@ -10138,8 +10324,8 @@ var updateBoundsFromLabel = function updateBoundsFromLabel(bounds, ele, prefix) 
     var borderWidth = ele.pstyle('text-border-width').pfValue;
     var halfBorderWidth = borderWidth / 2;
     var padding = ele.pstyle('text-background-padding').pfValue;
-    var lh = labelHeight + 2 * padding;
-    var lw = labelWidth + 2 * padding;
+    var lh = labelHeight;
+    var lw = labelWidth;
     var lw_2 = lw / 2;
     var lh_2 = lh / 2;
     var lx1, lx2, ly1, ly2;
@@ -10186,10 +10372,10 @@ var updateBoundsFromLabel = function updateBoundsFromLabel(bounds, ele, prefix) 
     } // shift by margin and expand by outline and border
 
 
-    lx1 += marginX - Math.max(outlineWidth, halfBorderWidth);
-    lx2 += marginX + Math.max(outlineWidth, halfBorderWidth);
-    ly1 += marginY - Math.max(outlineWidth, halfBorderWidth);
-    ly2 += marginY + Math.max(outlineWidth, halfBorderWidth); // always store the unrotated label bounds separately
+    lx1 += marginX - Math.max(outlineWidth, halfBorderWidth) - padding;
+    lx2 += marginX + Math.max(outlineWidth, halfBorderWidth) + padding;
+    ly1 += marginY - Math.max(outlineWidth, halfBorderWidth) - padding;
+    ly2 += marginY + Math.max(outlineWidth, halfBorderWidth) + padding; // always store the unrotated label bounds separately
 
     var bbPrefix = prefix || 'main';
     var bbs = _p.labelBounds;
@@ -10525,7 +10711,7 @@ var cachedBoundingBoxImpl = function cachedBoundingBoxImpl(ele, opts) {
 
   if (needRecalc) {
     if (!isPosKeySame) {
-      ele.recalculateRenderedStyle(false);
+      ele.recalculateRenderedStyle();
     }
 
     bb = boundingBoxImpl(ele, defBbOpts);
@@ -10685,7 +10871,7 @@ elesfn$j.shiftCachedBoundingBox = function (delta) {
 // - try to use for only things like discrete layouts where the node position would change anyway
 
 
-elesfn$j.boundingBoxAt = function (fn$$1) {
+elesfn$j.boundingBoxAt = function (fn) {
   var nodes = this.nodes();
   var cy = this.cy();
   var hasCompoundNodes = cy.hasCompoundNodes();
@@ -10696,16 +10882,16 @@ elesfn$j.boundingBoxAt = function (fn$$1) {
     });
   }
 
-  if (plainObject(fn$$1)) {
-    var obj = fn$$1;
+  if (plainObject(fn)) {
+    var obj = fn;
 
-    fn$$1 = function fn$$1() {
+    fn = function fn() {
       return obj;
     };
   }
 
   var storeOldPos = function storeOldPos(node, i) {
-    return node._private.bbAtOldPos = fn$$1(node, i);
+    return node._private.bbAtOldPos = fn(node, i);
   };
 
   var getOldPos = function getOldPos(node) {
@@ -10713,15 +10899,15 @@ elesfn$j.boundingBoxAt = function (fn$$1) {
   };
 
   cy.startBatch();
-  nodes.forEach(storeOldPos).silentPositions(fn$$1);
+  nodes.forEach(storeOldPos).silentPositions(fn);
 
   if (hasCompoundNodes) {
     this.updateCompoundBounds(true); // force update b/c we're inside a batch cycle
   }
 
-  var bb = this.boundingBox({
+  var bb = copyBoundingBox(this.boundingBox({
     useCache: false
-  });
+  }));
   nodes.silentPositions(getOldPos);
   cy.endBatch();
   return bb;
@@ -11160,10 +11346,10 @@ var forEachEventObj = function forEachEventObj(self, handler, events) {
 };
 
 p.on = p.addListener = function (events, qualifier, callback, conf, confOverrides) {
-  forEachEvent(this, function (self, event$$1, type, namespace, qualifier, callback, conf) {
+  forEachEvent(this, function (self, event, type, namespace, qualifier, callback, conf) {
     if (fn(callback)) {
       self.listeners.push({
-        event: event$$1,
+        event: event,
         // full event string
         callback: callback,
         // callback to run
@@ -11198,7 +11384,7 @@ p.removeListener = p.off = function (events, qualifier, callback, conf) {
 
   var _loop = function _loop(i) {
     var listener = listeners[i];
-    forEachEvent(_this, function (self, event$$1, type, namespace, qualifier, callback
+    forEachEvent(_this, function (self, event, type, namespace, qualifier, callback
     /*, conf*/
     ) {
       if (listener.type === type && (!namespace || listener.namespace === namespace) && (!qualifier || self.qualifierCompare(listener.qualifier, qualifier)) && (!callback || listener.callback === callback)) {
@@ -11390,7 +11576,7 @@ var elesfn$l = {
 
     return this;
   },
-  emitAndNotify: function emitAndNotify(event$$1, extraParams) {
+  emitAndNotify: function emitAndNotify(event, extraParams) {
     // for internal use only
     if (this.length === 0) {
       return;
@@ -11398,8 +11584,8 @@ var elesfn$l = {
     // notify renderer
 
 
-    this.cy().notify(event$$1, this);
-    this.emit(event$$1, extraParams);
+    this.cy().notify(event, this);
+    this.emit(event, extraParams);
     return this;
   }
 };
@@ -11472,11 +11658,11 @@ var elesfn$m = {
       var rMap = toRemove._private.map;
 
       for (var i = 0; i < this.length; i++) {
-        var element$$1 = this[i];
-        var remove = rMap.has(element$$1.id());
+        var element = this[i];
+        var remove = rMap.has(element.id());
 
         if (!remove) {
-          elements.push(element$$1);
+          elements.push(element);
         }
       }
 
@@ -11735,12 +11921,12 @@ var elesfn$m = {
 
     return arr;
   },
-  reduce: function reduce(fn$$1, initialValue) {
+  reduce: function reduce(fn, initialValue) {
     var val = initialValue;
     var eles = this;
 
     for (var i = 0; i < eles.length; i++) {
-      val = fn$$1(val, eles[i], i, eles);
+      val = fn(val, eles[i], i, eles);
     }
 
     return val;
@@ -11883,13 +12069,13 @@ var zIndexSort = function zIndexSort(a, b) {
 };
 
 var elesfn$o = {
-  forEach: function forEach(fn$$1, thisArg) {
-    if (fn(fn$$1)) {
+  forEach: function forEach(fn$1, thisArg) {
+    if (fn(fn$1)) {
       var N = this.length;
 
       for (var i = 0; i < N; i++) {
         var ele = this[i];
-        var ret = thisArg ? fn$$1.apply(thisArg, [ele, i, this]) : fn$$1(ele, i, this);
+        var ret = thisArg ? fn$1.apply(thisArg, [ele, i, this]) : fn$1(ele, i, this);
 
         if (ret === false) {
           break;
@@ -11901,16 +12087,16 @@ var elesfn$o = {
     return this;
   },
   toArray: function toArray() {
-    var array$$1 = [];
+    var array = [];
 
     for (var i = 0; i < this.length; i++) {
-      array$$1.push(this[i]);
+      array.push(this[i]);
     }
 
-    return array$$1;
+    return array;
   },
   slice: function slice(start, end) {
-    var array$$1 = [];
+    var array = [];
     var thisSize = this.length;
 
     if (end == null) {
@@ -11930,10 +12116,10 @@ var elesfn$o = {
     }
 
     for (var i = start; i >= 0 && i < end && i < thisSize; i++) {
-      array$$1.push(this[i]);
+      array.push(this[i]);
     }
 
-    return this.spawn(array$$1);
+    return this.spawn(array);
   },
   size: function size() {
     return this.length;
@@ -11953,7 +12139,7 @@ var elesfn$o = {
   nonempty: function nonempty() {
     return !this.empty();
   },
-  sort: function sort$$1(sortFn) {
+  sort: function sort(sortFn) {
     if (!fn(sortFn)) {
       return this;
     }
@@ -12177,7 +12363,7 @@ var elesfn$p = {
 
 elesfn$p.createLayout = elesfn$p.makeLayout = elesfn$p.layout;
 
-function styleCache(key, fn$$1, ele) {
+function styleCache(key, fn, ele) {
   var _p = ele._private;
   var cache = _p.styleCache = _p.styleCache || [];
   var val;
@@ -12185,23 +12371,23 @@ function styleCache(key, fn$$1, ele) {
   if ((val = cache[key]) != null) {
     return val;
   } else {
-    val = cache[key] = fn$$1(ele);
+    val = cache[key] = fn(ele);
     return val;
   }
 }
 
-function cacheStyleFunction(key, fn$$1) {
+function cacheStyleFunction(key, fn) {
   key = hashString(key);
   return function cachedStyleFunction(ele) {
-    return styleCache(key, fn$$1, ele);
+    return styleCache(key, fn, ele);
   };
 }
 
-function cachePrototypeStyleFunction(key, fn$$1) {
+function cachePrototypeStyleFunction(key, fn) {
   key = hashString(key);
 
   var selfFn = function selfFn(ele) {
-    return fn$$1.call(ele);
+    return fn.call(ele);
   };
 
   return function cachedPrototypeStyleFunction() {
@@ -12261,7 +12447,7 @@ var elesfn$q = {
     }
 
     var hasCompounds = cy.hasCompoundNodes();
-    var style$$1 = cy.style();
+    var style = cy.style();
     var updatedEles = this;
     notifyRenderer = notifyRenderer || notifyRenderer === undefined ? true : false;
 
@@ -12270,7 +12456,7 @@ var elesfn$q = {
       updatedEles = this.spawnSelf().merge(this.descendants()).merge(this.parents());
     }
 
-    var changedEles = style$$1.apply(updatedEles);
+    var changedEles = style.apply(updatedEles);
 
     if (notifyRenderer) {
       changedEles.emitAndNotify('style'); // let renderer know we changed style
@@ -12341,7 +12527,7 @@ var elesfn$q = {
     }
   },
   // read the calculated css style of the element or override the style (via a bypass)
-  style: function style$$1(name, value) {
+  style: function style(name, value) {
     var cy = this.cy();
 
     if (!cy.styleEnabled()) {
@@ -12349,12 +12535,12 @@ var elesfn$q = {
     }
 
     var updateTransitions = false;
-    var style$$1 = cy.style();
+    var style = cy.style();
 
     if (plainObject(name)) {
       // then extend the bypass
       var props = name;
-      style$$1.applyBypass(this, props, updateTransitions);
+      style.applyBypass(this, props, updateTransitions);
       this.emitAndNotify('style'); // let the renderer know we've updated style
     } else if (string(name)) {
       if (value === undefined) {
@@ -12362,21 +12548,21 @@ var elesfn$q = {
         var ele = this[0];
 
         if (ele) {
-          return style$$1.getStylePropertyValue(ele, name);
+          return style.getStylePropertyValue(ele, name);
         } else {
           // empty collection => can't get any value
           return;
         }
       } else {
         // then set the bypass with the property value
-        style$$1.applyBypass(this, name, value, updateTransitions);
+        style.applyBypass(this, name, value, updateTransitions);
         this.emitAndNotify('style'); // let the renderer know we've updated style
       }
     } else if (name === undefined) {
       var _ele = this[0];
 
       if (_ele) {
-        return style$$1.getRawStyle(_ele);
+        return style.getRawStyle(_ele);
       } else {
         // empty collection => can't get any value
         return;
@@ -12393,20 +12579,20 @@ var elesfn$q = {
     }
 
     var updateTransitions = false;
-    var style$$1 = cy.style();
+    var style = cy.style();
     var eles = this;
 
     if (names === undefined) {
       for (var i = 0; i < eles.length; i++) {
         var ele = eles[i];
-        style$$1.removeAllBypasses(ele, updateTransitions);
+        style.removeAllBypasses(ele, updateTransitions);
       }
     } else {
       names = names.split(/\s+/);
 
       for (var _i = 0; _i < eles.length; _i++) {
         var _ele2 = eles[_i];
-        style$$1.removeBypasses(_ele2, names, updateTransitions);
+        style.removeBypasses(_ele2, names, updateTransitions);
       }
     }
 
@@ -12575,6 +12761,13 @@ elesfn$q.hidden = function () {
   }
 };
 
+elesfn$q.isBundledBezier = cachePrototypeStyleFunction('isBundledBezier', function () {
+  if (!this.cy().styleEnabled()) {
+    return false;
+  }
+
+  return !this.removed() && this.pstyle('curve-style').value === 'bezier' && this.takesUpSpace();
+});
 elesfn$q.bypass = elesfn$q.css = elesfn$q.style;
 elesfn$q.renderedCss = elesfn$q.renderedStyle;
 elesfn$q.removeBypass = elesfn$q.removeCss = elesfn$q.removeStyle;
@@ -13074,10 +13267,10 @@ extend(elesfn$s, {
 });
 
 function defineParallelEdgesFunction(params) {
-  var defaults$$1 = {
+  var defaults = {
     codirected: false
   };
-  params = extend({}, defaults$$1, params);
+  params = extend({}, defaults, params);
   return function parallelEdgesImpl(selector) {
     // micro-optimised for renderer
     var elements = [];
@@ -13175,7 +13368,7 @@ extend(elesfn$s, {
 elesfn$s.componentsOf = elesfn$s.components;
 
 var idFactory = {
-  generate: function generate(cy, element$$1, tryThisId) {
+  generate: function generate(cy, element, tryThisId) {
     var id = tryThisId != null ? tryThisId : uuid();
 
     while (cy.hasElementWithId(id)) {
@@ -13229,20 +13422,20 @@ var Collection = function Collection(cy, elements, options) {
   this.length = 0;
 
   for (var _i = 0, _l = elements.length; _i < _l; _i++) {
-    var element$$1 = elements[_i];
+    var element$1 = elements[_i];
 
-    if (element$$1 == null) {
+    if (element$1 == null) {
       continue;
     }
 
-    var id = element$$1._private.data.id;
+    var id = element$1._private.data.id;
 
     if (options == null || options.unique && !map.has(id)) {
       map.set(id, {
         index: this.length,
-        ele: element$$1
+        ele: element$1
       });
-      this[this.length] = element$$1;
+      this[this.length] = element$1;
       this.length++;
     }
   }
@@ -13470,9 +13663,9 @@ elesfn$t.clone = function () {
   for (var i = 0; i < this.length; i++) {
     var ele = this[i];
     var json = ele.json();
-    var clone$$1 = new Element(cy, json, false); // NB no restore
+    var clone = new Element(cy, json, false); // NB no restore
 
-    elesArr.push(clone$$1);
+    elesArr.push(clone);
   }
 
   return new Collection(cy, elesArr);
@@ -13723,7 +13916,6 @@ elesfn$t.remove = function () {
   var notifyRenderer = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
   var removeFromPool = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
   var self = this;
-  var removed = [];
   var elesToRemove = [];
   var elesToRemoveIds = {};
   var cy = self._private.cy; // add connected edges
@@ -13778,9 +13970,9 @@ elesfn$t.remove = function () {
     node.clearTraversalCache();
   }
 
-  function removeParallelRefs(edge) {
+  function removeParallelRef(pllEdge) {
     // removing an edge invalidates the traversal caches for the parallel edges
-    edge.parallelEdges().clearTraversalCache();
+    pllEdge.clearTraversalCache();
   }
 
   var alteredParents = [];
@@ -13810,14 +14002,6 @@ elesfn$t.remove = function () {
   for (var _i5 = 0; _i5 < elesToRemove.length; _i5++) {
     var _ele3 = elesToRemove[_i5];
 
-    if (removeFromPool) {
-      // mark as removed
-      _ele3._private.removed = true;
-    } // add to list of removed elements
-
-
-    removed.push(_ele3);
-
     if (_ele3.isEdge()) {
       // remove references to this edge in its connected nodes
       var src = _ele3.source()[0];
@@ -13826,7 +14010,17 @@ elesfn$t.remove = function () {
 
       removeEdgeRef(src, _ele3);
       removeEdgeRef(tgt, _ele3);
-      removeParallelRefs(_ele3);
+
+      var pllEdges = _ele3.parallelEdges();
+
+      for (var j = 0; j < pllEdges.length; j++) {
+        var pllEdge = pllEdges[j];
+        removeParallelRef(pllEdge);
+
+        if (pllEdge.isBundledBezier()) {
+          pllEdge.dirtyBoundingBoxCache();
+        }
+      }
     } else {
       // remove reference to parent
       var parent = _ele3.parent();
@@ -13834,6 +14028,11 @@ elesfn$t.remove = function () {
       if (parent.length !== 0) {
         removeChildRef(parent, _ele3);
       }
+    }
+
+    if (removeFromPool) {
+      // mark as removed
+      _ele3._private.removed = true;
     }
   } // check to see if we have a compound graph or not
 
@@ -13850,7 +14049,7 @@ elesfn$t.remove = function () {
     }
   }
 
-  var removedElements = new Collection(this.cy(), removed);
+  var removedElements = new Collection(this.cy(), elesToRemove);
 
   if (removedElements.size() > 0) {
     // must manually notify since trigger won't do this automatically once removed
@@ -13892,6 +14091,8 @@ elesfn$t.move = function (struct) {
         // avoid duplicate style updates
         eles.remove(notifyRenderer, modifyPool); // clean up refs etc.
 
+        eles.emitAndNotify('moveout');
+
         for (var i = 0; i < eles.length; i++) {
           var ele = eles[i];
           var _data5 = ele._private.data;
@@ -13921,6 +14122,8 @@ elesfn$t.move = function (struct) {
       cy.batch(function () {
         // avoid duplicate style updates
         var updated = eles.remove(notifyRenderer, modifyPool); // clean up refs etc.
+
+        updated.emitAndNotify('moveout');
 
         for (var i = 0; i < eles.length; i++) {
           var ele = eles[i];
@@ -14000,13 +14203,13 @@ var corefn = {
 
     return elements;
   },
-  remove: function remove(collection$$1) {
-    if (elementOrCollection(collection$$1)) ; else if (string(collection$$1)) {
-      var selector = collection$$1;
-      collection$$1 = this.$(selector);
+  remove: function remove(collection) {
+    if (elementOrCollection(collection)) ; else if (string(collection)) {
+      var selector = collection;
+      collection = this.$(selector);
     }
 
-    return collection$$1.remove();
+    return collection.remove();
   }
 };
 
@@ -14406,7 +14609,7 @@ function step(self, ani, now, isCore) {
   var pEasing = ani_p.easing;
   var startTime = ani_p.startTime;
   var cy = isCore ? self : self.cy();
-  var style$$1 = cy.style();
+  var style = cy.style();
 
   if (!ani_p.easingImpl) {
     if (pEasing == null) {
@@ -14417,7 +14620,7 @@ function step(self, ani, now, isCore) {
       var easingVals;
 
       if (string(pEasing)) {
-        var easingProp = style$$1.parse('transition-timing-function', pEasing);
+        var easingProp = style.parse('transition-timing-function', pEasing);
         easingVals = easingProp.value;
       } else {
         // then assume preparsed array
@@ -14529,9 +14732,9 @@ function step(self, ani, now, isCore) {
         var _name = prop.name;
         var end = prop;
         var start = ani_p.startStyle[_name];
-        var propSpec = style$$1.properties[start.name];
+        var propSpec = style.properties[start.name];
         var easedVal = ease(start, end, percent, easing, propSpec);
-        style$$1.overrideBypass(self, _name, easedVal);
+        style.overrideBypass(self, _name, easedVal);
       } // for props
 
 
@@ -14723,8 +14926,8 @@ var corefn$1 = {
         return;
       }
 
-      requestAnimationFrame(function animationStep(now$$1) {
-        stepAll(now$$1, cy);
+      requestAnimationFrame(function animationStep(now) {
+        stepAll(now, cy);
         headlessStep();
       });
     }
@@ -14733,8 +14936,8 @@ var corefn$1 = {
 
     if (renderer && renderer.beforeRender) {
       // let the renderer schedule animations
-      renderer.beforeRender(function rendererAnimationStep(willDraw, now$$1) {
-        stepAll(now$$1, cy);
+      renderer.beforeRender(function rendererAnimationStep(willDraw, now) {
+        stepAll(now, cy);
       }, renderer.beforeRenderPriorities.animations);
     } else {
       // manage the animation loop ourselves
@@ -14810,9 +15013,9 @@ var elesfn$u = {
     this.emitter().emit(events, extraParams);
     return this;
   },
-  emitAndNotify: function emitAndNotify(event$$1, eles) {
-    this.emit(event$$1);
-    this.notify(event$$1, eles);
+  emitAndNotify: function emitAndNotify(event, eles) {
+    this.emit(event);
+    this.notify(event, eles);
     return this;
   }
 };
@@ -14992,7 +15195,9 @@ var rendererDefaults = defaults({
   pixelRatio: undefined,
   desktopTapThreshold: 4,
   touchTapThreshold: 8,
-  wheelSensitivity: 1
+  wheelSensitivity: 1,
+  debug: false,
+  showFps: false
 });
 var corefn$5 = {
   renderTo: function renderTo(context, zoom, pan, pxRatio) {
@@ -15068,7 +15273,7 @@ var corefn$6 = {
   // - empty collection on no args
   // - collection of elements in the graph on selector arg
   // - guarantee a returned collection when elements or collection specified
-  collection: function collection$$1(eles, opts) {
+  collection: function collection(eles, opts) {
     if (string(eles)) {
       return this.$(eles);
     } else if (elementOrCollection(eles)) {
@@ -15279,7 +15484,7 @@ styfn.getContextStyle = function (cxtMeta) {
     return cxtStyles[cxtKey];
   }
 
-  var style$$1 = {
+  var style = {
     _private: {
       key: cxtKey
     }
@@ -15295,12 +15500,12 @@ styfn.getContextStyle = function (cxtMeta) {
 
     for (var j = 0; j < cxt.properties.length; j++) {
       var prop = cxt.properties[j];
-      style$$1[prop.name] = prop;
+      style[prop.name] = prop;
     }
   }
 
-  cxtStyles[cxtKey] = style$$1;
-  return style$$1;
+  cxtStyles[cxtKey] = style;
+  return style;
 };
 
 styfn.applyContextStyle = function (cxtMeta, cxtStyle, ele) {
@@ -15398,6 +15603,12 @@ styfn.updateStyleHints = function (ele) {
 
   var updateGrKey = function updateGrKey(val, grKey) {
     return _p.styleKeys[grKey] = hashInt(val, _p.styleKeys[grKey]);
+  };
+
+  var updateGrKeyWStr = function updateGrKeyWStr(strVal, grKey) {
+    for (var j = 0; j < strVal.length; j++) {
+      updateGrKey(strVal.charCodeAt(j), grKey);
+    }
   }; // - hashing works on 32 bit ints b/c we use bitwise ops
   // - small numbers get cut off (e.g. 0.123 is seen as 0 by the hashing function)
   // - raise up small numbers so more significant digits are seen by hashing
@@ -15419,12 +15630,25 @@ styfn.updateStyleHints = function (ele) {
 
     var propInfo = this.properties[name];
     var type = propInfo.type;
-    var _grKey = propInfo.groupKey; // numbers are cheaper to hash than strings
+    var _grKey = propInfo.groupKey;
+    var normalizedNumberVal = void 0;
+
+    if (propInfo.hashOverride != null) {
+      normalizedNumberVal = propInfo.hashOverride(ele, parsedProp);
+    } else if (parsedProp.pfValue != null) {
+      normalizedNumberVal = parsedProp.pfValue;
+    } // might not be a number if it allows enums
+
+
+    var numberVal = propInfo.enums == null ? parsedProp.value : null;
+    var haveNormNum = normalizedNumberVal != null;
+    var haveUnitedNum = numberVal != null;
+    var haveNum = haveNormNum || haveUnitedNum;
+    var units = parsedProp.units; // numbers are cheaper to hash than strings
     // 1 hash op vs n hash ops (for length n string)
 
-    if (type.number) {
-      // use pfValue if available (e.g. normalised units)
-      var v = parsedProp.pfValue != null ? parsedProp.pfValue : parsedProp.value;
+    if (type.number && haveNum) {
+      var v = haveNormNum ? normalizedNumberVal : numberVal;
 
       if (type.multiple) {
         for (var _i2 = 0; _i2 < v.length; _i2++) {
@@ -15433,12 +15657,12 @@ styfn.updateStyleHints = function (ele) {
       } else {
         updateGrKey(cleanNum(v), _grKey);
       }
-    } else {
-      var strVal = parsedProp.strValue;
 
-      for (var j = 0; j < strVal.length; j++) {
-        updateGrKey(strVal.charCodeAt(j), _grKey);
+      if (!haveNormNum && units != null) {
+        updateGrKeyWStr(units, _grKey);
       }
+    } else {
+      updateGrKeyWStr(parsedProp.strValue, _grKey);
     }
   } // overall style key
   //
@@ -15515,12 +15739,12 @@ styfn.clearStyleHints = function (ele) {
 styfn.applyParsedProperty = function (ele, parsedProp) {
   var self = this;
   var prop = parsedProp;
-  var style$$1 = ele._private.style;
+  var style = ele._private.style;
   var flatProp;
   var types = self.types;
   var type = self.properties[prop.name].type;
   var propIsBypass = prop.bypass;
-  var origProp = style$$1[prop.name];
+  var origProp = style[prop.name];
   var origPropIsBypass = origProp && origProp.bypass;
   var _p = ele._private;
   var flatPropMapping = 'mapping';
@@ -15550,7 +15774,7 @@ styfn.applyParsedProperty = function (ele, parsedProp) {
 
   if (prop.delete) {
     // delete the property and use the default value on falsey value
-    style$$1[prop.name] = undefined;
+    style[prop.name] = undefined;
     checkTriggers();
     return true;
   }
@@ -15579,7 +15803,7 @@ styfn.applyParsedProperty = function (ele, parsedProp) {
     } else if (origProp.bypass) {
       // then replace the bypass property with the original
       // because the bypassed property was already applied (and therefore parsed), we can just replace it (no reapplying necessary)
-      style$$1[prop.name] = origProp.bypassed;
+      style[prop.name] = origProp.bypassed;
       checkTriggers();
       return true;
     } else {
@@ -15704,8 +15928,8 @@ styfn.applyParsedProperty = function (ele, parsedProp) {
 
     case types.fn:
       {
-        var fn$$1 = prop.value;
-        var fnRetVal = prop.fnValue != null ? prop.fnValue : fn$$1(ele); // check for cached value before calling function
+        var fn = prop.value;
+        var fnRetVal = prop.fnValue != null ? prop.fnValue : fn(ele); // check for cached value before calling function
 
         prop.prevFnValue = fnRetVal;
 
@@ -15747,7 +15971,7 @@ styfn.applyParsedProperty = function (ele, parsedProp) {
       prop.bypassed = origProp;
     }
 
-    style$$1[prop.name] = prop; // and set
+    style[prop.name] = prop; // and set
   } else {
     // prop is not bypass
     if (origPropIsBypass) {
@@ -15755,7 +15979,7 @@ styfn.applyParsedProperty = function (ele, parsedProp) {
       origProp.bypassed = prop;
     } else {
       // then just replace the old prop with the new one
-      style$$1[prop.name] = prop;
+      style[prop.name] = prop;
     }
   }
 
@@ -15773,18 +15997,18 @@ styfn.cleanElements = function (eles, keepBypasses) {
     if (!keepBypasses) {
       ele._private.style = {};
     } else {
-      var style$$1 = ele._private.style;
-      var propNames = Object.keys(style$$1);
+      var style = ele._private.style;
+      var propNames = Object.keys(style);
 
       for (var j = 0; j < propNames.length; j++) {
         var propName = propNames[j];
-        var eleProp = style$$1[propName];
+        var eleProp = style[propName];
 
         if (eleProp != null) {
           if (eleProp.bypass) {
             eleProp.bypassed = null;
           } else {
-            style$$1[propName] = null;
+            style[propName] = null;
           }
         }
       }
@@ -15808,7 +16032,7 @@ styfn.updateTransitions = function (ele, diffProps) {
   var delay = ele.pstyle('transition-delay').pfValue;
 
   if (props.length > 0 && duration > 0) {
-    var style$$1 = {}; // build up the style to animate towards
+    var style = {}; // build up the style to animate towards
 
     var anyPrev = false;
 
@@ -15848,7 +16072,7 @@ styfn.updateTransitions = function (ele, diffProps) {
 
 
       if (diff) {
-        style$$1[prop] = toProp.strValue; // to val
+        style[prop] = toProp.strValue; // to val
 
         this.applyBypass(ele, prop, initVal); // from val
 
@@ -15871,7 +16095,7 @@ styfn.updateTransitions = function (ele, diffProps) {
       }
     }).then(function () {
       return ele.animation({
-        style: style$$1,
+        style: style,
         duration: duration,
         easing: ele.pstyle('transition-timing-function').value,
         queue: false
@@ -15895,7 +16119,7 @@ styfn.checkTrigger = function (ele, name, fromValue, toValue, getTrigger, onTrig
   var triggerCheck = getTrigger(prop);
 
   if (triggerCheck != null && triggerCheck(fromValue, toValue)) {
-    onTrigger();
+    onTrigger(prop);
   }
 };
 
@@ -15912,9 +16136,21 @@ styfn.checkZOrderTrigger = function (ele, name, fromValue, toValue) {
 styfn.checkBoundsTrigger = function (ele, name, fromValue, toValue) {
   this.checkTrigger(ele, name, fromValue, toValue, function (prop) {
     return prop.triggersBounds;
-  }, function () {
+  }, function (prop) {
     ele.dirtyCompoundBoundsCache();
-    ele.dirtyBoundingBoxCache();
+    ele.dirtyBoundingBoxCache(); // if the prop change makes the bb of pll bezier edges invalid,
+    // then dirty the pll edge bb cache as well
+
+    if ( // only for beziers -- so performance of other edges isn't affected
+    (ele.pstyle('curve-style').value === 'bezier' // already a bezier
+    // was just now changed to or from a bezier:
+    || name === 'curve-style' && (fromValue === 'bezier' || toValue === 'bezier')) && prop.triggersBoundsOfParallelBeziers) {
+      ele.parallelEdges().forEach(function (pllEdge) {
+        if (pllEdge.isBundledBezier()) {
+          pllEdge.dirtyBoundingBoxCache();
+        }
+      });
+    }
   });
 };
 
@@ -16252,15 +16488,15 @@ styfn$3.getAnimationStartStyle = function (ele, aniProps) {
 styfn$3.getPropsList = function (propsObj) {
   var self = this;
   var rstyle = [];
-  var style$$1 = propsObj;
+  var style = propsObj;
   var props = self.properties;
 
-  if (style$$1) {
-    var names = Object.keys(style$$1);
+  if (style) {
+    var names = Object.keys(style);
 
     for (var i = 0; i < names.length; i++) {
       var name = names[i];
-      var val = style$$1[name];
+      var val = style[name];
       var prop = props[name] || props[camel2dash(name)];
       var styleProp = this.parse(prop.name, val);
 
@@ -16492,19 +16728,19 @@ styfn$5.fromString = function (string) {
 var styfn$6 = {};
 
 (function () {
-  var number$$1 = number$1;
-  var rgba$$1 = rgbaNoBackRefs;
-  var hsla$$1 = hslaNoBackRefs;
-  var hex3$$1 = hex3;
-  var hex6$$1 = hex6;
+  var number = number$1;
+  var rgba = rgbaNoBackRefs;
+  var hsla = hslaNoBackRefs;
+  var hex3$1 = hex3;
+  var hex6$1 = hex6;
 
   var data = function data(prefix) {
     return '^' + prefix + '\\s*\\(\\s*([\\w\\.]+)\\s*\\)$';
   };
 
   var mapData = function mapData(prefix) {
-    var mapArg = number$$1 + '|\\w+|' + rgba$$1 + '|' + hsla$$1 + '|' + hex3$$1 + '|' + hex6$$1;
-    return '^' + prefix + '\\s*\\(([\\w\\.]+)\\s*\\,\\s*(' + number$$1 + ')\\s*\\,\\s*(' + number$$1 + ')\\s*,\\s*(' + mapArg + ')\\s*\\,\\s*(' + mapArg + ')\\)$';
+    var mapArg = number + '|\\w+|' + rgba + '|' + hsla + '|' + hex3$1 + '|' + hex6$1;
+    return '^' + prefix + '\\s*\\(([\\w\\.]+)\\s*\\,\\s*(' + number + ')\\s*\\,\\s*(' + number + ')\\s*,\\s*(' + mapArg + ')\\s*\\,\\s*(' + mapArg + ')\\)$';
   };
 
   var urlRegexes = ['^url\\s*\\(\\s*[\'"]?(.+?)[\'"]?\\s*\\)$', '^(none)$', '^(.+)$']; // each visual style property has a type and needs to be validated according to it
@@ -16597,6 +16833,9 @@ var styfn$6 = {};
       min: 0,
       allowPercent: true
     },
+    axisDirection: {
+      enums: ['horizontal', 'leftward', 'rightward', 'vertical', 'upward', 'downward', 'auto']
+    },
     paddingRelativeTo: {
       enums: ['width', 'height', 'average', 'min', 'max']
     },
@@ -16654,7 +16893,7 @@ var styfn$6 = {};
       enums: ['solid', 'dotted', 'dashed', 'double']
     },
     curveStyle: {
-      enums: ['bezier', 'unbundled-bezier', 'haystack', 'segments', 'straight']
+      enums: ['bezier', 'unbundled-bezier', 'haystack', 'segments', 'straight', 'taxi']
     },
     fontFamily: {
       regex: '^([\\w- \\"]+(?:\\s*,\\s*[\\w- \\"]+)*)$'
@@ -16795,7 +17034,7 @@ var styfn$6 = {};
       }
     },
     easing: {
-      regexes: ['^(spring)\\s*\\(\\s*(' + number$$1 + ')\\s*,\\s*(' + number$$1 + ')\\s*\\)$', '^(cubic-bezier)\\s*\\(\\s*(' + number$$1 + ')\\s*,\\s*(' + number$$1 + ')\\s*,\\s*(' + number$$1 + ')\\s*,\\s*(' + number$$1 + ')\\s*\\)$'],
+      regexes: ['^(spring)\\s*\\(\\s*(' + number + ')\\s*,\\s*(' + number + ')\\s*\\)$', '^(cubic-bezier)\\s*\\(\\s*(' + number + ')\\s*,\\s*(' + number + ')\\s*,\\s*(' + number + ')\\s*,\\s*(' + number + ')\\s*\\)$'],
       enums: ['linear', 'ease', 'ease-in', 'ease-out', 'ease-in-out', 'ease-in-sine', 'ease-out-sine', 'ease-in-out-sine', 'ease-in-quad', 'ease-out-quad', 'ease-in-out-quad', 'ease-in-cubic', 'ease-out-cubic', 'ease-in-out-cubic', 'ease-in-quart', 'ease-out-quart', 'ease-in-out-quart', 'ease-in-quint', 'ease-out-quint', 'ease-in-out-quint', 'ease-in-expo', 'ease-out-expo', 'ease-in-out-expo', 'ease-in-circ', 'ease-out-circ', 'ease-in-out-circ']
     },
     gradientDirection: {
@@ -16974,7 +17213,8 @@ var styfn$6 = {};
     name: 'display',
     type: t.display,
     triggersZOrder: diff.any,
-    triggersBounds: diff.any
+    triggersBounds: diff.any,
+    triggersBoundsOfParallelBeziers: true
   }, {
     name: 'visibility',
     type: t.visibility,
@@ -17027,14 +17267,25 @@ var styfn$6 = {};
     name: 'transition-timing-function',
     type: t.easing
   }];
+
+  var nodeSizeHashOverride = function nodeSizeHashOverride(ele, parsedProp) {
+    if (parsedProp.value === 'label') {
+      return -ele.poolIndex(); // no hash key hits is using label size (hitrate for perf probably low anyway)
+    } else {
+      return parsedProp.pfValue;
+    }
+  };
+
   var nodeBody = [{
     name: 'height',
     type: t.nodeSize,
-    triggersBounds: diff.any
+    triggersBounds: diff.any,
+    hashOverride: nodeSizeHashOverride
   }, {
     name: 'width',
     type: t.nodeSize,
-    triggersBounds: diff.any
+    triggersBounds: diff.any,
+    hashOverride: nodeSizeHashOverride
   }, {
     name: 'shape',
     type: t.nodeShape,
@@ -17194,7 +17445,8 @@ var styfn$6 = {};
   }, {
     name: 'curve-style',
     type: t.curveStyle,
-    triggersBounds: diff.any
+    triggersBounds: diff.any,
+    triggersBoundsOfParallelBeziers: true
   }, {
     name: 'haystack-radius',
     type: t.zeroOneNumber,
@@ -17226,6 +17478,18 @@ var styfn$6 = {};
   }, {
     name: 'segment-weights',
     type: t.numbers,
+    triggersBounds: diff.any
+  }, {
+    name: 'taxi-turn',
+    type: t.sizeMaybePercent,
+    triggersBounds: diff.any
+  }, {
+    name: 'taxi-turn-min-distance',
+    type: t.size,
+    triggersBounds: diff.any
+  }, {
+    name: 'taxi-direction',
+    type: t.axisDirection,
     triggersBounds: diff.any
   }, {
     name: 'edge-distances',
@@ -17268,7 +17532,7 @@ var styfn$6 = {};
     name: 'ghost-opacity',
     type: t.zeroOneNumber
   }];
-  var core$$1 = [{
+  var core = [{
     name: 'selection-box-color',
     type: t.color
   }, {
@@ -17325,7 +17589,8 @@ var styfn$6 = {};
   var arrowPrefixes = styfn$6.arrowPrefixes = ['source', 'mid-source', 'target', 'mid-target'];
   [{
     name: 'arrow-shape',
-    type: t.arrowShape
+    type: t.arrowShape,
+    triggersBounds: diff.any
   }, {
     name: 'arrow-color',
     type: t.color
@@ -17335,14 +17600,16 @@ var styfn$6 = {};
   }].forEach(function (prop) {
     arrowPrefixes.forEach(function (prefix) {
       var name = prefix + '-' + prop.name;
-      var type = prop.type;
+      var type = prop.type,
+          triggersBounds = prop.triggersBounds;
       edgeArrow.push({
         name: name,
-        type: type
+        type: type,
+        triggersBounds: triggersBounds
       });
     });
   }, {});
-  var props = styfn$6.properties = behavior.concat(transition, visibility, overlay, ghost, commonLabel, labelDimensions, mainLabel, sourceLabel, targetLabel, nodeBody, nodeBorder, backgroundImage, pie, compound, edgeLine, edgeArrow, core$$1);
+  var props = styfn$6.properties = [].concat(behavior, transition, visibility, overlay, ghost, commonLabel, labelDimensions, mainLabel, sourceLabel, targetLabel, nodeBody, nodeBorder, backgroundImage, pie, compound, edgeLine, edgeArrow, core);
   var propGroups = styfn$6.propertyGroups = {
     // common to all eles
     behavior: behavior,
@@ -17365,7 +17632,7 @@ var styfn$6 = {};
     // edge props
     edgeLine: edgeLine,
     edgeArrow: edgeArrow,
-    core: core$$1
+    core: core
   };
   var propGroupNames = styfn$6.propertyGroupNames = {};
   var propGroupKeys = styfn$6.propertyGroupKeys = Object.keys(propGroups);
@@ -17584,6 +17851,9 @@ styfn$6.getDefaultProperties = function () {
     'control-point-weights': 0.5,
     'segment-weights': 0.5,
     'segment-distances': 20,
+    'taxi-turn': '50%',
+    'taxi-turn-min-distance': 10,
+    'taxi-direction': 'auto',
     'edge-distances': 'intersection',
     'curve-style': 'haystack',
     'haystack-radius': 0,
@@ -18079,9 +18349,9 @@ styfn$7.parseImpl = function (name, value, propIsBypass, propIsFlat) {
     var regexes = type.regexes ? type.regexes : [type.regex];
 
     for (var _i3 = 0; _i3 < regexes.length; _i3++) {
-      var regex$$1 = new RegExp(regexes[_i3]); // make a regex from the type string
+      var regex = new RegExp(regexes[_i3]); // make a regex from the type string
 
-      var m = regex$$1.exec(value);
+      var m = regex.exec(value);
 
       if (m) {
         // regex matches
@@ -18231,13 +18501,13 @@ styfn$8.cssRule = function (name, value) {
   return this; // chaining
 };
 
-styfn$8.append = function (style$$1) {
-  if (stylesheet(style$$1)) {
-    style$$1.appendToStyle(this);
-  } else if (array(style$$1)) {
-    this.appendFromJson(style$$1);
-  } else if (string(style$$1)) {
-    this.appendFromString(style$$1);
+styfn$8.append = function (style) {
+  if (stylesheet(style)) {
+    style.appendToStyle(this);
+  } else if (array(style)) {
+    this.appendFromJson(style);
+  } else if (string(style)) {
+    this.appendFromString(style);
   } // you probably wouldn't want to append a Style, since you'd duplicate the default parts
 
 
@@ -18246,13 +18516,13 @@ styfn$8.append = function (style$$1) {
 
 
 Style.fromJson = function (cy, json) {
-  var style$$1 = new Style(cy);
-  style$$1.fromJson(json);
-  return style$$1;
+  var style = new Style(cy);
+  style.fromJson(json);
+  return style;
 };
 
-Style.fromString = function (cy, string$$1) {
-  return new Style(cy).fromString(string$$1);
+Style.fromString = function (cy, string) {
+  return new Style(cy).fromString(string);
 };
 
 [styfn, styfn$1, styfn$2, styfn$3, styfn$4, styfn$5, styfn$6, styfn$7].forEach(function (props) {
@@ -18265,7 +18535,7 @@ Style.propertyGroupNames = styfn$8.propertyGroupNames;
 Style.propertyGroupKeys = styfn$8.propertyGroupKeys;
 
 var corefn$7 = {
-  style: function style$$1(newStyle) {
+  style: function style(newStyle) {
     if (newStyle) {
       var s = this.setStyle(newStyle);
       s.update();
@@ -18273,15 +18543,15 @@ var corefn$7 = {
 
     return this._private.style;
   },
-  setStyle: function setStyle(style$$1) {
+  setStyle: function setStyle(style) {
     var _p = this._private;
 
-    if (stylesheet(style$$1)) {
-      _p.style = style$$1.generateStyle(this);
-    } else if (array(style$$1)) {
-      _p.style = Style.fromJson(this, style$$1);
-    } else if (string(style$$1)) {
-      _p.style = Style.fromString(this, style$$1);
+    if (stylesheet(style)) {
+      _p.style = style.generateStyle(this);
+    } else if (array(style)) {
+      _p.style = Style.fromJson(this, style);
+    } else if (string(style)) {
+      _p.style = Style.fromString(this, style);
     } else {
       _p.style = Style(this);
     }
@@ -18292,27 +18562,27 @@ var corefn$7 = {
 
 var defaultSelectionType = 'single';
 var corefn$8 = {
-  autolock: function autolock(bool$$1) {
-    if (bool$$1 !== undefined) {
-      this._private.autolock = bool$$1 ? true : false;
+  autolock: function autolock(bool) {
+    if (bool !== undefined) {
+      this._private.autolock = bool ? true : false;
     } else {
       return this._private.autolock;
     }
 
     return this; // chaining
   },
-  autoungrabify: function autoungrabify(bool$$1) {
-    if (bool$$1 !== undefined) {
-      this._private.autoungrabify = bool$$1 ? true : false;
+  autoungrabify: function autoungrabify(bool) {
+    if (bool !== undefined) {
+      this._private.autoungrabify = bool ? true : false;
     } else {
       return this._private.autoungrabify;
     }
 
     return this; // chaining
   },
-  autounselectify: function autounselectify(bool$$1) {
-    if (bool$$1 !== undefined) {
-      this._private.autounselectify = bool$$1 ? true : false;
+  autounselectify: function autounselectify(bool) {
+    if (bool !== undefined) {
+      this._private.autounselectify = bool ? true : false;
     } else {
       return this._private.autounselectify;
     }
@@ -18336,45 +18606,45 @@ var corefn$8 = {
 
     return this;
   },
-  panningEnabled: function panningEnabled(bool$$1) {
-    if (bool$$1 !== undefined) {
-      this._private.panningEnabled = bool$$1 ? true : false;
+  panningEnabled: function panningEnabled(bool) {
+    if (bool !== undefined) {
+      this._private.panningEnabled = bool ? true : false;
     } else {
       return this._private.panningEnabled;
     }
 
     return this; // chaining
   },
-  userPanningEnabled: function userPanningEnabled(bool$$1) {
-    if (bool$$1 !== undefined) {
-      this._private.userPanningEnabled = bool$$1 ? true : false;
+  userPanningEnabled: function userPanningEnabled(bool) {
+    if (bool !== undefined) {
+      this._private.userPanningEnabled = bool ? true : false;
     } else {
       return this._private.userPanningEnabled;
     }
 
     return this; // chaining
   },
-  zoomingEnabled: function zoomingEnabled(bool$$1) {
-    if (bool$$1 !== undefined) {
-      this._private.zoomingEnabled = bool$$1 ? true : false;
+  zoomingEnabled: function zoomingEnabled(bool) {
+    if (bool !== undefined) {
+      this._private.zoomingEnabled = bool ? true : false;
     } else {
       return this._private.zoomingEnabled;
     }
 
     return this; // chaining
   },
-  userZoomingEnabled: function userZoomingEnabled(bool$$1) {
-    if (bool$$1 !== undefined) {
-      this._private.userZoomingEnabled = bool$$1 ? true : false;
+  userZoomingEnabled: function userZoomingEnabled(bool) {
+    if (bool !== undefined) {
+      this._private.userZoomingEnabled = bool ? true : false;
     } else {
       return this._private.userZoomingEnabled;
     }
 
     return this; // chaining
   },
-  boxSelectionEnabled: function boxSelectionEnabled(bool$$1) {
-    if (bool$$1 !== undefined) {
-      this._private.boxSelectionEnabled = bool$$1 ? true : false;
+  boxSelectionEnabled: function boxSelectionEnabled(bool) {
+    if (bool !== undefined) {
+      this._private.boxSelectionEnabled = bool ? true : false;
     } else {
       return this._private.boxSelectionEnabled;
     }
@@ -18566,22 +18836,22 @@ var corefn$8 = {
 
     return;
   },
-  zoomRange: function zoomRange(min$$1, max$$1) {
+  zoomRange: function zoomRange(min, max) {
     var _p = this._private;
 
-    if (max$$1 == null) {
-      var opts = min$$1;
-      min$$1 = opts.min;
-      max$$1 = opts.max;
+    if (max == null) {
+      var opts = min;
+      min = opts.min;
+      max = opts.max;
     }
 
-    if (number(min$$1) && number(max$$1) && min$$1 <= max$$1) {
-      _p.minZoom = min$$1;
-      _p.maxZoom = max$$1;
-    } else if (number(min$$1) && max$$1 === undefined && min$$1 <= _p.maxZoom) {
-      _p.minZoom = min$$1;
-    } else if (number(max$$1) && min$$1 === undefined && max$$1 >= _p.minZoom) {
-      _p.maxZoom = max$$1;
+    if (number(min) && number(max) && min <= max) {
+      _p.minZoom = min;
+      _p.maxZoom = max;
+    } else if (number(min) && max === undefined && min <= _p.maxZoom) {
+      _p.minZoom = min;
+    } else if (number(max) && min === undefined && max >= _p.minZoom) {
+      _p.maxZoom = max;
     }
 
     return this;
@@ -18817,10 +19087,10 @@ var corefn$8 = {
     var _p = this._private;
     var container = _p.container;
     return _p.sizeCache = _p.sizeCache || (container ? function () {
-      var style$$1 = window$1.getComputedStyle(container);
+      var style = window$1.getComputedStyle(container);
 
       var val = function val(name) {
-        return parseFloat(style$$1.getPropertyValue(name));
+        return parseFloat(style.getPropertyValue(name));
       };
 
       return {
@@ -19042,8 +19312,8 @@ var Core = function Core(opts) {
 
 
       for (var i = 0; i < readies.length; i++) {
-        var fn$$1 = readies[i];
-        cy.on('ready', fn$$1);
+        var fn$1 = readies[i];
+        cy.on('ready', fn$1);
       }
 
       if (reg) {
@@ -19068,11 +19338,11 @@ extend(corefn$9, {
   isDestroyed: function isDestroyed() {
     return this._private.destroyed;
   },
-  ready: function ready(fn$$1) {
+  ready: function ready(fn) {
     if (this.isReady()) {
-      this.emitter().emit('ready', [], fn$$1); // just calls fn as though triggered via ready event
+      this.emitter().emit('ready', [], fn); // just calls fn as though triggered via ready event
     } else {
-      this.on('ready', fn$$1);
+      this.on('ready', fn);
     }
 
     return this;
@@ -19135,6 +19405,7 @@ extend(corefn$9, {
     cy.destroyRenderer();
     _p.container = container;
     _p.styleEnabled = true;
+    cy.invalidateSize();
     cy.initRenderer(rOpts);
     cy.startAnimationLoop();
     cy.style(options.style);
@@ -19691,8 +19962,8 @@ BreadthFirstLayout.prototype.run = function () {
     x: bb.x1 + bb.w / 2,
     y: bb.x1 + bb.h / 2
   };
-  var maxDepthSize = depths.reduce(function (max$$1, eles) {
-    return Math.max(max$$1, eles.length);
+  var maxDepthSize = depths.reduce(function (max, eles) {
+    return Math.max(max, eles.length);
   }, 0);
 
   var getPosition = function getPosition(ele) {
@@ -20157,7 +20428,7 @@ CoseLayout.prototype.run = function () {
   var options = this.options;
   var cy = options.cy;
   var layout = this;
-  var thread$$1 = this.thread;
+  var thread = this.thread;
   var Thread = options.weaver ? options.weaver.Thread : null;
   var falseThread = {
     // use false thread as polyfill
@@ -20214,8 +20485,8 @@ CoseLayout.prototype.run = function () {
     falseThread.trigger(e);
   }
 
-  if (!thread$$1 || thread$$1.stopped()) {
-    thread$$1 = this.thread = Thread ? new Thread() : falseThread;
+  if (!thread || thread.stopped()) {
+    thread = this.thread = Thread ? new Thread() : falseThread;
   }
 
   layout.stopped = false;
@@ -20276,12 +20547,12 @@ CoseLayout.prototype.run = function () {
     });
   };
 
-  thread$$1.on('message', function (e) {
+  thread.on('message', function (e) {
     var layoutNodes = e.message;
     layoutInfo.layoutNodes = layoutNodes;
     refresh();
   });
-  thread$$1.pass({
+  thread.pass({
     layoutInfo: layoutInfo,
     options: {
       animate: options.animate,
@@ -20349,8 +20620,8 @@ CoseLayout.prototype.run = function () {
       }
     };
 
-    var randomDistance = function randomDistance(max$$1) {
-      return -max$$1 + 2 * max$$1 * Math.random();
+    var randomDistance = function randomDistance(max) {
+      return -max + 2 * max * Math.random();
     };
     /**
      * @brief : Compute the node repulsion forces between a pair of nodes
@@ -20747,14 +21018,14 @@ CoseLayout.prototype.run = function () {
      */
 
 
-    var limitForce = function limitForce(forceX, forceY, max$$1) {
+    var limitForce = function limitForce(forceX, forceY, max) {
       // var s = "Limiting force: (" + forceX + ", " + forceY + "). Max: " + max;
       var force = Math.sqrt(forceX * forceX + forceY * forceY);
 
-      if (force > max$$1) {
+      if (force > max) {
         var res = {
-          x: max$$1 * forceX / force,
-          y: max$$1 * forceY / force
+          x: max * forceX / force,
+          y: max * forceY / force
         };
       } else {
         var res = {
@@ -20940,7 +21211,7 @@ CoseLayout.prototype.run = function () {
   }).then(function (layoutInfoUpdated) {
     layoutInfo.layoutNodes = layoutInfoUpdated.layoutNodes; // get the positions
 
-    thread$$1.stop();
+    thread.stop();
     done();
   });
 
@@ -20958,13 +21229,9 @@ CoseLayout.prototype.run = function () {
         }
       });
     } else {
-      options.eles.nodes().layoutPositions(layout, options, function (node) {
-        var lnode = layoutInfo.layoutNodes[layoutInfo.idToIndex[node.data('id')]];
-        return {
-          x: lnode.positionX,
-          y: lnode.positionY
-        };
-      });
+      var nodes = options.eles.nodes();
+      var getScaledPos = getScaleInBoundsFn(layoutInfo, options, nodes);
+      nodes.layoutPositions(layout, options, getScaledPos);
     }
   };
 
@@ -21289,19 +21556,8 @@ var randomizePositions = function randomizePositions(layoutInfo, cy) {
     }
   }
 };
-/**
- * @brief          : Updates the positions of nodes in the network
- * @arg layoutInfo : LayoutInfo object
- * @arg cy         : Cytoscape object
- * @arg options    : Layout options
- */
 
-
-var refreshPositions = function refreshPositions(layoutInfo, cy, options) {
-  // var s = 'Refreshing positions';
-  // logDebug(s);
-  var layout = options.layout;
-  var nodes = options.eles.nodes();
+var getScaleInBoundsFn = function getScaleInBoundsFn(layoutInfo, options, nodes) {
   var bb = layoutInfo.boundingBox;
   var coseBB = {
     x1: Infinity,
@@ -21322,10 +21578,8 @@ var refreshPositions = function refreshPositions(layoutInfo, cy, options) {
     coseBB.h = coseBB.y2 - coseBB.y1;
   }
 
-  nodes.positions(function (ele, i) {
-    var lnode = layoutInfo.layoutNodes[layoutInfo.idToIndex[ele.data('id')]]; // s = "Node: " + lnode.id + ". Refreshed position: (" +
-    // lnode.positionX + ", " + lnode.positionY + ").";
-    // logDebug(s);
+  return function (ele, i) {
+    var lnode = layoutInfo.layoutNodes[layoutInfo.idToIndex[ele.data('id')]];
 
     if (options.boundingBox) {
       // then add extra bounding box constraint
@@ -21341,7 +21595,23 @@ var refreshPositions = function refreshPositions(layoutInfo, cy, options) {
         y: lnode.positionY
       };
     }
-  }); // Trigger layoutReady only on first call
+  };
+};
+/**
+ * @brief          : Updates the positions of nodes in the network
+ * @arg layoutInfo : LayoutInfo object
+ * @arg cy         : Cytoscape object
+ * @arg options    : Layout options
+ */
+
+
+var refreshPositions = function refreshPositions(layoutInfo, cy, options) {
+  // var s = 'Refreshing positions';
+  // logDebug(s);
+  var layout = options.layout;
+  var nodes = options.eles.nodes();
+  var getScaledPos = getScaleInBoundsFn(layoutInfo, options, nodes);
+  nodes.positions(getScaledPos); // Trigger layoutReady only on first call
 
   if (true !== layoutInfo.ready) {
     // s = 'Triggering layoutready';
@@ -21440,9 +21710,9 @@ GridLayout.prototype.run = function () {
       if (val == null) {
         return Math.min(rows, cols);
       } else {
-        var min$$1 = Math.min(rows, cols);
+        var min = Math.min(rows, cols);
 
-        if (min$$1 == rows) {
+        if (min == rows) {
           rows = val;
         } else {
           cols = val;
@@ -21454,9 +21724,9 @@ GridLayout.prototype.run = function () {
       if (val == null) {
         return Math.max(rows, cols);
       } else {
-        var max$$1 = Math.max(rows, cols);
+        var max = Math.max(rows, cols);
 
-        if (max$$1 == rows) {
+        if (max == rows) {
           rows = val;
         } else {
           cols = val;
@@ -22590,7 +22860,7 @@ BRp$3.findHaystackPoints = function (edges) {
         x: Math.cos(angle),
         y: Math.sin(angle)
       };
-      var angle = Math.random() * 2 * Math.PI;
+      angle = Math.random() * 2 * Math.PI;
       rs.target = {
         x: Math.cos(angle),
         y: Math.sin(angle)
@@ -22612,12 +22882,416 @@ BRp$3.findHaystackPoints = function (edges) {
     rs.midX = (rs.allpts[0] + rs.allpts[2]) / 2;
     rs.midY = (rs.allpts[1] + rs.allpts[3]) / 2; // always override as haystack in case set to different type previously
 
-    rs.edgeType = rs.lastCurveStyle = 'haystack';
+    rs.edgeType = 'haystack';
     rs.haystack = true;
     this.storeEdgeProjections(edge);
     this.calculateArrowAngles(edge);
     this.recalculateEdgeLabelProjections(edge);
     this.calculateLabelAngles(edge);
+  }
+};
+
+BRp$3.findSegmentsPoints = function (edge, pairInfo) {
+  // Segments (multiple straight lines)
+  var rs = edge._private.rscratch;
+  var posPts = pairInfo.posPts,
+      intersectionPts = pairInfo.intersectionPts,
+      vectorNormInverse = pairInfo.vectorNormInverse;
+  var edgeDistances = edge.pstyle('edge-distances').value;
+  var segmentWs = edge.pstyle('segment-weights');
+  var segmentDs = edge.pstyle('segment-distances');
+  var segmentsN = Math.min(segmentWs.pfValue.length, segmentDs.pfValue.length);
+  rs.edgeType = 'segments';
+  rs.segpts = [];
+
+  for (var s = 0; s < segmentsN; s++) {
+    var w = segmentWs.pfValue[s];
+    var d = segmentDs.pfValue[s];
+    var w1 = 1 - w;
+    var w2 = w;
+    var midptPts = edgeDistances === 'node-position' ? posPts : intersectionPts;
+    var adjustedMidpt = {
+      x: midptPts.x1 * w1 + midptPts.x2 * w2,
+      y: midptPts.y1 * w1 + midptPts.y2 * w2
+    };
+    rs.segpts.push(adjustedMidpt.x + vectorNormInverse.x * d, adjustedMidpt.y + vectorNormInverse.y * d);
+  }
+};
+
+BRp$3.findLoopPoints = function (edge, pairInfo, i, edgeIsUnbundled) {
+  // Self-edge
+  var rs = edge._private.rscratch;
+  var dirCounts = pairInfo.dirCounts,
+      srcPos = pairInfo.srcPos;
+  var ctrlptDists = edge.pstyle('control-point-distances');
+  var ctrlptDist = ctrlptDists ? ctrlptDists.pfValue[0] : undefined;
+  var loopDir = edge.pstyle('loop-direction').pfValue;
+  var loopSwp = edge.pstyle('loop-sweep').pfValue;
+  var stepSize = edge.pstyle('control-point-step-size').pfValue;
+  rs.edgeType = 'self';
+  var j = i;
+  var loopDist = stepSize;
+
+  if (edgeIsUnbundled) {
+    j = 0;
+    loopDist = ctrlptDist;
+  }
+
+  var loopAngle = loopDir - Math.PI / 2;
+  var outAngle = loopAngle - loopSwp / 2;
+  var inAngle = loopAngle + loopSwp / 2; // increase by step size for overlapping loops, keyed on direction and sweep values
+
+  var dc = String(loopDir + '_' + loopSwp);
+  j = dirCounts[dc] === undefined ? dirCounts[dc] = 0 : ++dirCounts[dc];
+  rs.ctrlpts = [srcPos.x + Math.cos(outAngle) * 1.4 * loopDist * (j / 3 + 1), srcPos.y + Math.sin(outAngle) * 1.4 * loopDist * (j / 3 + 1), srcPos.x + Math.cos(inAngle) * 1.4 * loopDist * (j / 3 + 1), srcPos.y + Math.sin(inAngle) * 1.4 * loopDist * (j / 3 + 1)];
+};
+
+BRp$3.findCompoundLoopPoints = function (edge, pairInfo, i, edgeIsUnbundled) {
+  // Compound edge
+  var rs = edge._private.rscratch;
+  rs.edgeType = 'compound';
+  var srcPos = pairInfo.srcPos,
+      tgtPos = pairInfo.tgtPos,
+      srcW = pairInfo.srcW,
+      srcH = pairInfo.srcH,
+      tgtW = pairInfo.tgtW,
+      tgtH = pairInfo.tgtH;
+  var stepSize = edge.pstyle('control-point-step-size').pfValue;
+  var ctrlptDists = edge.pstyle('control-point-distances');
+  var ctrlptDist = ctrlptDists ? ctrlptDists.pfValue[0] : undefined;
+  var j = i;
+  var loopDist = stepSize;
+
+  if (edgeIsUnbundled) {
+    j = 0;
+    loopDist = ctrlptDist;
+  }
+
+  var loopW = 50;
+  var loopaPos = {
+    x: srcPos.x - srcW / 2,
+    y: srcPos.y - srcH / 2
+  };
+  var loopbPos = {
+    x: tgtPos.x - tgtW / 2,
+    y: tgtPos.y - tgtH / 2
+  };
+  var loopPos = {
+    x: Math.min(loopaPos.x, loopbPos.x),
+    y: Math.min(loopaPos.y, loopbPos.y)
+  }; // avoids cases with impossible beziers
+
+  var minCompoundStretch = 0.5;
+  var compoundStretchA = Math.max(minCompoundStretch, Math.log(srcW * 0.01));
+  var compoundStretchB = Math.max(minCompoundStretch, Math.log(tgtW * 0.01));
+  rs.ctrlpts = [loopPos.x, loopPos.y - (1 + Math.pow(loopW, 1.12) / 100) * loopDist * (j / 3 + 1) * compoundStretchA, loopPos.x - (1 + Math.pow(loopW, 1.12) / 100) * loopDist * (j / 3 + 1) * compoundStretchB, loopPos.y];
+};
+
+BRp$3.findStraightEdgePoints = function (edge) {
+  // Straight edge within bundle
+  edge._private.rscratch.edgeType = 'straight';
+};
+
+BRp$3.findBezierPoints = function (edge, pairInfo, i, edgeIsUnbundled, edgeIsSwapped) {
+  var rs = edge._private.rscratch;
+  var vectorNormInverse = pairInfo.vectorNormInverse,
+      posPts = pairInfo.posPts,
+      intersectionPts = pairInfo.intersectionPts;
+  var edgeDistances = edge.pstyle('edge-distances').value;
+  var stepSize = edge.pstyle('control-point-step-size').pfValue;
+  var ctrlptDists = edge.pstyle('control-point-distances');
+  var ctrlptWs = edge.pstyle('control-point-weights');
+  var bezierN = ctrlptDists && ctrlptWs ? Math.min(ctrlptDists.value.length, ctrlptWs.value.length) : 1;
+  var ctrlptDist = ctrlptDists ? ctrlptDists.pfValue[0] : undefined;
+  var ctrlptWeight = ctrlptWs.value[0]; // (Multi)bezier
+
+  var multi = edgeIsUnbundled;
+  rs.edgeType = multi ? 'multibezier' : 'bezier';
+  rs.ctrlpts = [];
+
+  for (var b = 0; b < bezierN; b++) {
+    var normctrlptDist = (0.5 - pairInfo.eles.length / 2 + i) * stepSize * (edgeIsSwapped ? -1 : 1);
+    var manctrlptDist = void 0;
+    var sign = signum(normctrlptDist);
+
+    if (multi) {
+      ctrlptDist = ctrlptDists ? ctrlptDists.pfValue[b] : stepSize; // fall back on step size
+
+      ctrlptWeight = ctrlptWs.value[b];
+    }
+
+    if (edgeIsUnbundled) {
+      // multi or single unbundled
+      manctrlptDist = ctrlptDist;
+    } else {
+      manctrlptDist = ctrlptDist !== undefined ? sign * ctrlptDist : undefined;
+    }
+
+    var distanceFromMidpoint = manctrlptDist !== undefined ? manctrlptDist : normctrlptDist;
+    var w1 = 1 - ctrlptWeight;
+    var w2 = ctrlptWeight;
+    var midptPts = edgeDistances === 'node-position' ? posPts : intersectionPts;
+    var adjustedMidpt = {
+      x: midptPts.x1 * w1 + midptPts.x2 * w2,
+      y: midptPts.y1 * w1 + midptPts.y2 * w2
+    };
+    rs.ctrlpts.push(adjustedMidpt.x + vectorNormInverse.x * distanceFromMidpoint, adjustedMidpt.y + vectorNormInverse.y * distanceFromMidpoint);
+  }
+};
+
+BRp$3.findTaxiPoints = function (edge, pairInfo) {
+  // Taxicab geometry with two turns maximum
+  var rs = edge._private.rscratch;
+  rs.edgeType = 'segments';
+  var VERTICAL = 'vertical';
+  var HORIZONTAL = 'horizontal';
+  var LEFTWARD = 'leftward';
+  var RIGHTWARD = 'rightward';
+  var DOWNWARD = 'downward';
+  var UPWARD = 'upward';
+  var AUTO = 'auto';
+  var posPts = pairInfo.posPts,
+      srcW = pairInfo.srcW,
+      srcH = pairInfo.srcH,
+      tgtW = pairInfo.tgtW,
+      tgtH = pairInfo.tgtH;
+  var edgeDistances = edge.pstyle('edge-distances').value;
+  var dIncludesNodeBody = edgeDistances !== 'node-position';
+  var taxiDir = edge.pstyle('taxi-direction').value;
+  var rawTaxiDir = taxiDir; // unprocessed value
+
+  var taxiTurn = edge.pstyle('taxi-turn');
+  var taxiTurnPfVal = taxiTurn.pfValue;
+  var minD = edge.pstyle('taxi-turn-min-distance').pfValue;
+  var turnIsPercent = taxiTurn.units === '%';
+  var dw = dIncludesNodeBody ? (srcW + tgtW) / 2 : 0;
+  var dh = dIncludesNodeBody ? (srcH + tgtH) / 2 : 0;
+  var pdx = posPts.x2 - posPts.x1;
+  var pdy = posPts.y2 - posPts.y1; // take away the effective w/h from the magnitude of the delta value
+
+  var subDWH = function subDWH(dxy, dwh) {
+    if (dxy > 0) {
+      return Math.max(dxy - dwh, 0);
+    } else {
+      return Math.min(dxy + dwh, 0);
+    }
+  };
+
+  var dx = subDWH(pdx, dw);
+  var dy = subDWH(pdy, dh);
+  var isExplicitDir = false;
+
+  if (taxiDir === AUTO) {
+    taxiDir = Math.abs(dx) > Math.abs(dy) ? HORIZONTAL : VERTICAL;
+  } else if (taxiDir === UPWARD || taxiDir === DOWNWARD) {
+    taxiDir = VERTICAL;
+    isExplicitDir = true;
+  } else if (taxiDir === LEFTWARD || taxiDir === RIGHTWARD) {
+    taxiDir = HORIZONTAL;
+    isExplicitDir = true;
+  }
+
+  var isVert = taxiDir === VERTICAL;
+  var l = isVert ? dy : dx;
+  var pl = isVert ? pdy : pdx;
+  var sgnL = signum(pl);
+  var forcedDir = false;
+
+  if (!(isExplicitDir && turnIsPercent) // forcing in this case would cause weird growing in the opposite direction
+  && (rawTaxiDir === DOWNWARD && pl < 0 || rawTaxiDir === UPWARD && pl > 0 || rawTaxiDir === LEFTWARD && pl > 0 || rawTaxiDir === RIGHTWARD && pl < 0)) {
+    sgnL *= -1;
+    l = sgnL * Math.abs(l);
+    forcedDir = true;
+  }
+
+  var d = turnIsPercent ? taxiTurnPfVal * l : taxiTurnPfVal * sgnL;
+
+  var getIsTooClose = function getIsTooClose(d) {
+    return Math.abs(d) < minD || Math.abs(d) >= Math.abs(l);
+  };
+
+  var isTooCloseSrc = getIsTooClose(d);
+  var isTooCloseTgt = getIsTooClose(l - d);
+  var isTooClose = isTooCloseSrc || isTooCloseTgt;
+
+  if (isTooClose && !forcedDir) {
+    // non-ideal routing
+    if (isVert) {
+      // vertical fallbacks
+      var lShapeInsideSrc = Math.abs(pl) <= srcH / 2;
+      var lShapeInsideTgt = Math.abs(pdx) <= tgtW / 2;
+
+      if (lShapeInsideSrc) {
+        // horizontal Z-shape (direction not respected)
+        var x = (posPts.x1 + posPts.x2) / 2;
+        var y1 = posPts.y1,
+            y2 = posPts.y2;
+        rs.segpts = [x, y1, x, y2];
+      } else if (lShapeInsideTgt) {
+        // vertical Z-shape (distance not respected)
+        var y = (posPts.y1 + posPts.y2) / 2;
+        var x1 = posPts.x1,
+            x2 = posPts.x2;
+        rs.segpts = [x1, y, x2, y];
+      } else {
+        // L-shape fallback (turn distance not respected, but works well with tree siblings)
+        rs.segpts = [posPts.x1, posPts.y2];
+      }
+    } else {
+      // horizontal fallbacks
+      var _lShapeInsideSrc = Math.abs(pl) <= srcW / 2;
+
+      var _lShapeInsideTgt = Math.abs(pdy) <= tgtH / 2;
+
+      if (_lShapeInsideSrc) {
+        // vertical Z-shape (direction not respected)
+        var _y = (posPts.y1 + posPts.y2) / 2;
+
+        var _x = posPts.x1,
+            _x2 = posPts.x2;
+        rs.segpts = [_x, _y, _x2, _y];
+      } else if (_lShapeInsideTgt) {
+        // horizontal Z-shape (turn distance not respected)
+        var _x3 = (posPts.x1 + posPts.x2) / 2;
+
+        var _y2 = posPts.y1,
+            _y3 = posPts.y2;
+        rs.segpts = [_x3, _y2, _x3, _y3];
+      } else {
+        // L-shape (turn distance not respected, but works well for tree siblings)
+        rs.segpts = [posPts.x2, posPts.y1];
+      }
+    }
+  } else {
+    // ideal routing
+    if (isVert) {
+      var _y4 = posPts.y1 + d + (dIncludesNodeBody ? srcH / 2 * sgnL : 0);
+
+      var _x4 = posPts.x1,
+          _x5 = posPts.x2;
+      rs.segpts = [_x4, _y4, _x5, _y4];
+    } else {
+      // horizontal
+      var _x6 = posPts.x1 + d + (dIncludesNodeBody ? srcW / 2 * sgnL : 0);
+
+      var _y5 = posPts.y1,
+          _y6 = posPts.y2;
+      rs.segpts = [_x6, _y5, _x6, _y6];
+    }
+  }
+};
+
+BRp$3.tryToCorrectInvalidPoints = function (edge, pairInfo) {
+  var rs = edge._private.rscratch; // can only correct beziers for now...
+
+  if (rs.edgeType === 'bezier') {
+    var srcPos = pairInfo.srcPos,
+        tgtPos = pairInfo.tgtPos,
+        srcW = pairInfo.srcW,
+        srcH = pairInfo.srcH,
+        tgtW = pairInfo.tgtW,
+        tgtH = pairInfo.tgtH,
+        srcShape = pairInfo.srcShape,
+        tgtShape = pairInfo.tgtShape;
+    var badStart = !number(rs.startX) || !number(rs.startY);
+    var badAStart = !number(rs.arrowStartX) || !number(rs.arrowStartY);
+    var badEnd = !number(rs.endX) || !number(rs.endY);
+    var badAEnd = !number(rs.arrowEndX) || !number(rs.arrowEndY);
+    var minCpADistFactor = 3;
+    var arrowW = this.getArrowWidth(edge.pstyle('width').pfValue, edge.pstyle('arrow-scale').value) * this.arrowShapeWidth;
+    var minCpADist = minCpADistFactor * arrowW;
+    var startACpDist = dist({
+      x: rs.ctrlpts[0],
+      y: rs.ctrlpts[1]
+    }, {
+      x: rs.startX,
+      y: rs.startY
+    });
+    var closeStartACp = startACpDist < minCpADist;
+    var endACpDist = dist({
+      x: rs.ctrlpts[0],
+      y: rs.ctrlpts[1]
+    }, {
+      x: rs.endX,
+      y: rs.endY
+    });
+    var closeEndACp = endACpDist < minCpADist;
+    var overlapping = false;
+
+    if (badStart || badAStart || closeStartACp) {
+      overlapping = true; // project control point along line from src centre to outside the src shape
+      // (otherwise intersection will yield nothing)
+
+      var cpD = {
+        // delta
+        x: rs.ctrlpts[0] - srcPos.x,
+        y: rs.ctrlpts[1] - srcPos.y
+      };
+      var cpL = Math.sqrt(cpD.x * cpD.x + cpD.y * cpD.y); // length of line
+
+      var cpM = {
+        // normalised delta
+        x: cpD.x / cpL,
+        y: cpD.y / cpL
+      };
+      var radius = Math.max(srcW, srcH);
+      var cpProj = {
+        // *2 radius guarantees outside shape
+        x: rs.ctrlpts[0] + cpM.x * 2 * radius,
+        y: rs.ctrlpts[1] + cpM.y * 2 * radius
+      };
+      var srcCtrlPtIntn = srcShape.intersectLine(srcPos.x, srcPos.y, srcW, srcH, cpProj.x, cpProj.y, 0);
+
+      if (closeStartACp) {
+        rs.ctrlpts[0] = rs.ctrlpts[0] + cpM.x * (minCpADist - startACpDist);
+        rs.ctrlpts[1] = rs.ctrlpts[1] + cpM.y * (minCpADist - startACpDist);
+      } else {
+        rs.ctrlpts[0] = srcCtrlPtIntn[0] + cpM.x * minCpADist;
+        rs.ctrlpts[1] = srcCtrlPtIntn[1] + cpM.y * minCpADist;
+      }
+    }
+
+    if (badEnd || badAEnd || closeEndACp) {
+      overlapping = true; // project control point along line from tgt centre to outside the tgt shape
+      // (otherwise intersection will yield nothing)
+
+      var _cpD = {
+        // delta
+        x: rs.ctrlpts[0] - tgtPos.x,
+        y: rs.ctrlpts[1] - tgtPos.y
+      };
+
+      var _cpL = Math.sqrt(_cpD.x * _cpD.x + _cpD.y * _cpD.y); // length of line
+
+
+      var _cpM = {
+        // normalised delta
+        x: _cpD.x / _cpL,
+        y: _cpD.y / _cpL
+      };
+
+      var _radius = Math.max(srcW, srcH);
+
+      var _cpProj = {
+        // *2 radius guarantees outside shape
+        x: rs.ctrlpts[0] + _cpM.x * 2 * _radius,
+        y: rs.ctrlpts[1] + _cpM.y * 2 * _radius
+      };
+      var tgtCtrlPtIntn = tgtShape.intersectLine(tgtPos.x, tgtPos.y, tgtW, tgtH, _cpProj.x, _cpProj.y, 0);
+
+      if (closeEndACp) {
+        rs.ctrlpts[0] = rs.ctrlpts[0] + _cpM.x * (minCpADist - endACpDist);
+        rs.ctrlpts[1] = rs.ctrlpts[1] + _cpM.y * (minCpADist - endACpDist);
+      } else {
+        rs.ctrlpts[0] = tgtCtrlPtIntn[0] + _cpM.x * minCpADist;
+        rs.ctrlpts[1] = tgtCtrlPtIntn[1] + _cpM.y * minCpADist;
+      }
+    }
+
+    if (overlapping) {
+      // recalc endpts
+      this.findEndpoints(edge);
+    }
   }
 };
 
@@ -22668,27 +23342,30 @@ BRp$3.storeAllpts = function (edge) {
       rs.midX = (rs.segpts[i1] + rs.segpts[i2]) / 2;
       rs.midY = (rs.segpts[i1 + 1] + rs.segpts[i2 + 1]) / 2;
     } else {
-      var i1 = rs.segpts.length / 2 - 1;
-      rs.midX = rs.segpts[i1];
-      rs.midY = rs.segpts[i1 + 1];
+      var _i = rs.segpts.length / 2 - 1;
+
+      rs.midX = rs.segpts[_i];
+      rs.midY = rs.segpts[_i + 1];
     }
   }
 };
 
 BRp$3.checkForInvalidEdgeWarning = function (edge) {
-  var rs = edge._private.rscratch;
+  var rs = edge[0]._private.rscratch;
 
-  if (!number(rs.startX) || !number(rs.startY) || !number(rs.endX) || !number(rs.endY)) {
+  if (rs.nodesOverlap || number(rs.startX) && number(rs.startY) && number(rs.endX) && number(rs.endY)) {
+    rs.loggedErr = false;
+  } else {
     if (!rs.loggedErr) {
       rs.loggedErr = true;
       warn('Edge `' + edge.id() + '` has invalid endpoints and so it is impossible to draw.  Adjust your edge style (e.g. control points) accordingly or use an alternative edge type.  This is expected behaviour when the source node and the target node overlap.');
     }
-  } else {
-    rs.loggedErr = false;
   }
 };
 
 BRp$3.findEdgeControlPoints = function (edges) {
+  var _this = this;
+
   if (!edges || edges.length === 0) {
     return;
   }
@@ -22696,22 +23373,17 @@ BRp$3.findEdgeControlPoints = function (edges) {
   var r = this;
   var cy = r.cy;
   var hasCompounds = cy.hasCompoundNodes();
-  var hashTable = {};
+  var hashTable = new Map$1();
   var pairIds = [];
   var haystackEdges = []; // create a table of edge (src, tgt) => list of edges between them
-
-  var pairId;
 
   for (var i = 0; i < edges.length; i++) {
     var edge = edges[i];
     var _p = edge._private;
-    var data = _p.data;
-    var curveStyle = edge.pstyle('curve-style').value;
-    var edgeIsUnbundled = curveStyle === 'unbundled-bezier' || curveStyle === 'segments' || curveStyle === 'straight';
-    var edgeIsBezier = curveStyle === 'unbundled-bezier' || curveStyle === 'bezier'; // ignore edges who are not to be displayed
+    var curveStyle = edge.pstyle('curve-style').value; // ignore edges who are not to be displayed
     // they shouldn't take up space
 
-    if (edge.pstyle('display').value === 'none') {
+    if (edge.removed() || !edge.takesUpSpace()) {
       continue;
     }
 
@@ -22720,22 +23392,26 @@ BRp$3.findEdgeControlPoints = function (edges) {
       continue;
     }
 
-    var srcId = data.source;
-    var tgtId = data.target;
-    pairId = srcId > tgtId ? tgtId + '$-$' + srcId : srcId + '$-$' + tgtId;
+    var edgeIsUnbundled = curveStyle === 'unbundled-bezier' || curveStyle === 'segments' || curveStyle === 'straight' || curveStyle === 'taxi';
+    var edgeIsBezier = curveStyle === 'unbundled-bezier' || curveStyle === 'bezier';
 
-    if (edgeIsUnbundled) {
-      pairId = 'unbundled' + '$-$' + data.id;
-    }
+    var srcIndex = _p.source.poolIndex();
 
-    var tableEntry = hashTable[pairId];
+    var tgtIndex = _p.target.poolIndex();
+
+    var hash = (edgeIsUnbundled ? -1 : 1) * hashIntsArray([srcIndex, tgtIndex].sort());
+    var pairId = hash;
+    var tableEntry = hashTable.get(pairId);
 
     if (tableEntry == null) {
-      tableEntry = hashTable[pairId] = [];
+      tableEntry = {
+        eles: []
+      };
+      hashTable.set(pairId, tableEntry);
       pairIds.push(pairId);
     }
 
-    tableEntry.push(edge);
+    tableEntry.eles.push(edge);
 
     if (edgeIsUnbundled) {
       tableEntry.hasUnbundled = true;
@@ -22744,51 +23420,51 @@ BRp$3.findEdgeControlPoints = function (edges) {
     if (edgeIsBezier) {
       tableEntry.hasBezier = true;
     }
-  }
-
-  var src, tgt, srcPos, tgtPos, srcW, srcH, tgtW, tgtH, srcShape, tgtShape;
-  var vectorNormInverse;
-  var badBezier; // for each pair (src, tgt), create the ctrl pts
+  } // for each pair (src, tgt), create the ctrl pts
   // Nested for loop is OK; total number of iterations for both loops = edgeCount
 
-  for (var p = 0; p < pairIds.length; p++) {
-    pairId = pairIds[p];
-    var pairEdges = hashTable[pairId];
 
-    if (!pairEdges.hasUnbundled) {
-      var pllEdges = pairEdges[0].parallelEdges();
-      clearArray(pairEdges);
+  var _loop = function _loop(p) {
+    var pairId = pairIds[p];
+    var pairInfo = hashTable.get(pairId);
+    var swappedpairInfo = void 0;
+
+    if (!pairInfo.hasUnbundled) {
+      var pllEdges = pairInfo.eles[0].parallelEdges().filter(function (e) {
+        return e.isBundledBezier();
+      });
+      clearArray(pairInfo.eles);
       pllEdges.forEach(function (edge) {
-        return pairEdges.push(edge);
+        return pairInfo.eles.push(edge);
       }); // for each pair id, the edges should be sorted by index
 
-      pairEdges.sort(function (edge1, edge2) {
+      pairInfo.eles.sort(function (edge1, edge2) {
         return edge1.poolIndex() - edge2.poolIndex();
       });
     }
 
-    src = pairEdges[0]._private.source;
-    tgt = pairEdges[0]._private.target; // make sure src/tgt distinction is consistent for bundled edges
+    var firstEdge = pairInfo.eles[0];
+    var src = firstEdge.source();
+    var tgt = firstEdge.target(); // make sure src/tgt distinction is consistent w.r.t. pairId
 
-    if (!pairEdges.hasUnbundled && src.id() > tgt.id()) {
+    if (src.poolIndex() > tgt.poolIndex()) {
       var temp = src;
       src = tgt;
       tgt = temp;
     }
 
-    srcPos = src.position();
-    tgtPos = tgt.position();
-    srcW = src.outerWidth();
-    srcH = src.outerHeight();
-    tgtW = tgt.outerWidth();
-    tgtH = tgt.outerHeight();
-    srcShape = r.nodeShapes[this.getNodeShape(src)];
-    tgtShape = r.nodeShapes[this.getNodeShape(tgt)];
-    badBezier = false;
-    var edge;
-    var edge_p;
-    var rs;
-    var dirCounts = {
+    var srcPos = pairInfo.srcPos = src.position();
+    var tgtPos = pairInfo.tgtPos = tgt.position();
+    var srcW = pairInfo.srcW = src.outerWidth();
+    var srcH = pairInfo.srcH = src.outerHeight();
+    var tgtW = pairInfo.tgtW = tgt.outerWidth();
+    var tgtH = pairInfo.tgtH = tgt.outerHeight();
+
+    var srcShape = pairInfo.srcShape = r.nodeShapes[_this.getNodeShape(src)];
+
+    var tgtShape = pairInfo.tgtShape = r.nodeShapes[_this.getNodeShape(tgt)];
+
+    pairInfo.dirCounts = {
       'north': 0,
       'west': 0,
       'south': 0,
@@ -22798,409 +23474,142 @@ BRp$3.findEdgeControlPoints = function (edges) {
       'northeast': 0,
       'southeast': 0
     };
-    var srcX2 = srcPos.x;
-    var srcY2 = srcPos.y;
-    var srcW2 = srcW;
-    var srcH2 = srcH;
-    var tgtX2 = tgtPos.x;
-    var tgtY2 = tgtPos.y;
-    var tgtW2 = tgtW;
-    var tgtH2 = tgtH;
-    var numEdges2 = pairEdges.length;
 
-    for (var i = 0; i < pairEdges.length; i++) {
-      edge = pairEdges[i];
-      edge_p = edge._private;
-      rs = edge_p.rscratch;
-      var edgeIndex1 = rs.lastEdgeIndex;
-      var edgeIndex2 = i;
-      var numEdges1 = rs.lastNumEdges;
-      var curveStyle = edge.pstyle('curve-style').value;
-      var edgeIsUnbundled = curveStyle === 'unbundled-bezier' || curveStyle === 'segments'; // whether the normalised pair order is the reverse of the edge's src-tgt order
+    for (var _i2 = 0; _i2 < pairInfo.eles.length; _i2++) {
+      var _edge = pairInfo.eles[_i2];
+      var rs = _edge[0]._private.rscratch;
 
-      var edgeIsSwapped = src.id() !== edge.source().id();
-      var ctrlptDists = edge.pstyle('control-point-distances');
-      var loopDir = edge.pstyle('loop-direction').pfValue;
-      var loopSwp = edge.pstyle('loop-sweep').pfValue;
-      var ctrlptWs = edge.pstyle('control-point-weights');
-      var bezierN = ctrlptDists && ctrlptWs ? Math.min(ctrlptDists.value.length, ctrlptWs.value.length) : 1;
-      var stepSize = edge.pstyle('control-point-step-size').pfValue;
-      var ctrlptDist = ctrlptDists ? ctrlptDists.pfValue[0] : undefined;
-      var ctrlptWeight = ctrlptWs.value[0];
-      var edgeDistances = edge.pstyle('edge-distances').value;
-      var srcDistFNode = edge.pstyle('source-distance-from-node').pfValue;
-      var tgtDistFNode = edge.pstyle('target-distance-from-node').pfValue;
-      var segmentWs = edge.pstyle('segment-weights');
-      var segmentDs = edge.pstyle('segment-distances');
-      var segmentsN = Math.min(segmentWs.pfValue.length, segmentDs.pfValue.length);
-      var srcEndpt = edge.pstyle('source-endpoint').value;
-      var tgtEndpt = edge.pstyle('target-endpoint').value;
-      var srcArrShape = edge.pstyle('source-arrow-shape').value;
-      var tgtArrShape = edge.pstyle('target-arrow-shape').value;
-      var arrowScale = edge.pstyle('arrow-scale').value;
-      var lineWidth = edge.pstyle('width').pfValue;
-      var srcX1 = rs.lastSrcCtlPtX;
-      var srcY1 = rs.lastSrcCtlPtY;
-      var srcW1 = rs.lastSrcCtlPtW;
-      var srcH1 = rs.lastSrcCtlPtH;
-      var tgtX1 = rs.lastTgtCtlPtX;
-      var tgtY1 = rs.lastTgtCtlPtY;
-      var tgtW1 = rs.lastTgtCtlPtW;
-      var tgtH1 = rs.lastTgtCtlPtH;
-      var curveStyle1 = rs.lastCurveStyle;
-      var curveStyle2 = curveStyle;
-      var ctrlptDists1 = rs.lastCtrlptDists;
-      var ctrlptDists2 = ctrlptDists ? ctrlptDists.strValue : null;
-      var ctrlptWs1 = rs.lastCtrlptWs;
-      var ctrlptWs2 = ctrlptWs.strValue;
-      var segmentWs1 = rs.lastSegmentWs;
-      var segmentWs2 = segmentWs.strValue;
-      var segmentDs1 = rs.lastSegmentDs;
-      var segmentDs2 = segmentDs.strValue;
-      var stepSize1 = rs.lastStepSize;
-      var stepSize2 = stepSize;
-      var loopDir1 = rs.lastLoopDir;
-      var loopDir2 = loopDir;
-      var loopSwp1 = rs.lastLoopSwp;
-      var loopSwp2 = loopSwp;
-      var edgeDistances1 = rs.lastEdgeDistances;
-      var edgeDistances2 = edgeDistances;
-      var srcDistFNode1 = rs.lastSrcDistFNode;
-      var srcDistFNode2 = srcDistFNode;
-      var tgtDistFNode1 = rs.lastTgtDistFNode;
-      var tgtDistFNode2 = tgtDistFNode;
-      var srcEndpt1 = rs.lastSrcEndpt;
-      var srcEndpt2 = srcEndpt;
-      var tgtEndpt1 = rs.lastTgtEndpt;
-      var tgtEndpt2 = tgtEndpt;
-      var srcArr1 = rs.lastSrcArr;
-      var srcArr2 = srcArrShape;
-      var tgtArr1 = rs.lastTgtArr;
-      var tgtArr2 = tgtArrShape;
-      var lineW1 = rs.lastLineW;
-      var lineW2 = lineWidth;
-      var arrScl1 = rs.lastArrScl;
-      var arrScl2 = arrowScale;
+      var _curveStyle = _edge.pstyle('curve-style').value;
 
-      if (badBezier) {
-        rs.badBezier = true;
-      } else {
-        rs.badBezier = false;
+      var _edgeIsUnbundled = _curveStyle === 'unbundled-bezier' || _curveStyle === 'segments' || _curveStyle === 'taxi'; // whether the normalised pair order is the reverse of the edge's src-tgt order
+
+
+      var edgeIsSwapped = !src.same(_edge.source());
+
+      if (!pairInfo.calculatedIntersection && src !== tgt && (pairInfo.hasBezier || pairInfo.hasUnbundled)) {
+        pairInfo.calculatedIntersection = true; // pt outside src shape to calc distance/displacement from src to tgt
+
+        var srcOutside = srcShape.intersectLine(srcPos.x, srcPos.y, srcW, srcH, tgtPos.x, tgtPos.y, 0);
+        var srcIntn = pairInfo.srcIntn = srcOutside; // pt outside tgt shape to calc distance/displacement from src to tgt
+
+        var tgtOutside = tgtShape.intersectLine(tgtPos.x, tgtPos.y, tgtW, tgtH, srcPos.x, srcPos.y, 0);
+        var tgtIntn = pairInfo.tgtIntn = tgtOutside;
+        var intersectionPts = pairInfo.intersectionPts = {
+          x1: srcOutside[0],
+          x2: tgtOutside[0],
+          y1: srcOutside[1],
+          y2: tgtOutside[1]
+        };
+        var posPts = pairInfo.posPts = {
+          x1: srcPos.x,
+          x2: tgtPos.x,
+          y1: srcPos.y,
+          y2: tgtPos.y
+        };
+        var dy = tgtOutside[1] - srcOutside[1];
+        var dx = tgtOutside[0] - srcOutside[0];
+        var l = Math.sqrt(dx * dx + dy * dy);
+        var vector = pairInfo.vector = {
+          x: dx,
+          y: dy
+        };
+        var vectorNorm = pairInfo.vectorNorm = {
+          x: vector.x / l,
+          y: vector.y / l
+        };
+        var vectorNormInverse = {
+          x: -vectorNorm.y,
+          y: vectorNorm.x
+        }; // if node shapes overlap, then no ctrl pts to draw
+
+        pairInfo.nodesOverlap = !number(l) || tgtShape.checkPoint(srcOutside[0], srcOutside[1], 0, tgtW, tgtH, tgtPos.x, tgtPos.y) || srcShape.checkPoint(tgtOutside[0], tgtOutside[1], 0, srcW, srcH, srcPos.x, srcPos.y);
+        pairInfo.vectorNormInverse = vectorNormInverse;
+        swappedpairInfo = {
+          nodesOverlap: pairInfo.nodesOverlap,
+          dirCounts: pairInfo.dirCounts,
+          calculatedIntersection: true,
+          hasBezier: pairInfo.hasBezier,
+          hasUnbundled: pairInfo.hasUnbundled,
+          eles: pairInfo.eles,
+          srcPos: tgtPos,
+          tgtPos: srcPos,
+          srcW: tgtW,
+          srcH: tgtH,
+          tgtW: srcW,
+          tgtH: srcH,
+          srcIntn: tgtIntn,
+          tgtIntn: srcIntn,
+          srcShape: tgtShape,
+          tgtShape: srcShape,
+          posPts: {
+            x1: posPts.x2,
+            y1: posPts.y2,
+            x2: posPts.x1,
+            y2: posPts.y1
+          },
+          intersectionPts: {
+            x1: intersectionPts.x2,
+            y1: intersectionPts.y2,
+            x2: intersectionPts.x1,
+            y2: intersectionPts.y1
+          },
+          vector: {
+            x: -vector.x,
+            y: -vector.y
+          },
+          vectorNorm: {
+            x: -vectorNorm.x,
+            y: -vectorNorm.y
+          },
+          vectorNormInverse: {
+            x: -vectorNormInverse.x,
+            y: -vectorNormInverse.y
+          }
+        };
       }
 
-      var ptCacheHit;
+      var passedPairInfo = edgeIsSwapped ? swappedpairInfo : pairInfo;
+      rs.nodesOverlap = passedPairInfo.nodesOverlap;
+      rs.srcIntn = passedPairInfo.srcIntn;
+      rs.tgtIntn = passedPairInfo.tgtIntn;
 
-      if (srcX1 === srcX2 && srcY1 === srcY2 && srcW1 === srcW2 && srcH1 === srcH2 && tgtX1 === tgtX2 && tgtY1 === tgtY2 && tgtW1 === tgtW2 && tgtH1 === tgtH2 && curveStyle1 === curveStyle2 && ctrlptDists1 === ctrlptDists2 && ctrlptWs1 === ctrlptWs2 && segmentWs1 === segmentWs2 && segmentDs1 === segmentDs2 && stepSize1 === stepSize2 && loopDir1 === loopDir2 && loopSwp1 === loopSwp2 && edgeDistances1 === edgeDistances2 && srcDistFNode1 === srcDistFNode2 && tgtDistFNode1 === tgtDistFNode2 && srcEndpt1 === srcEndpt2 && tgtEndpt1 === tgtEndpt2 && srcArr1 === srcArr2 && tgtArr1 === tgtArr2 && lineW1 === lineW2 && arrScl1 === arrScl2 && (edgeIndex1 === edgeIndex2 && numEdges1 === numEdges2 || edgeIsUnbundled)) {
-        ptCacheHit = true; // then the control points haven't changed and we can skip calculating them
+      if (hasCompounds && (src.isParent() || src.isChild() || tgt.isParent() || tgt.isChild()) && (src.parents().anySame(tgt) || tgt.parents().anySame(src) || src.same(tgt))) {
+        _this.findCompoundLoopPoints(_edge, passedPairInfo, _i2, _edgeIsUnbundled);
+      } else if (src === tgt) {
+        _this.findLoopPoints(_edge, passedPairInfo, _i2, _edgeIsUnbundled);
+      } else if (_curveStyle === 'segments') {
+        _this.findSegmentsPoints(_edge, passedPairInfo);
+      } else if (_curveStyle === 'taxi') {
+        _this.findTaxiPoints(_edge, passedPairInfo);
+      } else if (_curveStyle === 'straight' || !_edgeIsUnbundled && pairInfo.eles.length % 2 === 1 && _i2 === Math.floor(pairInfo.eles.length / 2)) {
+        _this.findStraightEdgePoints(_edge);
       } else {
-        ptCacheHit = false;
-        rs.lastSrcCtlPtX = srcX2;
-        rs.lastSrcCtlPtY = srcY2;
-        rs.lastSrcCtlPtW = srcW2;
-        rs.lastSrcCtlPtH = srcH2;
-        rs.lastTgtCtlPtX = tgtX2;
-        rs.lastTgtCtlPtY = tgtY2;
-        rs.lastTgtCtlPtW = tgtW2;
-        rs.lastTgtCtlPtH = tgtH2;
-        rs.lastEdgeIndex = edgeIndex2;
-        rs.lastNumEdges = numEdges2;
-        rs.lastCurveStyle = curveStyle2;
-        rs.lastCtrlptDists = ctrlptDists2;
-        rs.lastCtrlptWs = ctrlptWs2;
-        rs.lastSegmentDs = segmentDs2;
-        rs.lastSegmentWs = segmentWs2;
-        rs.lastStepSize = stepSize2;
-        rs.lastLoopDir = loopDir2;
-        rs.lastLoopSwp = loopSwp2;
-        rs.lastEdgeDistances = edgeDistances2;
-        rs.lastSrcDistFNode = srcDistFNode2;
-        rs.lastTgtDistFNode = tgtDistFNode2;
-        rs.lastSrcEndpt = srcEndpt2;
-        rs.lastTgtEndpt = tgtEndpt2;
-        rs.lastSrcArr = srcArr2;
-        rs.lastTgtArr = tgtArr2;
-        rs.lastLineW = lineW2;
-        rs.lastArrScl = arrScl2;
+        _this.findBezierPoints(_edge, passedPairInfo, _i2, _edgeIsUnbundled, edgeIsSwapped);
       }
 
-      if (!ptCacheHit) {
-        if (!pairEdges.calculatedIntersection && src !== tgt && (pairEdges.hasBezier || pairEdges.hasUnbundled)) {
-          pairEdges.calculatedIntersection = true; // pt outside src shape to calc distance/displacement from src to tgt
+      _this.findEndpoints(_edge);
 
-          var srcOutside = srcShape.intersectLine(srcPos.x, srcPos.y, srcW, srcH, tgtPos.x, tgtPos.y, 0);
-          pairEdges.srcIntn = srcOutside; // pt outside tgt shape to calc distance/displacement from src to tgt
+      _this.tryToCorrectInvalidPoints(_edge, passedPairInfo);
 
-          var tgtOutside = tgtShape.intersectLine(tgtPos.x, tgtPos.y, tgtW, tgtH, srcPos.x, srcPos.y, 0);
-          pairEdges.tgtIntn = tgtOutside;
-          var midptSrcPts = {
-            x1: srcOutside[0],
-            x2: tgtOutside[0],
-            y1: srcOutside[1],
-            y2: tgtOutside[1]
-          };
-          var posPts = {
-            x1: srcPos.x,
-            x2: tgtPos.x,
-            y1: srcPos.y,
-            y2: tgtPos.y
-          };
-          var dy = tgtOutside[1] - srcOutside[1];
-          var dx = tgtOutside[0] - srcOutside[0];
-          var l = Math.sqrt(dx * dx + dy * dy);
-          var vector = {
-            x: dx,
-            y: dy
-          };
-          var vectorNorm = {
-            x: vector.x / l,
-            y: vector.y / l
-          };
-          vectorNormInverse = {
-            x: -vectorNorm.y,
-            y: vectorNorm.x
-          }; // if node shapes overlap, then no ctrl pts to draw
+      _this.checkForInvalidEdgeWarning(_edge);
 
-          if (tgtShape.checkPoint(srcOutside[0], srcOutside[1], 0, tgtW, tgtH, tgtPos.x, tgtPos.y) && srcShape.checkPoint(tgtOutside[0], tgtOutside[1], 0, srcW, srcH, srcPos.x, srcPos.y)) {
-            vectorNormInverse = {};
-            badBezier = true;
-          }
-        }
+      _this.storeAllpts(_edge);
 
-        if (!edgeIsSwapped) {
-          rs.srcIntn = pairEdges.srcIntn;
-          rs.tgtIntn = pairEdges.tgtIntn;
-        } else {
-          // ensure that the per-edge cached value for intersections are correct for swapped bundled edges
-          rs.srcIntn = pairEdges.tgtIntn;
-          rs.tgtIntn = pairEdges.srcIntn;
-        }
+      _this.storeEdgeProjections(_edge);
 
-        if (src === tgt) {
-          // Self-edge
-          rs.edgeType = 'self';
-          var j = i;
-          var loopDist = stepSize;
+      _this.calculateArrowAngles(_edge);
 
-          if (edgeIsUnbundled) {
-            j = 0;
-            loopDist = ctrlptDist;
-          }
+      _this.recalculateEdgeLabelProjections(_edge);
 
-          var loopAngle = loopDir - Math.PI / 2;
-          var outAngle = loopAngle - loopSwp / 2;
-          var inAngle = loopAngle + loopSwp / 2; // increase by step size for overlapping loops, keyed on direction and sweep values
-
-          var dc = String(loopDir + '_' + loopSwp);
-          j = dirCounts[dc] === undefined ? dirCounts[dc] = 0 : ++dirCounts[dc];
-          rs.ctrlpts = [srcPos.x + Math.cos(outAngle) * 1.4 * loopDist * (j / 3 + 1), srcPos.y + Math.sin(outAngle) * 1.4 * loopDist * (j / 3 + 1), srcPos.x + Math.cos(inAngle) * 1.4 * loopDist * (j / 3 + 1), srcPos.y + Math.sin(inAngle) * 1.4 * loopDist * (j / 3 + 1)];
-        } else if (hasCompounds && (src.isParent() || src.isChild() || tgt.isParent() || tgt.isChild()) && (src.parents().anySame(tgt) || tgt.parents().anySame(src))) {
-          // Compound edge
-          rs.edgeType = 'compound'; // because the line approximation doesn't apply for compound beziers
-          // (loop/self edges are already elided b/c of cheap src==tgt check)
-
-          rs.badBezier = false;
-          var j = i;
-          var loopDist = stepSize;
-
-          if (edgeIsUnbundled) {
-            j = 0;
-            loopDist = ctrlptDist;
-          }
-
-          var loopW = 50;
-          var loopaPos = {
-            x: srcPos.x - srcW / 2,
-            y: srcPos.y - srcH / 2
-          };
-          var loopbPos = {
-            x: tgtPos.x - tgtW / 2,
-            y: tgtPos.y - tgtH / 2
-          };
-          var loopPos = {
-            x: Math.min(loopaPos.x, loopbPos.x),
-            y: Math.min(loopaPos.y, loopbPos.y)
-          }; // avoids cases with impossible beziers
-
-          var minCompoundStretch = 0.5;
-          var compoundStretchA = Math.max(minCompoundStretch, Math.log(srcW * 0.01));
-          var compoundStretchB = Math.max(minCompoundStretch, Math.log(tgtW * 0.01));
-          rs.ctrlpts = [loopPos.x, loopPos.y - (1 + Math.pow(loopW, 1.12) / 100) * loopDist * (j / 3 + 1) * compoundStretchA, loopPos.x - (1 + Math.pow(loopW, 1.12) / 100) * loopDist * (j / 3 + 1) * compoundStretchB, loopPos.y];
-        } else if (curveStyle === 'segments') {
-          // Segments (multiple straight lines)
-          rs.edgeType = 'segments';
-          rs.segpts = [];
-
-          for (var s = 0; s < segmentsN; s++) {
-            var w = segmentWs.pfValue[s];
-            var d = segmentDs.pfValue[s];
-            var w1 = 1 - w;
-            var w2 = w;
-            var midptPts = edgeDistances === 'node-position' ? posPts : midptSrcPts;
-            var adjustedMidpt = {
-              x: midptPts.x1 * w1 + midptPts.x2 * w2,
-              y: midptPts.y1 * w1 + midptPts.y2 * w2
-            };
-            rs.segpts.push(adjustedMidpt.x + vectorNormInverse.x * d, adjustedMidpt.y + vectorNormInverse.y * d);
-          } // Straight edge
-
-        } else if (pairEdges.length % 2 === 1 && i === Math.floor(pairEdges.length / 2) && !edgeIsUnbundled) {
-          rs.edgeType = 'straight';
-        } else {
-          // (Multi)bezier
-          var multi = edgeIsUnbundled;
-          rs.edgeType = multi ? 'multibezier' : 'bezier';
-          rs.ctrlpts = [];
-
-          for (var b = 0; b < bezierN; b++) {
-            var normctrlptDist = (0.5 - pairEdges.length / 2 + i) * stepSize;
-            var manctrlptDist;
-            var sign = signum(normctrlptDist);
-
-            if (multi) {
-              ctrlptDist = ctrlptDists ? ctrlptDists.pfValue[b] : stepSize; // fall back on step size
-
-              ctrlptWeight = ctrlptWs.value[b];
-            }
-
-            if (edgeIsUnbundled) {
-              // multi or single unbundled
-              manctrlptDist = ctrlptDist;
-            } else {
-              manctrlptDist = ctrlptDist !== undefined ? sign * ctrlptDist : undefined;
-            }
-
-            var distanceFromMidpoint = manctrlptDist !== undefined ? manctrlptDist : normctrlptDist;
-            var w1 = 1 - ctrlptWeight;
-            var w2 = ctrlptWeight;
-
-            if (edgeIsSwapped) {
-              var temp = w1;
-              w1 = w2;
-              w2 = temp;
-            }
-
-            var midptPts = edgeDistances === 'node-position' ? posPts : midptSrcPts;
-            var adjustedMidpt = {
-              x: midptPts.x1 * w1 + midptPts.x2 * w2,
-              y: midptPts.y1 * w1 + midptPts.y2 * w2
-            };
-            rs.ctrlpts.push(adjustedMidpt.x + vectorNormInverse.x * distanceFromMidpoint, adjustedMidpt.y + vectorNormInverse.y * distanceFromMidpoint);
-          }
-        } // find endpts for edge
-
-
-        this.findEndpoints(edge);
-        var badStart = !number(rs.startX) || !number(rs.startY);
-        var badAStart = !number(rs.arrowStartX) || !number(rs.arrowStartY);
-        var badEnd = !number(rs.endX) || !number(rs.endY);
-        var badAEnd = !number(rs.arrowEndX) || !number(rs.arrowEndY);
-        var minCpADistFactor = 3;
-        var arrowW = this.getArrowWidth(edge.pstyle('width').pfValue, edge.pstyle('arrow-scale').value) * this.arrowShapeWidth;
-        var minCpADist = minCpADistFactor * arrowW;
-
-        if (rs.edgeType === 'bezier') {
-          var startACpDist = dist({
-            x: rs.ctrlpts[0],
-            y: rs.ctrlpts[1]
-          }, {
-            x: rs.startX,
-            y: rs.startY
-          });
-          var closeStartACp = startACpDist < minCpADist;
-          var endACpDist = dist({
-            x: rs.ctrlpts[0],
-            y: rs.ctrlpts[1]
-          }, {
-            x: rs.endX,
-            y: rs.endY
-          });
-          var closeEndACp = endACpDist < minCpADist;
-          var overlapping = false;
-
-          if (badStart || badAStart || closeStartACp) {
-            overlapping = true; // project control point along line from src centre to outside the src shape
-            // (otherwise intersection will yield nothing)
-
-            var cpD = {
-              // delta
-              x: rs.ctrlpts[0] - srcPos.x,
-              y: rs.ctrlpts[1] - srcPos.y
-            };
-            var cpL = Math.sqrt(cpD.x * cpD.x + cpD.y * cpD.y); // length of line
-
-            var cpM = {
-              // normalised delta
-              x: cpD.x / cpL,
-              y: cpD.y / cpL
-            };
-            var radius = Math.max(srcW, srcH);
-            var cpProj = {
-              // *2 radius guarantees outside shape
-              x: rs.ctrlpts[0] + cpM.x * 2 * radius,
-              y: rs.ctrlpts[1] + cpM.y * 2 * radius
-            };
-            var srcCtrlPtIntn = srcShape.intersectLine(srcPos.x, srcPos.y, srcW, srcH, cpProj.x, cpProj.y, 0);
-
-            if (closeStartACp) {
-              rs.ctrlpts[0] = rs.ctrlpts[0] + cpM.x * (minCpADist - startACpDist);
-              rs.ctrlpts[1] = rs.ctrlpts[1] + cpM.y * (minCpADist - startACpDist);
-            } else {
-              rs.ctrlpts[0] = srcCtrlPtIntn[0] + cpM.x * minCpADist;
-              rs.ctrlpts[1] = srcCtrlPtIntn[1] + cpM.y * minCpADist;
-            }
-          }
-
-          if (badEnd || badAEnd || closeEndACp) {
-            overlapping = true; // project control point along line from tgt centre to outside the tgt shape
-            // (otherwise intersection will yield nothing)
-
-            var cpD = {
-              // delta
-              x: rs.ctrlpts[0] - tgtPos.x,
-              y: rs.ctrlpts[1] - tgtPos.y
-            };
-            var cpL = Math.sqrt(cpD.x * cpD.x + cpD.y * cpD.y); // length of line
-
-            var cpM = {
-              // normalised delta
-              x: cpD.x / cpL,
-              y: cpD.y / cpL
-            };
-            var radius = Math.max(srcW, srcH);
-            var cpProj = {
-              // *2 radius guarantees outside shape
-              x: rs.ctrlpts[0] + cpM.x * 2 * radius,
-              y: rs.ctrlpts[1] + cpM.y * 2 * radius
-            };
-            var tgtCtrlPtIntn = tgtShape.intersectLine(tgtPos.x, tgtPos.y, tgtW, tgtH, cpProj.x, cpProj.y, 0);
-
-            if (closeEndACp) {
-              rs.ctrlpts[0] = rs.ctrlpts[0] + cpM.x * (minCpADist - endACpDist);
-              rs.ctrlpts[1] = rs.ctrlpts[1] + cpM.y * (minCpADist - endACpDist);
-            } else {
-              rs.ctrlpts[0] = tgtCtrlPtIntn[0] + cpM.x * minCpADist;
-              rs.ctrlpts[1] = tgtCtrlPtIntn[1] + cpM.y * minCpADist;
-            }
-          }
-
-          if (overlapping) {
-            // recalc endpts
-            this.findEndpoints(edge);
-          }
-        }
-
-        this.checkForInvalidEdgeWarning(edge);
-        this.storeAllpts(edge);
-        this.storeEdgeProjections(edge);
-        this.calculateArrowAngles(edge);
-      } // if point cache miss
-
-
-      this.recalculateEdgeLabelProjections(edge);
-      this.calculateLabelAngles(edge);
+      _this.calculateLabelAngles(_edge);
     } // for pair edges
 
+  };
+
+  for (var p = 0; p < pairIds.length; p++) {
+    _loop(p);
   } // for pair ids
+  // haystacks avoid the expense of pairInfo stuff (intersections etc.)
 
 
   this.findHaystackPoints(haystackEdges);
@@ -23297,18 +23706,21 @@ BRp$4.findEndpoints = function (edge) {
   var srcArShape = edge.pstyle('source-arrow-shape').value;
   var tgtDist = edge.pstyle('target-distance-from-node').pfValue;
   var srcDist = edge.pstyle('source-distance-from-node').pfValue;
+  var curveStyle = edge.pstyle('curve-style').value;
   var rs = edge._private.rscratch;
   var et = rs.edgeType;
+  var taxi = curveStyle === 'taxi';
   var self = et === 'self' || et === 'compound';
   var bezier = et === 'bezier' || et === 'multibezier' || self;
   var multi = et !== 'bezier';
   var lines = et === 'straight' || et === 'segments';
   var segments = et === 'segments';
   var hasEndpts = bezier || multi || lines;
+  var overrideEndpts = self || taxi;
   var srcManEndpt = edge.pstyle('source-endpoint');
-  var srcManEndptVal = self ? 'outside-to-node' : srcManEndpt.value;
+  var srcManEndptVal = overrideEndpts ? 'outside-to-node' : srcManEndpt.value;
   var tgtManEndpt = edge.pstyle('target-endpoint');
-  var tgtManEndptVal = self ? 'outside-to-node' : tgtManEndpt.value;
+  var tgtManEndptVal = overrideEndpts ? 'outside-to-node' : tgtManEndpt.value;
   rs.srcManEndpt = srcManEndpt;
   rs.tgtManEndpt = tgtManEndpt;
   var p1; // last known point of edge on target side
@@ -23494,7 +23906,7 @@ BRp$4.getTargetEndpoint = function (edge) {
 var BRp$5 = {};
 
 function pushBezierPts(r, edge, pts) {
-  var qbezierAt$$1 = function qbezierAt$$1(p1, p2, p3, t) {
+  var qbezierAt$1 = function qbezierAt$1(p1, p2, p3, t) {
     return qbezierAt(p1, p2, p3, t);
   };
 
@@ -23504,8 +23916,8 @@ function pushBezierPts(r, edge, pts) {
   for (var i = 0; i < r.bezierProjPcts.length; i++) {
     var p = r.bezierProjPcts[i];
     bpts.push({
-      x: qbezierAt$$1(pts[0], pts[2], pts[4], p),
-      y: qbezierAt$$1(pts[1], pts[3], pts[5], p)
+      x: qbezierAt$1(pts[0], pts[2], pts[4], p),
+      y: qbezierAt$1(pts[1], pts[3], pts[5], p)
     });
   }
 }
@@ -24118,8 +24530,8 @@ BRp$8.registerCalculationListeners = function () {
   };
 
   r.binder(cy).on('bounds.* dirty.*', function onDirtyBounds(e) {
-    var node = e.target;
-    enqueue(node);
+    var ele = e.target;
+    enqueue(ele);
   }).on('style.* background.*', function onDirtyStyle(e) {
     var ele = e.target;
     enqueue(ele, false);
@@ -24130,7 +24542,11 @@ BRp$8.registerCalculationListeners = function () {
       var fns = r.onUpdateEleCalcsFns;
 
       for (var i = 0; i < elesToUpdate.length; i++) {
-        enqueue(elesToUpdate[i].connectedEdges());
+        var ele = elesToUpdate[i];
+
+        if (ele.isNode() && !ele._private.rstyle.clean) {
+          enqueue(ele.connectedEdges());
+        }
       }
 
       if (fns) {
@@ -24213,8 +24629,7 @@ BRp$8.recalculateRenderedStyle = function (eles, useCache) {
     var ele = edges[i];
     var _p = ele._private;
     var rstyle = _p.rstyle;
-    var rs = _p.rscratch;
-    this.recalculateEdgeLabelProjections(ele); // update rstyle positions
+    var rs = _p.rscratch; // update rstyle positions
 
     rstyle.srcX = rs.arrowStartX;
     rstyle.srcY = rs.arrowStartY;
@@ -24325,7 +24740,7 @@ BRp$b.getCachedImage = function (url, crossOrigin, onLoad) {
 var BRp$c = {};
 /* global document, window */
 
-BRp$c.registerBinding = function (target, event$$1, handler, useCapture) {
+BRp$c.registerBinding = function (target, event, handler, useCapture) {
   // eslint-disable-line no-unused-vars
   var args = Array.prototype.slice.apply(arguments, [1]); // copy
 
@@ -24355,7 +24770,7 @@ BRp$c.binder = function (tgt) {
     r.supportsPassiveEvents = supportsPassive;
   }
 
-  var on = function on(event$$1, handler, useCapture) {
+  var on = function on(event, handler, useCapture) {
     var args = Array.prototype.slice.call(arguments);
 
     if (tgtIsDom && r.supportsPassiveEvents) {
@@ -24627,9 +25042,9 @@ BRp$c.load = function () {
 
   r.registerBinding(window, 'resize', onResize); // eslint-disable-line no-undef
 
-  var forEachUp = function forEachUp(domEle, fn$$1) {
+  var forEachUp = function forEachUp(domEle, fn) {
     while (domEle != null) {
-      fn$$1(domEle);
+      fn(domEle);
       domEle = domEle.parentNode;
     }
   };
@@ -25445,25 +25860,25 @@ BRp$c.load = function () {
     r.touchData.capture = true;
     r.data.bgActivePosistion = undefined;
     var cy = r.cy;
-    var now$$1 = r.touchData.now;
+    var now = r.touchData.now;
     var earlier = r.touchData.earlier;
 
     if (e.touches[0]) {
       var pos = r.projectIntoViewport(e.touches[0].clientX, e.touches[0].clientY);
-      now$$1[0] = pos[0];
-      now$$1[1] = pos[1];
+      now[0] = pos[0];
+      now[1] = pos[1];
     }
 
     if (e.touches[1]) {
       var pos = r.projectIntoViewport(e.touches[1].clientX, e.touches[1].clientY);
-      now$$1[2] = pos[0];
-      now$$1[3] = pos[1];
+      now[2] = pos[0];
+      now[3] = pos[1];
     }
 
     if (e.touches[2]) {
       var pos = r.projectIntoViewport(e.touches[2].clientX, e.touches[2].clientY);
-      now$$1[4] = pos[0];
-      now$$1[5] = pos[1];
+      now[4] = pos[0];
+      now[5] = pos[1];
     } // record starting points for pinch-to-zoom
 
 
@@ -25490,16 +25905,16 @@ BRp$c.load = function () {
       var cxtDistThresholdSq = cxtDistThreshold * cxtDistThreshold;
 
       if (distance1Sq < cxtDistThresholdSq && !e.touches[2]) {
-        var near1 = r.findNearestElement(now$$1[0], now$$1[1], true, true);
-        var near2 = r.findNearestElement(now$$1[2], now$$1[3], true, true);
+        var near1 = r.findNearestElement(now[0], now[1], true, true);
+        var near2 = r.findNearestElement(now[2], now[3], true, true);
 
         if (near1 && near1.isNode()) {
           near1.activate().emit({
             originalEvent: e,
             type: 'cxttapstart',
             position: {
-              x: now$$1[0],
-              y: now$$1[1]
+              x: now[0],
+              y: now[1]
             }
           });
           r.touchData.start = near1;
@@ -25508,8 +25923,8 @@ BRp$c.load = function () {
             originalEvent: e,
             type: 'cxttapstart',
             position: {
-              x: now$$1[0],
-              y: now$$1[1]
+              x: now[0],
+              y: now[1]
             }
           });
           r.touchData.start = near2;
@@ -25518,8 +25933,8 @@ BRp$c.load = function () {
             originalEvent: e,
             type: 'cxttapstart',
             position: {
-              x: now$$1[0],
-              y: now$$1[1]
+              x: now[0],
+              y: now[1]
             }
           });
         }
@@ -25537,7 +25952,7 @@ BRp$c.load = function () {
     }
 
     if (e.touches[2]) ; else if (e.touches[1]) ; else if (e.touches[0]) {
-      var nears = r.findNearestElements(now$$1[0], now$$1[1], true, true);
+      var nears = r.findNearestElements(now[0], now[1], true, true);
       var near = nears[0];
 
       if (near != null) {
@@ -25572,8 +25987,8 @@ BRp$c.load = function () {
               originalEvent: e,
               type: type,
               position: {
-                x: now$$1[0],
-                y: now$$1[1]
+                x: now[0],
+                y: now[1]
               }
             };
           };
@@ -25591,8 +26006,8 @@ BRp$c.load = function () {
       }
 
       triggerEvents(near, ['touchstart', 'tapstart', 'vmousedown'], e, {
-        x: now$$1[0],
-        y: now$$1[1]
+        x: now[0],
+        y: now[1]
       });
 
       if (near == null) {
@@ -25614,8 +26029,8 @@ BRp$c.load = function () {
         && !r.touchData.selecting // box selection shouldn't allow taphold through
         ) {
             triggerEvents(r.touchData.start, ['taphold'], e, {
-              x: now$$1[0],
-              y: now$$1[1]
+              x: now[0],
+              y: now[1]
             });
           }
       }, r.tapholdDuration);
@@ -25624,8 +26039,8 @@ BRp$c.load = function () {
     if (e.touches.length >= 1) {
       var sPos = r.touchData.startPosition = [];
 
-      for (var i = 0; i < now$$1.length; i++) {
-        sPos[i] = earlier[i] = now$$1[i];
+      for (var i = 0; i < now.length; i++) {
+        sPos[i] = earlier[i] = now[i];
       }
 
       var touch0 = e.touches[0];
@@ -25643,26 +26058,26 @@ BRp$c.load = function () {
 
     var select = r.selection;
     var cy = r.cy;
-    var now$$1 = r.touchData.now;
+    var now = r.touchData.now;
     var earlier = r.touchData.earlier;
     var zoom = cy.zoom();
 
     if (e.touches[0]) {
       var pos = r.projectIntoViewport(e.touches[0].clientX, e.touches[0].clientY);
-      now$$1[0] = pos[0];
-      now$$1[1] = pos[1];
+      now[0] = pos[0];
+      now[1] = pos[1];
     }
 
     if (e.touches[1]) {
       var pos = r.projectIntoViewport(e.touches[1].clientX, e.touches[1].clientY);
-      now$$1[2] = pos[0];
-      now$$1[3] = pos[1];
+      now[2] = pos[0];
+      now[3] = pos[1];
     }
 
     if (e.touches[2]) {
       var pos = r.projectIntoViewport(e.touches[2].clientX, e.touches[2].clientY);
-      now$$1[4] = pos[0];
-      now$$1[5] = pos[1];
+      now[4] = pos[0];
+      now[5] = pos[1];
     }
 
     var startGPos = r.touchData.startGPosition;
@@ -25671,8 +26086,8 @@ BRp$c.load = function () {
     if (capture && e.touches[0] && startGPos) {
       var disp = [];
 
-      for (var j = 0; j < now$$1.length; j++) {
-        disp[j] = now$$1[j] - earlier[j];
+      for (var j = 0; j < now.length; j++) {
+        disp[j] = now[j] - earlier[j];
       }
 
       var dx = e.touches[0].clientX - startGPos[0];
@@ -25706,8 +26121,8 @@ BRp$c.load = function () {
           originalEvent: e,
           type: 'cxttapend',
           position: {
-            x: now$$1[0],
-            y: now$$1[1]
+            x: now[0],
+            y: now[1]
           }
         };
 
@@ -25726,8 +26141,8 @@ BRp$c.load = function () {
         originalEvent: e,
         type: 'cxtdrag',
         position: {
-          x: now$$1[0],
-          y: now$$1[1]
+          x: now[0],
+          y: now[1]
         }
       };
       r.data.bgActivePosistion = undefined;
@@ -25744,7 +26159,7 @@ BRp$c.load = function () {
       }
 
       r.touchData.cxtDragged = true;
-      var near = r.findNearestElement(now$$1[0], now$$1[1], true, true);
+      var near = r.findNearestElement(now[0], now[1], true, true);
 
       if (!r.touchData.cxtOver || near !== r.touchData.cxtOver) {
         if (r.touchData.cxtOver) {
@@ -25752,8 +26167,8 @@ BRp$c.load = function () {
             originalEvent: e,
             type: 'cxtdragout',
             position: {
-              x: now$$1[0],
-              y: now$$1[1]
+              x: now[0],
+              y: now[1]
             }
           });
         }
@@ -25765,8 +26180,8 @@ BRp$c.load = function () {
             originalEvent: e,
             type: 'cxtdragover',
             position: {
-              x: now$$1[0],
-              y: now$$1[1]
+              x: now[0],
+              y: now[1]
             }
           });
         }
@@ -25782,8 +26197,8 @@ BRp$c.load = function () {
           originalEvent: e,
           type: 'boxstart',
           position: {
-            x: now$$1[0],
-            y: now$$1[1]
+            x: now[0],
+            y: now[1]
           }
         });
       }
@@ -25792,13 +26207,13 @@ BRp$c.load = function () {
       r.redrawHint('select', true);
 
       if (!select || select.length === 0 || select[0] === undefined) {
-        select[0] = (now$$1[0] + now$$1[2] + now$$1[4]) / 3;
-        select[1] = (now$$1[1] + now$$1[3] + now$$1[5]) / 3;
-        select[2] = (now$$1[0] + now$$1[2] + now$$1[4]) / 3 + 1;
-        select[3] = (now$$1[1] + now$$1[3] + now$$1[5]) / 3 + 1;
+        select[0] = (now[0] + now[2] + now[4]) / 3;
+        select[1] = (now[1] + now[3] + now[5]) / 3;
+        select[2] = (now[0] + now[2] + now[4]) / 3 + 1;
+        select[3] = (now[1] + now[3] + now[5]) / 3 + 1;
       } else {
-        select[2] = (now$$1[0] + now$$1[2] + now$$1[4]) / 3;
-        select[3] = (now$$1[1] + now$$1[3] + now$$1[5]) / 3;
+        select[2] = (now[0] + now[2] + now[4]) / 3;
+        select[3] = (now[1] + now[3] + now[5]) / 3;
       }
 
       select[4] = 1;
@@ -25888,20 +26303,20 @@ BRp$c.load = function () {
 
       if (e.touches[0]) {
         var pos = r.projectIntoViewport(e.touches[0].clientX, e.touches[0].clientY);
-        now$$1[0] = pos[0];
-        now$$1[1] = pos[1];
+        now[0] = pos[0];
+        now[1] = pos[1];
       }
 
       if (e.touches[1]) {
         var pos = r.projectIntoViewport(e.touches[1].clientX, e.touches[1].clientY);
-        now$$1[2] = pos[0];
-        now$$1[3] = pos[1];
+        now[2] = pos[0];
+        now[3] = pos[1];
       }
 
       if (e.touches[2]) {
         var pos = r.projectIntoViewport(e.touches[2].clientX, e.touches[2].clientY);
-        now$$1[4] = pos[0];
-        now$$1[5] = pos[1];
+        now[4] = pos[0];
+        now[5] = pos[1];
       }
     } else if (e.touches[0]) {
       var start = r.touchData.start;
@@ -25909,7 +26324,7 @@ BRp$c.load = function () {
       var near;
 
       if (!r.hoverData.draggingEles && !r.swipePanning) {
-        near = r.findNearestElement(now$$1[0], now$$1[1], true, true);
+        near = r.findNearestElement(now[0], now[1], true, true);
       }
 
       if (capture && start != null) {
@@ -25976,8 +26391,8 @@ BRp$c.load = function () {
 
       {
         triggerEvents(start || near, ['touchmove', 'tapdrag', 'vmousemove'], e, {
-          x: now$$1[0],
-          y: now$$1[1]
+          x: now[0],
+          y: now[1]
         });
 
         if ((!start || !start.grabbed()) && near != last) {
@@ -25986,8 +26401,8 @@ BRp$c.load = function () {
               originalEvent: e,
               type: 'tapdragout',
               position: {
-                x: now$$1[0],
-                y: now$$1[1]
+                x: now[0],
+                y: now[1]
               }
             });
           }
@@ -25997,8 +26412,8 @@ BRp$c.load = function () {
               originalEvent: e,
               type: 'tapdragover',
               position: {
-                x: now$$1[0],
-                y: now$$1[1]
+                x: now[0],
+                y: now[1]
               }
             });
           }
@@ -26008,8 +26423,8 @@ BRp$c.load = function () {
       } // check to cancel taphold
 
       if (capture) {
-        for (var i = 0; i < now$$1.length; i++) {
-          if (now$$1[i] && r.touchData.startPosition[i] && isOverThresholdDrag) {
+        for (var i = 0; i < now.length; i++) {
+          if (now[i] && r.touchData.startPosition[i] && isOverThresholdDrag) {
             r.touchData.singleTouchMoved = true;
           }
         }
@@ -26049,13 +26464,13 @@ BRp$c.load = function () {
 
 
         var pos = r.projectIntoViewport(e.touches[0].clientX, e.touches[0].clientY);
-        now$$1[0] = pos[0];
-        now$$1[1] = pos[1];
+        now[0] = pos[0];
+        now[1] = pos[1];
       }
     }
 
-    for (var j = 0; j < now$$1.length; j++) {
-      earlier[j] = now$$1[j];
+    for (var j = 0; j < now.length; j++) {
+      earlier[j] = now[j];
     } // the active bg indicator should be removed when making a swipe that is neither for dragging nodes or panning
 
 
@@ -26096,25 +26511,25 @@ BRp$c.load = function () {
     r.hoverData.draggingEles = false;
     var cy = r.cy;
     var zoom = cy.zoom();
-    var now$$1 = r.touchData.now;
+    var now = r.touchData.now;
     var earlier = r.touchData.earlier;
 
     if (e.touches[0]) {
       var pos = r.projectIntoViewport(e.touches[0].clientX, e.touches[0].clientY);
-      now$$1[0] = pos[0];
-      now$$1[1] = pos[1];
+      now[0] = pos[0];
+      now[1] = pos[1];
     }
 
     if (e.touches[1]) {
       var pos = r.projectIntoViewport(e.touches[1].clientX, e.touches[1].clientY);
-      now$$1[2] = pos[0];
-      now$$1[3] = pos[1];
+      now[2] = pos[0];
+      now[3] = pos[1];
     }
 
     if (e.touches[2]) {
       var pos = r.projectIntoViewport(e.touches[2].clientX, e.touches[2].clientY);
-      now$$1[4] = pos[0];
-      now$$1[5] = pos[1];
+      now[4] = pos[0];
+      now[5] = pos[1];
     }
 
     if (start) {
@@ -26128,8 +26543,8 @@ BRp$c.load = function () {
         originalEvent: e,
         type: 'cxttapend',
         position: {
-          x: now$$1[0],
-          y: now$$1[1]
+          x: now[0],
+          y: now[1]
         }
       };
 
@@ -26144,8 +26559,8 @@ BRp$c.load = function () {
           originalEvent: e,
           type: 'cxttap',
           position: {
-            x: now$$1[0],
-            y: now$$1[1]
+            x: now[0],
+            y: now[1]
           }
         };
 
@@ -26180,8 +26595,8 @@ BRp$c.load = function () {
         type: 'boxend',
         originalEvent: e,
         position: {
-          x: now$$1[0],
-          y: now$$1[1]
+          x: now[0],
+          y: now[1]
         }
       });
 
@@ -26227,22 +26642,22 @@ BRp$c.load = function () {
         }
 
         triggerEvents(start, ['touchend', 'tapend', 'vmouseup', 'tapdragout'], e, {
-          x: now$$1[0],
-          y: now$$1[1]
+          x: now[0],
+          y: now[1]
         });
         start.unactivate();
         r.touchData.start = null;
       } else {
-        var near = r.findNearestElement(now$$1[0], now$$1[1], true, true);
+        var near = r.findNearestElement(now[0], now[1], true, true);
         triggerEvents(near, ['touchend', 'tapend', 'vmouseup', 'tapdragout'], e, {
-          x: now$$1[0],
-          y: now$$1[1]
+          x: now[0],
+          y: now[1]
         });
       }
 
-      var dx = r.touchData.startPosition[0] - now$$1[0];
+      var dx = r.touchData.startPosition[0] - now[0];
       var dx2 = dx * dx;
-      var dy = r.touchData.startPosition[1] - now$$1[1];
+      var dy = r.touchData.startPosition[1] - now[1];
       var dy2 = dy * dy;
       var dist2 = dx2 + dy2;
       var rdist2 = dist2 * zoom * zoom; // Tap event, roughly same as mouse click event for touch
@@ -26253,8 +26668,8 @@ BRp$c.load = function () {
         }
 
         triggerEvents(start, ['tap', 'vclick'], e, {
-          x: now$$1[0],
-          y: now$$1[1]
+          x: now[0],
+          y: now[1]
         });
       } // Prepare to select the currently touched node, only if it hasn't been dragged past a certain distance
 
@@ -26279,8 +26694,8 @@ BRp$c.load = function () {
       r.touchData.singleTouchMoved = true;
     }
 
-    for (var j = 0; j < now$$1.length; j++) {
-      earlier[j] = now$$1[j];
+    for (var j = 0; j < now.length; j++) {
+      earlier[j] = now[j];
     }
 
     r.dragData.didDrag = false; // reset for next mousedown
@@ -26833,7 +27248,10 @@ BRp$e.beforeRender = function (fn, priority) {
     return;
   }
 
-  priority = priority || 0;
+  if (priority == null) {
+    error('Priority is not optional for beforeRender');
+  }
+
   var cbs = this.beforeRenderCallbacks;
   cbs.push({
     fn: fn,
@@ -26980,7 +27398,7 @@ BRp$f.init = function (options) {
   r.wheelSensitivity = options.wheelSensitivity;
   r.motionBlurEnabled = options.motionBlur; // on by default
 
-  r.forcedPixelRatio = options.pixelRatio;
+  r.forcedPixelRatio = number(options.pixelRatio) ? options.pixelRatio : null;
   r.motionBlur = options.motionBlur; // for initial kick off
 
   r.motionBlurOpacity = options.motionBlurOpacity;
@@ -27003,7 +27421,8 @@ BRp$f.init = function (options) {
     animations: 400,
     eleCalcs: 300,
     eleTxrDeq: 200,
-    lyrTxrDeq: 100
+    lyrTxrDeq: 150,
+    lyrTxrSkip: 100
   };
   r.registerNodeShapes();
   r.registerArrowShapes();
@@ -27122,9 +27541,9 @@ var defs = {
 
         while (true) {
           // eslint-disable-line no-constant-condition
-          var now$$1 = performanceNow();
-          var duration = now$$1 - startTime;
-          var frameDuration = now$$1 - frameStartTime;
+          var now = performanceNow();
+          var duration = now - startTime;
+          var frameDuration = now - frameStartTime;
 
           if (renderTime < fullFpsTime) {
             // if we're rendering faster than the ideal fps, then do dequeueing
@@ -27922,13 +28341,13 @@ var LayeredTextureCache = function LayeredTextureCache(renderer) {
     self.refineElementTextures(self.eleTxrDeqs);
     self.eleTxrDeqs.unmerge(self.eleTxrDeqs);
   }, refineEleDebounceTime);
-  r.beforeRender(function (willDraw, now$$1) {
-    if (now$$1 - self.lastInvalidationTime <= invalidThreshold) {
+  r.beforeRender(function (willDraw, now) {
+    if (now - self.lastInvalidationTime <= invalidThreshold) {
       self.skipping = true;
     } else {
       self.skipping = false;
     }
-  });
+  }, r.beforeRenderPriorities.lyrTxrSkip);
 
   var qSort = function qSort(a, b) {
     return b.reqs - a.reqs;
@@ -28604,7 +29023,7 @@ CRp$1.drawCachedElementPortion = function (context, ele, eleTxrCache, pxRatio, l
   var eleCache = eleTxrCache.getElement(ele, bb, pxRatio, lvl, reason);
 
   if (eleCache != null) {
-    var opacity = ele.pstyle('opacity').pfValue;
+    var opacity = ele.effectiveOpacity();
 
     if (opacity === 0) {
       return;
@@ -30023,7 +30442,7 @@ CRp$6.paintCache = function (context) {
 CRp$6.createGradientStyleFor = function (context, shapeStyleName, ele, fill, opacity) {
   var gradientStyle;
   var usePaths = this.usePaths();
-  var colors$$1 = ele.pstyle(shapeStyleName + '-gradient-stop-colors').value,
+  var colors = ele.pstyle(shapeStyleName + '-gradient-stop-colors').value,
       positions = ele.pstyle(shapeStyleName + '-gradient-stop-positions').pfValue;
 
   if (fill === 'radial-gradient') {
@@ -30103,11 +30522,11 @@ CRp$6.createGradientStyleFor = function (context, shapeStyleName, ele, fill, opa
 
   if (!gradientStyle) return null; // invalid gradient style
 
-  var hasPositions = positions.length === colors$$1.length;
-  var length = colors$$1.length;
+  var hasPositions = positions.length === colors.length;
+  var length = colors.length;
 
   for (var i = 0; i < length; i++) {
-    gradientStyle.addColorStop(hasPositions ? positions[i] : i / (length - 1), 'rgba(' + colors$$1[i][0] + ',' + colors$$1[i][1] + ',' + colors$$1[i][2] + ',' + opacity + ')');
+    gradientStyle.addColorStop(hasPositions ? positions[i] : i / (length - 1), 'rgba(' + colors[i][0] + ',' + colors[i][1] + ',' + colors[i][2] + ',' + opacity + ')');
   }
 
   return gradientStyle;
@@ -31213,20 +31632,20 @@ function CanvasRenderer(options) {
   tlbTxrCache.onDequeue(refineInLayers);
 }
 
-CRp$a.redrawHint = function (group, bool$$1) {
+CRp$a.redrawHint = function (group, bool) {
   var r = this;
 
   switch (group) {
     case 'eles':
-      r.data.canvasNeedsRedraw[CRp$a.NODE] = bool$$1;
+      r.data.canvasNeedsRedraw[CRp$a.NODE] = bool;
       break;
 
     case 'drag':
-      r.data.canvasNeedsRedraw[CRp$a.DRAG] = bool$$1;
+      r.data.canvasNeedsRedraw[CRp$a.DRAG] = bool;
       break;
 
     case 'select':
-      r.data.canvasNeedsRedraw[CRp$a.SELECT_BOX] = bool$$1;
+      r.data.canvasNeedsRedraw[CRp$a.SELECT_BOX] = bool;
       break;
   }
 }; // whether to use Path2D caching for drawing
@@ -31246,13 +31665,13 @@ CRp$a.usePaths = function () {
   return pathsImpld && this.pathsEnabled;
 };
 
-CRp$a.setImgSmoothing = function (context, bool$$1) {
+CRp$a.setImgSmoothing = function (context, bool) {
   if (context.imageSmoothingEnabled != null) {
-    context.imageSmoothingEnabled = bool$$1;
+    context.imageSmoothingEnabled = bool;
   } else {
-    context.webkitImageSmoothingEnabled = bool$$1;
-    context.mozImageSmoothingEnabled = bool$$1;
-    context.msImageSmoothingEnabled = bool$$1;
+    context.webkitImageSmoothingEnabled = bool;
+    context.mozImageSmoothingEnabled = bool;
+    context.msImageSmoothingEnabled = bool;
   }
 };
 
@@ -31607,28 +32026,28 @@ sheetfn.css = function (name, value) {
 sheetfn.style = sheetfn.css; // generate a real style object from the dummy stylesheet
 
 sheetfn.generateStyle = function (cy) {
-  var style$$1 = new Style(cy);
-  return this.appendToStyle(style$$1);
+  var style = new Style(cy);
+  return this.appendToStyle(style);
 }; // append a dummy stylesheet object on a real style object
 
 
-sheetfn.appendToStyle = function (style$$1) {
+sheetfn.appendToStyle = function (style) {
   for (var i = 0; i < this.length; i++) {
     var context = this[i];
     var selector = context.selector;
     var props = context.properties;
-    style$$1.selector(selector); // apply selector
+    style.selector(selector); // apply selector
 
     for (var j = 0; j < props.length; j++) {
       var prop = props[j];
-      style$$1.css(prop.name, prop.value); // apply property
+      style.css(prop.name, prop.value); // apply property
     }
   }
 
-  return style$$1;
+  return style;
 };
 
-var version = "3.4.2";
+var version = "3.5.7";
 
 var cytoscape = function cytoscape(options) {
   // if no options specified, use default
@@ -31653,6 +32072,10 @@ cytoscape.use = function (ext) {
 
   ext.apply(null, args);
   return this;
+};
+
+cytoscape.warnings = function (bool) {
+  return warnings(bool);
 }; // replaced by build system
 
 
@@ -33307,7 +33730,7 @@ exports.removeOverlapInOneDimension = removeOverlapInOneDimension;
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
- * jQuery JavaScript Library v3.3.1
+ * jQuery JavaScript Library v3.4.1
  * https://jquery.com/
  *
  * Includes Sizzle.js
@@ -33317,7 +33740,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
  * Released under the MIT license
  * https://jquery.org/license
  *
- * Date: 2018-01-20T17:24Z
+ * Date: 2019-05-01T21:04Z
  */
 ( function( global, factory ) {
 
@@ -33399,20 +33822,33 @@ var isWindow = function isWindow( obj ) {
 	var preservedScriptAttributes = {
 		type: true,
 		src: true,
+		nonce: true,
 		noModule: true
 	};
 
-	function DOMEval( code, doc, node ) {
+	function DOMEval( code, node, doc ) {
 		doc = doc || document;
 
-		var i,
+		var i, val,
 			script = doc.createElement( "script" );
 
 		script.text = code;
 		if ( node ) {
 			for ( i in preservedScriptAttributes ) {
-				if ( node[ i ] ) {
-					script[ i ] = node[ i ];
+
+				// Support: Firefox 64+, Edge 18+
+				// Some browsers don't support the "nonce" property on scripts.
+				// On the other hand, just using `getAttribute` is not enough as
+				// the `nonce` attribute is reset to an empty string whenever it
+				// becomes browsing-context connected.
+				// See https://github.com/whatwg/html/issues/2369
+				// See https://html.spec.whatwg.org/#nonce-attributes
+				// The `node.getAttribute` check was added for the sake of
+				// `jQuery.globalEval` so that it can fake a nonce-containing node
+				// via an object.
+				val = node[ i ] || node.getAttribute && node.getAttribute( i );
+				if ( val ) {
+					script.setAttribute( i, val );
 				}
 			}
 		}
@@ -33437,7 +33873,7 @@ function toType( obj ) {
 
 
 var
-	version = "3.3.1",
+	version = "3.4.1",
 
 	// Define a local copy of jQuery
 	jQuery = function( selector, context ) {
@@ -33566,25 +34002,28 @@ jQuery.extend = jQuery.fn.extend = function() {
 
 			// Extend the base object
 			for ( name in options ) {
-				src = target[ name ];
 				copy = options[ name ];
 
+				// Prevent Object.prototype pollution
 				// Prevent never-ending loop
-				if ( target === copy ) {
+				if ( name === "__proto__" || target === copy ) {
 					continue;
 				}
 
 				// Recurse if we're merging plain objects or arrays
 				if ( deep && copy && ( jQuery.isPlainObject( copy ) ||
 					( copyIsArray = Array.isArray( copy ) ) ) ) {
+					src = target[ name ];
 
-					if ( copyIsArray ) {
-						copyIsArray = false;
-						clone = src && Array.isArray( src ) ? src : [];
-
+					// Ensure proper type for the source value
+					if ( copyIsArray && !Array.isArray( src ) ) {
+						clone = [];
+					} else if ( !copyIsArray && !jQuery.isPlainObject( src ) ) {
+						clone = {};
 					} else {
-						clone = src && jQuery.isPlainObject( src ) ? src : {};
+						clone = src;
 					}
+					copyIsArray = false;
 
 					// Never move original objects, clone them
 					target[ name ] = jQuery.extend( deep, clone, copy );
@@ -33637,9 +34076,6 @@ jQuery.extend( {
 	},
 
 	isEmptyObject: function( obj ) {
-
-		/* eslint-disable no-unused-vars */
-		// See https://github.com/eslint/eslint/issues/6125
 		var name;
 
 		for ( name in obj ) {
@@ -33649,8 +34085,8 @@ jQuery.extend( {
 	},
 
 	// Evaluates a script in a global context
-	globalEval: function( code ) {
-		DOMEval( code );
+	globalEval: function( code, options ) {
+		DOMEval( code, { nonce: options && options.nonce } );
 	},
 
 	each: function( obj, callback ) {
@@ -33806,14 +34242,14 @@ function isArrayLike( obj ) {
 }
 var Sizzle =
 /*!
- * Sizzle CSS Selector Engine v2.3.3
+ * Sizzle CSS Selector Engine v2.3.4
  * https://sizzlejs.com/
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright JS Foundation and other contributors
  * Released under the MIT license
- * http://jquery.org/license
+ * https://js.foundation/
  *
- * Date: 2016-08-08
+ * Date: 2019-04-08
  */
 (function( window ) {
 
@@ -33847,6 +34283,7 @@ var i,
 	classCache = createCache(),
 	tokenCache = createCache(),
 	compilerCache = createCache(),
+	nonnativeSelectorCache = createCache(),
 	sortOrder = function( a, b ) {
 		if ( a === b ) {
 			hasDuplicate = true;
@@ -33908,8 +34345,7 @@ var i,
 
 	rcomma = new RegExp( "^" + whitespace + "*," + whitespace + "*" ),
 	rcombinators = new RegExp( "^" + whitespace + "*([>+~]|" + whitespace + ")" + whitespace + "*" ),
-
-	rattributeQuotes = new RegExp( "=" + whitespace + "*([^\\]'\"]*?)" + whitespace + "*\\]", "g" ),
+	rdescend = new RegExp( whitespace + "|>" ),
 
 	rpseudo = new RegExp( pseudos ),
 	ridentifier = new RegExp( "^" + identifier + "$" ),
@@ -33930,6 +34366,7 @@ var i,
 			whitespace + "*((?:-\\d)?\\d*)" + whitespace + "*\\)|)(?=[^-]|$)", "i" )
 	},
 
+	rhtml = /HTML$/i,
 	rinputs = /^(?:input|select|textarea|button)$/i,
 	rheader = /^h\d$/i,
 
@@ -33984,9 +34421,9 @@ var i,
 		setDocument();
 	},
 
-	disabledAncestor = addCombinator(
+	inDisabledFieldset = addCombinator(
 		function( elem ) {
-			return elem.disabled === true && ("form" in elem || "label" in elem);
+			return elem.disabled === true && elem.nodeName.toLowerCase() === "fieldset";
 		},
 		{ dir: "parentNode", next: "legend" }
 	);
@@ -34099,18 +34536,22 @@ function Sizzle( selector, context, results, seed ) {
 
 			// Take advantage of querySelectorAll
 			if ( support.qsa &&
-				!compilerCache[ selector + " " ] &&
-				(!rbuggyQSA || !rbuggyQSA.test( selector )) ) {
+				!nonnativeSelectorCache[ selector + " " ] &&
+				(!rbuggyQSA || !rbuggyQSA.test( selector )) &&
 
-				if ( nodeType !== 1 ) {
-					newContext = context;
-					newSelector = selector;
-
-				// qSA looks outside Element context, which is not what we want
-				// Thanks to Andrew Dupont for this workaround technique
-				// Support: IE <=8
+				// Support: IE 8 only
 				// Exclude object elements
-				} else if ( context.nodeName.toLowerCase() !== "object" ) {
+				(nodeType !== 1 || context.nodeName.toLowerCase() !== "object") ) {
+
+				newSelector = selector;
+				newContext = context;
+
+				// qSA considers elements outside a scoping root when evaluating child or
+				// descendant combinators, which is not what we want.
+				// In such cases, we work around the behavior by prefixing every selector in the
+				// list with an ID selector referencing the scope context.
+				// Thanks to Andrew Dupont for this technique.
+				if ( nodeType === 1 && rdescend.test( selector ) ) {
 
 					// Capture the context ID, setting it first if necessary
 					if ( (nid = context.getAttribute( "id" )) ) {
@@ -34132,17 +34573,16 @@ function Sizzle( selector, context, results, seed ) {
 						context;
 				}
 
-				if ( newSelector ) {
-					try {
-						push.apply( results,
-							newContext.querySelectorAll( newSelector )
-						);
-						return results;
-					} catch ( qsaError ) {
-					} finally {
-						if ( nid === expando ) {
-							context.removeAttribute( "id" );
-						}
+				try {
+					push.apply( results,
+						newContext.querySelectorAll( newSelector )
+					);
+					return results;
+				} catch ( qsaError ) {
+					nonnativeSelectorCache( selector, true );
+				} finally {
+					if ( nid === expando ) {
+						context.removeAttribute( "id" );
 					}
 				}
 			}
@@ -34306,7 +34746,7 @@ function createDisabledPseudo( disabled ) {
 					// Where there is no isDisabled, check manually
 					/* jshint -W018 */
 					elem.isDisabled !== !disabled &&
-						disabledAncestor( elem ) === disabled;
+						inDisabledFieldset( elem ) === disabled;
 			}
 
 			return elem.disabled === disabled;
@@ -34363,10 +34803,13 @@ support = Sizzle.support = {};
  * @returns {Boolean} True iff elem is a non-HTML XML node
  */
 isXML = Sizzle.isXML = function( elem ) {
-	// documentElement is verified for cases where it doesn't yet exist
-	// (such as loading iframes in IE - #4833)
-	var documentElement = elem && (elem.ownerDocument || elem).documentElement;
-	return documentElement ? documentElement.nodeName !== "HTML" : false;
+	var namespace = elem.namespaceURI,
+		docElem = (elem.ownerDocument || elem).documentElement;
+
+	// Support: IE <=8
+	// Assume HTML when documentElement doesn't yet exist, such as inside loading iframes
+	// https://bugs.jquery.com/ticket/4833
+	return !rhtml.test( namespace || docElem && docElem.nodeName || "HTML" );
 };
 
 /**
@@ -34788,11 +35231,8 @@ Sizzle.matchesSelector = function( elem, expr ) {
 		setDocument( elem );
 	}
 
-	// Make sure that attribute selectors are quoted
-	expr = expr.replace( rattributeQuotes, "='$1']" );
-
 	if ( support.matchesSelector && documentIsHTML &&
-		!compilerCache[ expr + " " ] &&
+		!nonnativeSelectorCache[ expr + " " ] &&
 		( !rbuggyMatches || !rbuggyMatches.test( expr ) ) &&
 		( !rbuggyQSA     || !rbuggyQSA.test( expr ) ) ) {
 
@@ -34806,7 +35246,9 @@ Sizzle.matchesSelector = function( elem, expr ) {
 					elem.document && elem.document.nodeType !== 11 ) {
 				return ret;
 			}
-		} catch (e) {}
+		} catch (e) {
+			nonnativeSelectorCache( expr, true );
+		}
 	}
 
 	return Sizzle( expr, document, null, [ elem ] ).length > 0;
@@ -35265,7 +35707,7 @@ Expr = Sizzle.selectors = {
 		"contains": markFunction(function( text ) {
 			text = text.replace( runescape, funescape );
 			return function( elem ) {
-				return ( elem.textContent || elem.innerText || getText( elem ) ).indexOf( text ) > -1;
+				return ( elem.textContent || getText( elem ) ).indexOf( text ) > -1;
 			};
 		}),
 
@@ -35404,7 +35846,11 @@ Expr = Sizzle.selectors = {
 		}),
 
 		"lt": createPositionalPseudo(function( matchIndexes, length, argument ) {
-			var i = argument < 0 ? argument + length : argument;
+			var i = argument < 0 ?
+				argument + length :
+				argument > length ?
+					length :
+					argument;
 			for ( ; --i >= 0; ) {
 				matchIndexes.push( i );
 			}
@@ -36454,18 +36900,18 @@ jQuery.each( {
 		return siblings( elem.firstChild );
 	},
 	contents: function( elem ) {
-        if ( nodeName( elem, "iframe" ) ) {
-            return elem.contentDocument;
-        }
+		if ( typeof elem.contentDocument !== "undefined" ) {
+			return elem.contentDocument;
+		}
 
-        // Support: IE 9 - 11 only, iOS 7 only, Android Browser <=4.3 only
-        // Treat the template element as a regular one in browsers that
-        // don't support it.
-        if ( nodeName( elem, "template" ) ) {
-            elem = elem.content || elem;
-        }
+		// Support: IE 9 - 11 only, iOS 7 only, Android Browser <=4.3 only
+		// Treat the template element as a regular one in browsers that
+		// don't support it.
+		if ( nodeName( elem, "template" ) ) {
+			elem = elem.content || elem;
+		}
 
-        return jQuery.merge( [], elem.childNodes );
+		return jQuery.merge( [], elem.childNodes );
 	}
 }, function( name, fn ) {
 	jQuery.fn[ name ] = function( until, selector ) {
@@ -37774,6 +38220,26 @@ var rcssNum = new RegExp( "^(?:([+-])=|)(" + pnum + ")([a-z%]*)$", "i" );
 
 var cssExpand = [ "Top", "Right", "Bottom", "Left" ];
 
+var documentElement = document.documentElement;
+
+
+
+	var isAttached = function( elem ) {
+			return jQuery.contains( elem.ownerDocument, elem );
+		},
+		composed = { composed: true };
+
+	// Support: IE 9 - 11+, Edge 12 - 18+, iOS 10.0 - 10.2 only
+	// Check attachment across shadow DOM boundaries when possible (gh-3504)
+	// Support: iOS 10.0-10.2 only
+	// Early iOS 10 versions support `attachShadow` but not `getRootNode`,
+	// leading to errors. We need to check for `getRootNode`.
+	if ( documentElement.getRootNode ) {
+		isAttached = function( elem ) {
+			return jQuery.contains( elem.ownerDocument, elem ) ||
+				elem.getRootNode( composed ) === elem.ownerDocument;
+		};
+	}
 var isHiddenWithinTree = function( elem, el ) {
 
 		// isHiddenWithinTree might be called from jQuery#filter function;
@@ -37788,7 +38254,7 @@ var isHiddenWithinTree = function( elem, el ) {
 			// Support: Firefox <=43 - 45
 			// Disconnected elements can have computed display: none, so first confirm that elem is
 			// in the document.
-			jQuery.contains( elem.ownerDocument, elem ) &&
+			isAttached( elem ) &&
 
 			jQuery.css( elem, "display" ) === "none";
 	};
@@ -37830,7 +38296,8 @@ function adjustCSS( elem, prop, valueParts, tween ) {
 		unit = valueParts && valueParts[ 3 ] || ( jQuery.cssNumber[ prop ] ? "" : "px" ),
 
 		// Starting value computation is required for potential unit mismatches
-		initialInUnit = ( jQuery.cssNumber[ prop ] || unit !== "px" && +initial ) &&
+		initialInUnit = elem.nodeType &&
+			( jQuery.cssNumber[ prop ] || unit !== "px" && +initial ) &&
 			rcssNum.exec( jQuery.css( elem, prop ) );
 
 	if ( initialInUnit && initialInUnit[ 3 ] !== unit ) {
@@ -37977,7 +38444,7 @@ jQuery.fn.extend( {
 } );
 var rcheckableType = ( /^(?:checkbox|radio)$/i );
 
-var rtagName = ( /<([a-z][^\/\0>\x20\t\r\n\f]+)/i );
+var rtagName = ( /<([a-z][^\/\0>\x20\t\r\n\f]*)/i );
 
 var rscriptType = ( /^$|^module$|\/(?:java|ecma)script/i );
 
@@ -38049,7 +38516,7 @@ function setGlobalEval( elems, refElements ) {
 var rhtml = /<|&#?\w+;/;
 
 function buildFragment( elems, context, scripts, selection, ignored ) {
-	var elem, tmp, tag, wrap, contains, j,
+	var elem, tmp, tag, wrap, attached, j,
 		fragment = context.createDocumentFragment(),
 		nodes = [],
 		i = 0,
@@ -38113,13 +38580,13 @@ function buildFragment( elems, context, scripts, selection, ignored ) {
 			continue;
 		}
 
-		contains = jQuery.contains( elem.ownerDocument, elem );
+		attached = isAttached( elem );
 
 		// Append to fragment
 		tmp = getAll( fragment.appendChild( elem ), "script" );
 
 		// Preserve script evaluation history
-		if ( contains ) {
+		if ( attached ) {
 			setGlobalEval( tmp );
 		}
 
@@ -38162,8 +38629,6 @@ function buildFragment( elems, context, scripts, selection, ignored ) {
 	div.innerHTML = "<textarea>x</textarea>";
 	support.noCloneChecked = !!div.cloneNode( true ).lastChild.defaultValue;
 } )();
-var documentElement = document.documentElement;
-
 
 
 var
@@ -38179,8 +38644,19 @@ function returnFalse() {
 	return false;
 }
 
+// Support: IE <=9 - 11+
+// focus() and blur() are asynchronous, except when they are no-op.
+// So expect focus to be synchronous when the element is already active,
+// and blur to be synchronous when the element is not already active.
+// (focus and blur are always synchronous in other supported browsers,
+// this just defines when we can count on it).
+function expectSync( elem, type ) {
+	return ( elem === safeActiveElement() ) === ( type === "focus" );
+}
+
 // Support: IE <=9 only
-// See #13393 for more info
+// Accessing document.activeElement can throw unexpectedly
+// https://bugs.jquery.com/ticket/13393
 function safeActiveElement() {
 	try {
 		return document.activeElement;
@@ -38480,9 +38956,10 @@ jQuery.event = {
 			while ( ( handleObj = matched.handlers[ j++ ] ) &&
 				!event.isImmediatePropagationStopped() ) {
 
-				// Triggered event must either 1) have no namespace, or 2) have namespace(s)
-				// a subset or equal to those in the bound event (both can have no namespace).
-				if ( !event.rnamespace || event.rnamespace.test( handleObj.namespace ) ) {
+				// If the event is namespaced, then each handler is only invoked if it is
+				// specially universal or its namespaces are a superset of the event's.
+				if ( !event.rnamespace || handleObj.namespace === false ||
+					event.rnamespace.test( handleObj.namespace ) ) {
 
 					event.handleObj = handleObj;
 					event.data = handleObj.data;
@@ -38606,39 +39083,51 @@ jQuery.event = {
 			// Prevent triggered image.load events from bubbling to window.load
 			noBubble: true
 		},
-		focus: {
-
-			// Fire native event if possible so blur/focus sequence is correct
-			trigger: function() {
-				if ( this !== safeActiveElement() && this.focus ) {
-					this.focus();
-					return false;
-				}
-			},
-			delegateType: "focusin"
-		},
-		blur: {
-			trigger: function() {
-				if ( this === safeActiveElement() && this.blur ) {
-					this.blur();
-					return false;
-				}
-			},
-			delegateType: "focusout"
-		},
 		click: {
 
-			// For checkbox, fire native event so checked state will be right
-			trigger: function() {
-				if ( this.type === "checkbox" && this.click && nodeName( this, "input" ) ) {
-					this.click();
-					return false;
+			// Utilize native event to ensure correct state for checkable inputs
+			setup: function( data ) {
+
+				// For mutual compressibility with _default, replace `this` access with a local var.
+				// `|| data` is dead code meant only to preserve the variable through minification.
+				var el = this || data;
+
+				// Claim the first handler
+				if ( rcheckableType.test( el.type ) &&
+					el.click && nodeName( el, "input" ) ) {
+
+					// dataPriv.set( el, "click", ... )
+					leverageNative( el, "click", returnTrue );
 				}
+
+				// Return false to allow normal processing in the caller
+				return false;
+			},
+			trigger: function( data ) {
+
+				// For mutual compressibility with _default, replace `this` access with a local var.
+				// `|| data` is dead code meant only to preserve the variable through minification.
+				var el = this || data;
+
+				// Force setup before triggering a click
+				if ( rcheckableType.test( el.type ) &&
+					el.click && nodeName( el, "input" ) ) {
+
+					leverageNative( el, "click" );
+				}
+
+				// Return non-false to allow normal event-path propagation
+				return true;
 			},
 
-			// For cross-browser consistency, don't fire native .click() on links
+			// For cross-browser consistency, suppress native .click() on links
+			// Also prevent it if we're currently inside a leveraged native-event stack
 			_default: function( event ) {
-				return nodeName( event.target, "a" );
+				var target = event.target;
+				return rcheckableType.test( target.type ) &&
+					target.click && nodeName( target, "input" ) &&
+					dataPriv.get( target, "click" ) ||
+					nodeName( target, "a" );
 			}
 		},
 
@@ -38654,6 +39143,93 @@ jQuery.event = {
 		}
 	}
 };
+
+// Ensure the presence of an event listener that handles manually-triggered
+// synthetic events by interrupting progress until reinvoked in response to
+// *native* events that it fires directly, ensuring that state changes have
+// already occurred before other listeners are invoked.
+function leverageNative( el, type, expectSync ) {
+
+	// Missing expectSync indicates a trigger call, which must force setup through jQuery.event.add
+	if ( !expectSync ) {
+		if ( dataPriv.get( el, type ) === undefined ) {
+			jQuery.event.add( el, type, returnTrue );
+		}
+		return;
+	}
+
+	// Register the controller as a special universal handler for all event namespaces
+	dataPriv.set( el, type, false );
+	jQuery.event.add( el, type, {
+		namespace: false,
+		handler: function( event ) {
+			var notAsync, result,
+				saved = dataPriv.get( this, type );
+
+			if ( ( event.isTrigger & 1 ) && this[ type ] ) {
+
+				// Interrupt processing of the outer synthetic .trigger()ed event
+				// Saved data should be false in such cases, but might be a leftover capture object
+				// from an async native handler (gh-4350)
+				if ( !saved.length ) {
+
+					// Store arguments for use when handling the inner native event
+					// There will always be at least one argument (an event object), so this array
+					// will not be confused with a leftover capture object.
+					saved = slice.call( arguments );
+					dataPriv.set( this, type, saved );
+
+					// Trigger the native event and capture its result
+					// Support: IE <=9 - 11+
+					// focus() and blur() are asynchronous
+					notAsync = expectSync( this, type );
+					this[ type ]();
+					result = dataPriv.get( this, type );
+					if ( saved !== result || notAsync ) {
+						dataPriv.set( this, type, false );
+					} else {
+						result = {};
+					}
+					if ( saved !== result ) {
+
+						// Cancel the outer synthetic event
+						event.stopImmediatePropagation();
+						event.preventDefault();
+						return result.value;
+					}
+
+				// If this is an inner synthetic event for an event with a bubbling surrogate
+				// (focus or blur), assume that the surrogate already propagated from triggering the
+				// native event and prevent that from happening again here.
+				// This technically gets the ordering wrong w.r.t. to `.trigger()` (in which the
+				// bubbling surrogate propagates *after* the non-bubbling base), but that seems
+				// less bad than duplication.
+				} else if ( ( jQuery.event.special[ type ] || {} ).delegateType ) {
+					event.stopPropagation();
+				}
+
+			// If this is a native event triggered above, everything is now in order
+			// Fire an inner synthetic event with the original arguments
+			} else if ( saved.length ) {
+
+				// ...and capture the result
+				dataPriv.set( this, type, {
+					value: jQuery.event.trigger(
+
+						// Support: IE <=9 - 11+
+						// Extend with the prototype to reset the above stopImmediatePropagation()
+						jQuery.extend( saved[ 0 ], jQuery.Event.prototype ),
+						saved.slice( 1 ),
+						this
+					)
+				} );
+
+				// Abort handling of the native event
+				event.stopImmediatePropagation();
+			}
+		}
+	} );
+}
 
 jQuery.removeEvent = function( elem, type, handle ) {
 
@@ -38767,6 +39343,7 @@ jQuery.each( {
 	shiftKey: true,
 	view: true,
 	"char": true,
+	code: true,
 	charCode: true,
 	key: true,
 	keyCode: true,
@@ -38812,6 +39389,33 @@ jQuery.each( {
 		return event.which;
 	}
 }, jQuery.event.addProp );
+
+jQuery.each( { focus: "focusin", blur: "focusout" }, function( type, delegateType ) {
+	jQuery.event.special[ type ] = {
+
+		// Utilize native event if possible so blur/focus sequence is correct
+		setup: function() {
+
+			// Claim the first handler
+			// dataPriv.set( this, "focus", ... )
+			// dataPriv.set( this, "blur", ... )
+			leverageNative( this, type, expectSync );
+
+			// Return false to allow normal processing in the caller
+			return false;
+		},
+		trigger: function() {
+
+			// Force setup before trigger
+			leverageNative( this, type );
+
+			// Return non-false to allow normal event-path propagation
+			return true;
+		},
+
+		delegateType: delegateType
+	};
+} );
 
 // Create mouseenter/leave events using mouseover/out and event-time checks
 // so that event delegation works in jQuery.
@@ -39063,11 +39667,13 @@ function domManip( collection, args, callback, ignored ) {
 						if ( node.src && ( node.type || "" ).toLowerCase()  !== "module" ) {
 
 							// Optional AJAX dependency, but won't run scripts if not present
-							if ( jQuery._evalUrl ) {
-								jQuery._evalUrl( node.src );
+							if ( jQuery._evalUrl && !node.noModule ) {
+								jQuery._evalUrl( node.src, {
+									nonce: node.nonce || node.getAttribute( "nonce" )
+								} );
 							}
 						} else {
-							DOMEval( node.textContent.replace( rcleanScript, "" ), doc, node );
+							DOMEval( node.textContent.replace( rcleanScript, "" ), node, doc );
 						}
 					}
 				}
@@ -39089,7 +39695,7 @@ function remove( elem, selector, keepData ) {
 		}
 
 		if ( node.parentNode ) {
-			if ( keepData && jQuery.contains( node.ownerDocument, node ) ) {
+			if ( keepData && isAttached( node ) ) {
 				setGlobalEval( getAll( node, "script" ) );
 			}
 			node.parentNode.removeChild( node );
@@ -39107,7 +39713,7 @@ jQuery.extend( {
 	clone: function( elem, dataAndEvents, deepDataAndEvents ) {
 		var i, l, srcElements, destElements,
 			clone = elem.cloneNode( true ),
-			inPage = jQuery.contains( elem.ownerDocument, elem );
+			inPage = isAttached( elem );
 
 		// Fix IE cloning issues
 		if ( !support.noCloneChecked && ( elem.nodeType === 1 || elem.nodeType === 11 ) &&
@@ -39403,8 +40009,10 @@ var rboxStyle = new RegExp( cssExpand.join( "|" ), "i" );
 
 		// Support: IE 9 only
 		// Detect overflow:scroll screwiness (gh-3699)
+		// Support: Chrome <=64
+		// Don't get tricked when zoom affects offsetWidth (gh-4029)
 		div.style.position = "absolute";
-		scrollboxSizeVal = div.offsetWidth === 36 || "absolute";
+		scrollboxSizeVal = roundPixelMeasures( div.offsetWidth / 3 ) === 12;
 
 		documentElement.removeChild( container );
 
@@ -39475,7 +40083,7 @@ function curCSS( elem, name, computed ) {
 	if ( computed ) {
 		ret = computed.getPropertyValue( name ) || computed[ name ];
 
-		if ( ret === "" && !jQuery.contains( elem.ownerDocument, elem ) ) {
+		if ( ret === "" && !isAttached( elem ) ) {
 			ret = jQuery.style( elem, name );
 		}
 
@@ -39531,29 +40139,12 @@ function addGetHookIf( conditionFn, hookFn ) {
 }
 
 
-var
+var cssPrefixes = [ "Webkit", "Moz", "ms" ],
+	emptyStyle = document.createElement( "div" ).style,
+	vendorProps = {};
 
-	// Swappable if display is none or starts with table
-	// except "table", "table-cell", or "table-caption"
-	// See here for display values: https://developer.mozilla.org/en-US/docs/CSS/display
-	rdisplayswap = /^(none|table(?!-c[ea]).+)/,
-	rcustomProp = /^--/,
-	cssShow = { position: "absolute", visibility: "hidden", display: "block" },
-	cssNormalTransform = {
-		letterSpacing: "0",
-		fontWeight: "400"
-	},
-
-	cssPrefixes = [ "Webkit", "Moz", "ms" ],
-	emptyStyle = document.createElement( "div" ).style;
-
-// Return a css property mapped to a potentially vendor prefixed property
+// Return a vendor-prefixed property or undefined
 function vendorPropName( name ) {
-
-	// Shortcut for names that are not vendor prefixed
-	if ( name in emptyStyle ) {
-		return name;
-	}
 
 	// Check for vendor prefixed names
 	var capName = name[ 0 ].toUpperCase() + name.slice( 1 ),
@@ -39567,15 +40158,32 @@ function vendorPropName( name ) {
 	}
 }
 
-// Return a property mapped along what jQuery.cssProps suggests or to
-// a vendor prefixed property.
+// Return a potentially-mapped jQuery.cssProps or vendor prefixed property
 function finalPropName( name ) {
-	var ret = jQuery.cssProps[ name ];
-	if ( !ret ) {
-		ret = jQuery.cssProps[ name ] = vendorPropName( name ) || name;
+	var final = jQuery.cssProps[ name ] || vendorProps[ name ];
+
+	if ( final ) {
+		return final;
 	}
-	return ret;
+	if ( name in emptyStyle ) {
+		return name;
+	}
+	return vendorProps[ name ] = vendorPropName( name ) || name;
 }
+
+
+var
+
+	// Swappable if display is none or starts with table
+	// except "table", "table-cell", or "table-caption"
+	// See here for display values: https://developer.mozilla.org/en-US/docs/CSS/display
+	rdisplayswap = /^(none|table(?!-c[ea]).+)/,
+	rcustomProp = /^--/,
+	cssShow = { position: "absolute", visibility: "hidden", display: "block" },
+	cssNormalTransform = {
+		letterSpacing: "0",
+		fontWeight: "400"
+	};
 
 function setPositiveNumber( elem, value, subtract ) {
 
@@ -39648,7 +40256,10 @@ function boxModelAdjustment( elem, dimension, box, isBorderBox, styles, computed
 			delta -
 			extra -
 			0.5
-		) );
+
+		// If offsetWidth/offsetHeight is unknown, then we can't determine content-box scroll gutter
+		// Use an explicit zero to avoid NaN (gh-3964)
+		) ) || 0;
 	}
 
 	return delta;
@@ -39658,9 +40269,16 @@ function getWidthOrHeight( elem, dimension, extra ) {
 
 	// Start with computed style
 	var styles = getStyles( elem ),
+
+		// To avoid forcing a reflow, only fetch boxSizing if we need it (gh-4322).
+		// Fake content-box until we know it's needed to know the true value.
+		boxSizingNeeded = !support.boxSizingReliable() || extra,
+		isBorderBox = boxSizingNeeded &&
+			jQuery.css( elem, "boxSizing", false, styles ) === "border-box",
+		valueIsBorderBox = isBorderBox,
+
 		val = curCSS( elem, dimension, styles ),
-		isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box",
-		valueIsBorderBox = isBorderBox;
+		offsetProp = "offset" + dimension[ 0 ].toUpperCase() + dimension.slice( 1 );
 
 	// Support: Firefox <=54
 	// Return a confounding non-pixel value or feign ignorance, as appropriate.
@@ -39671,22 +40289,29 @@ function getWidthOrHeight( elem, dimension, extra ) {
 		val = "auto";
 	}
 
-	// Check for style in case a browser which returns unreliable values
-	// for getComputedStyle silently falls back to the reliable elem.style
-	valueIsBorderBox = valueIsBorderBox &&
-		( support.boxSizingReliable() || val === elem.style[ dimension ] );
 
 	// Fall back to offsetWidth/offsetHeight when value is "auto"
 	// This happens for inline elements with no explicit setting (gh-3571)
 	// Support: Android <=4.1 - 4.3 only
 	// Also use offsetWidth/offsetHeight for misreported inline dimensions (gh-3602)
-	if ( val === "auto" ||
-		!parseFloat( val ) && jQuery.css( elem, "display", false, styles ) === "inline" ) {
+	// Support: IE 9-11 only
+	// Also use offsetWidth/offsetHeight for when box sizing is unreliable
+	// We use getClientRects() to check for hidden/disconnected.
+	// In those cases, the computed value can be trusted to be border-box
+	if ( ( !support.boxSizingReliable() && isBorderBox ||
+		val === "auto" ||
+		!parseFloat( val ) && jQuery.css( elem, "display", false, styles ) === "inline" ) &&
+		elem.getClientRects().length ) {
 
-		val = elem[ "offset" + dimension[ 0 ].toUpperCase() + dimension.slice( 1 ) ];
+		isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box";
 
-		// offsetWidth/offsetHeight provide border-box values
-		valueIsBorderBox = true;
+		// Where available, offsetWidth/offsetHeight approximate border box dimensions.
+		// Where not available (e.g., SVG), assume unreliable box-sizing and interpret the
+		// retrieved value as a content box dimension.
+		valueIsBorderBox = offsetProp in elem;
+		if ( valueIsBorderBox ) {
+			val = elem[ offsetProp ];
+		}
 	}
 
 	// Normalize "" and auto
@@ -39732,6 +40357,13 @@ jQuery.extend( {
 		"flexGrow": true,
 		"flexShrink": true,
 		"fontWeight": true,
+		"gridArea": true,
+		"gridColumn": true,
+		"gridColumnEnd": true,
+		"gridColumnStart": true,
+		"gridRow": true,
+		"gridRowEnd": true,
+		"gridRowStart": true,
 		"lineHeight": true,
 		"opacity": true,
 		"order": true,
@@ -39787,7 +40419,9 @@ jQuery.extend( {
 			}
 
 			// If a number was passed in, add the unit (except for certain CSS properties)
-			if ( type === "number" ) {
+			// The isCustomProp check can be removed in jQuery 4.0 when we only auto-append
+			// "px" to a few hardcoded values.
+			if ( type === "number" && !isCustomProp ) {
 				value += ret && ret[ 3 ] || ( jQuery.cssNumber[ origName ] ? "" : "px" );
 			}
 
@@ -39887,18 +40521,29 @@ jQuery.each( [ "height", "width" ], function( i, dimension ) {
 		set: function( elem, value, extra ) {
 			var matches,
 				styles = getStyles( elem ),
-				isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box",
-				subtract = extra && boxModelAdjustment(
-					elem,
-					dimension,
-					extra,
-					isBorderBox,
-					styles
-				);
+
+				// Only read styles.position if the test has a chance to fail
+				// to avoid forcing a reflow.
+				scrollboxSizeBuggy = !support.scrollboxSize() &&
+					styles.position === "absolute",
+
+				// To avoid forcing a reflow, only fetch boxSizing if we need it (gh-3991)
+				boxSizingNeeded = scrollboxSizeBuggy || extra,
+				isBorderBox = boxSizingNeeded &&
+					jQuery.css( elem, "boxSizing", false, styles ) === "border-box",
+				subtract = extra ?
+					boxModelAdjustment(
+						elem,
+						dimension,
+						extra,
+						isBorderBox,
+						styles
+					) :
+					0;
 
 			// Account for unreliable border-box dimensions by comparing offset* to computed and
 			// faking a content-box to get border and padding (gh-3699)
-			if ( isBorderBox && support.scrollboxSize() === styles.position ) {
+			if ( isBorderBox && scrollboxSizeBuggy ) {
 				subtract -= Math.ceil(
 					elem[ "offset" + dimension[ 0 ].toUpperCase() + dimension.slice( 1 ) ] -
 					parseFloat( styles[ dimension ] ) -
@@ -40066,9 +40711,9 @@ Tween.propHooks = {
 			// Use .style if available and use plain properties where available.
 			if ( jQuery.fx.step[ tween.prop ] ) {
 				jQuery.fx.step[ tween.prop ]( tween );
-			} else if ( tween.elem.nodeType === 1 &&
-				( tween.elem.style[ jQuery.cssProps[ tween.prop ] ] != null ||
-					jQuery.cssHooks[ tween.prop ] ) ) {
+			} else if ( tween.elem.nodeType === 1 && (
+					jQuery.cssHooks[ tween.prop ] ||
+					tween.elem.style[ finalPropName( tween.prop ) ] != null ) ) {
 				jQuery.style( tween.elem, tween.prop, tween.now + tween.unit );
 			} else {
 				tween.elem[ tween.prop ] = tween.now;
@@ -41775,6 +42420,10 @@ jQuery.param = function( a, traditional ) {
 				encodeURIComponent( value == null ? "" : value );
 		};
 
+	if ( a == null ) {
+		return "";
+	}
+
 	// If an array was passed in, assume that it is an array of form elements.
 	if ( Array.isArray( a ) || ( a.jquery && !jQuery.isPlainObject( a ) ) ) {
 
@@ -42277,12 +42926,14 @@ jQuery.extend( {
 						if ( !responseHeaders ) {
 							responseHeaders = {};
 							while ( ( match = rheaders.exec( responseHeadersString ) ) ) {
-								responseHeaders[ match[ 1 ].toLowerCase() ] = match[ 2 ];
+								responseHeaders[ match[ 1 ].toLowerCase() + " " ] =
+									( responseHeaders[ match[ 1 ].toLowerCase() + " " ] || [] )
+										.concat( match[ 2 ] );
 							}
 						}
-						match = responseHeaders[ key.toLowerCase() ];
+						match = responseHeaders[ key.toLowerCase() + " " ];
 					}
-					return match == null ? null : match;
+					return match == null ? null : match.join( ", " );
 				},
 
 				// Raw string
@@ -42671,7 +43322,7 @@ jQuery.each( [ "get", "post" ], function( i, method ) {
 } );
 
 
-jQuery._evalUrl = function( url ) {
+jQuery._evalUrl = function( url, options ) {
 	return jQuery.ajax( {
 		url: url,
 
@@ -42681,7 +43332,16 @@ jQuery._evalUrl = function( url ) {
 		cache: true,
 		async: false,
 		global: false,
-		"throws": true
+
+		// Only evaluate the response if it is successful (gh-4126)
+		// dataFilter is not invoked for failure responses, so using it instead
+		// of the default converter is kludgy but it works.
+		converters: {
+			"text script": function() {}
+		},
+		dataFilter: function( response ) {
+			jQuery.globalEval( response, options );
+		}
 	} );
 };
 
@@ -42964,24 +43624,21 @@ jQuery.ajaxPrefilter( "script", function( s ) {
 // Bind script tag hack transport
 jQuery.ajaxTransport( "script", function( s ) {
 
-	// This transport only deals with cross domain requests
-	if ( s.crossDomain ) {
+	// This transport only deals with cross domain or forced-by-attrs requests
+	if ( s.crossDomain || s.scriptAttrs ) {
 		var script, callback;
 		return {
 			send: function( _, complete ) {
-				script = jQuery( "<script>" ).prop( {
-					charset: s.scriptCharset,
-					src: s.url
-				} ).on(
-					"load error",
-					callback = function( evt ) {
+				script = jQuery( "<script>" )
+					.attr( s.scriptAttrs || {} )
+					.prop( { charset: s.scriptCharset, src: s.url } )
+					.on( "load error", callback = function( evt ) {
 						script.remove();
 						callback = null;
 						if ( evt ) {
 							complete( evt.type === "error" ? 404 : 200, evt.type );
 						}
-					}
-				);
+					} );
 
 				// Use native DOM manipulation to avoid our domManip AJAX trickery
 				document.head.appendChild( script[ 0 ] );
@@ -93477,6 +94134,7 @@ HTMLWidgets.widget({
 		}) // cytoscape()
             }, // renderValue
             resize: function(newWidth, newHeight, instance){
+                  // automatically called onthe window resize event
 		log("cyjShiny widget, resize: " + newWidth + ", " + newHeight)
 		//$("#cyjShiny").height(0.95 * window.innerHeight);
 		$("#cyjShiny").height(newHeight);
@@ -93573,9 +94231,6 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("setEdgeAttributes", fun
     var values = message.values
 
    for(var i=0; i < sourceNodes.length; i++){
-      //var selectorString = "edge[source='" + sourceNodes[i] + "'][target='" + targetNodes[i] +
-      //                     "'][interaction='" + interactions[i] + "']";
-      //log(selectorString);
       var id = sourceNodes[i] + "-(" + interactions[i] + ")-" + targetNodes[i];
       log("edge id: " + id)
       var edge = self.cyj.getElementById(id)
@@ -93584,12 +94239,6 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("setEdgeAttributes", fun
          log("setting edge " + attributeName + " to " + values[i])
          edge.data({[attributeName]: values[i]})
          }
-      //var dataObj = self.cyj.edges().filter(selectorString).data();
-      // log("--- edge object after filtering:")
-      // log(dataObj)
-      //if(dataObj != undefined){
-      //   Object.defineProperty(dataObj, attributeName, {value: values[i]});
-      //   }
       } // for i
 
 }) // setEdgeAttributes

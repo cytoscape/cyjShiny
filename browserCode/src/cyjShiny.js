@@ -98,6 +98,7 @@ HTMLWidgets.widget({
 		}) // cytoscape()
             }, // renderValue
             resize: function(newWidth, newHeight, instance){
+                  // automatically called onthe window resize event
 		log("cyjShiny widget, resize: " + newWidth + ", " + newHeight)
 		//$("#cyjShiny").height(0.95 * window.innerHeight);
 		$("#cyjShiny").height(newHeight);
@@ -194,9 +195,6 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("setEdgeAttributes", fun
     var values = message.values
 
    for(var i=0; i < sourceNodes.length; i++){
-      //var selectorString = "edge[source='" + sourceNodes[i] + "'][target='" + targetNodes[i] +
-      //                     "'][interaction='" + interactions[i] + "']";
-      //log(selectorString);
       var id = sourceNodes[i] + "-(" + interactions[i] + ")-" + targetNodes[i];
       log("edge id: " + id)
       var edge = self.cyj.getElementById(id)
@@ -205,12 +203,6 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("setEdgeAttributes", fun
          log("setting edge " + attributeName + " to " + values[i])
          edge.data({[attributeName]: values[i]})
          }
-      //var dataObj = self.cyj.edges().filter(selectorString).data();
-      // log("--- edge object after filtering:")
-      // log(dataObj)
-      //if(dataObj != undefined){
-      //   Object.defineProperty(dataObj, attributeName, {value: values[i]});
-      //   }
       } // for i
 
 }) // setEdgeAttributes

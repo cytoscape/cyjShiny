@@ -1,3 +1,5 @@
+#' import graph
+#'
 #' Convert R graphNEL object to cytoscape.js JSON.
 #'
 #' @param g  a graphNEL

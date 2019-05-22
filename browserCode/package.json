@@ -14,24 +14,24 @@
     "url": "git://github.com/paul-shannon/cyjsShiny.git"
   },
   "dependencies": {
-    "cytoscape": "^3.3.1",
+    "cytoscape": "^3.5.7",
     "cytoscape-cola": "^2.3.0",
     "cytoscape-cose-bilkent": "^4.0.0",
     "cytoscape-dagre": "^2.2.1",
-    "jquery": "^3.3.1",
+    "jquery": "^3.4.1",
     "jquery-ui-bundle": "^1.12.1-migrate"
   },
   "devDependencies": {
     "css-loader": "^0.28.0",
     "extract-text-webpack-plugin": "^2.1.0",
     "file-loader": "^0.11.1",
-    "node-sass": "^4.11.0",
-    "resolve-url-loader": "^2.0.2",
+    "node-sass": "^4.12.0",
+    "resolve-url-loader": "^2.3.2",
     "sass-loader": "^6.0.3",
     "script-loader": "^0.7.0",
     "style-loader": "^0.16.1",
     "url-loader": "^0.5.8",
     "webpack": "^2.7.0",
-    "webpack-cli": "^3.1.0"
+    "webpack-cli": "^3.3.2"
   }
 }

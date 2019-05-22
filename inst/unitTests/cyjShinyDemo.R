@@ -127,7 +127,7 @@ server = function(input, output, session)
 
     output$value <- renderPrint({ input$action })
     output$cyjShiny <- renderCyjShiny(
-       cyjShiny(graph, "cola", "yeastGalactoseStyle.js")
+       cyjShiny(graph, layoutName="cola", style_file="yeastGalactoseStyle.js")
        )
 
 } # server
