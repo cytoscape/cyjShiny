@@ -1,6 +1,7 @@
-#' import graph
-#'
 #' Convert R graphNEL object to cytoscape.js JSON.
+#'
+#' @import graph
+#'
 #'
 #' @param g  a graphNEL
 #'
@@ -69,7 +70,7 @@ graphNELtoJSON <- function(g) #Copied from RCyjs/R/utils.R
           sourceNode <- edge[[1]]
           targetNode <- edge[[2]]
           edgeList <- list(id=edgeName, source=sourceNode, target=targetNode)
-          this.edges.data <- edgeData(g, sourceNode, targetNode)[[1]]
+          this.edges.data <- graph::edgeData(g, sourceNode, targetNode)[[1]]
           if(length(this.edges.data) > 0)
              edgeList <- c(edgeList, this.edges.data)
           edgeList.json <- toJSON(edgeList, auto_unbox=TRUE)

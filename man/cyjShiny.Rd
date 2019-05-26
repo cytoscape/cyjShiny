@@ -11,6 +11,10 @@ cyjShiny(graph, layoutName, style_file = NULL, width = NULL,
 \arguments{
 \item{graph}{an R graphNEL instance (igraph support coming soon).}
 
+\item{layoutName}{character one of:"preset", "cose", "cola", "circle", "concentric", "breadthfirst", "grid", "random", "dagre", "cose-bilkent"}
+
+\item{style_file, }{default NULL, can name a standard javascript cytoscape.js style file}
+
 \item{width}{integer  initial width of the widget.}
 
 \item{height}{integer initial height of the widget.}

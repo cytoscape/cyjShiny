@@ -14,7 +14,7 @@
     "url": "git://github.com/paul-shannon/cyjsShiny.git"
   },
   "dependencies": {
-    "cytoscape": "^3.5.7",
+    "cytoscape": "^3.6.2",
     "cytoscape-cola": "^2.3.0",
     "cytoscape-cose-bilkent": "^4.0.0",
     "cytoscape-dagre": "^2.2.1",

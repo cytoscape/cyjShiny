@@ -9,7 +9,7 @@ addGraphFromJsonFile(session, jsonFilename)
 \arguments{
 \item{session}{a Shiny Server session object.}
 
-\item{name}{of a text file with JSON representation of a cytoscape.js graph}
+\item{jsonFilename}{of a text file with JSON representation of a cytoscape.js graph}
 }
 \description{
 addGraphFromJsonFile

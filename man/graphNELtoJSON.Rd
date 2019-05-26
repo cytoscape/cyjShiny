@@ -2,7 +2,7 @@
 % Please edit documentation in R/graphsToJSON.R
 \name{graphNELtoJSON}
 \alias{graphNELtoJSON}
-\title{import graph}
+\title{Convert R graphNEL object to cytoscape.js JSON.}
 \usage{
 graphNELtoJSON(g)
 }

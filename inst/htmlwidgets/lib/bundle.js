@@ -11254,8 +11254,12 @@ var defaults$8 = {
   context: null
 };
 var defaultsKeys = Object.keys(defaults$8);
+var emptyOpts = {};
 
-function Emitter(opts, context) {
+function Emitter() {
+  var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : emptyOpts;
+  var context = arguments.length > 1 ? arguments[1] : undefined;
+
   // micro-optimisation vs Object.assign() -- reduces Element instantiation time
   for (var i = 0; i < defaultsKeys.length; i++) {
     var key = defaultsKeys[i];
@@ -11387,7 +11391,7 @@ p.removeListener = p.off = function (events, qualifier, callback, conf) {
     forEachEvent(_this, function (self, event, type, namespace, qualifier, callback
     /*, conf*/
     ) {
-      if (listener.type === type && (!namespace || listener.namespace === namespace) && (!qualifier || self.qualifierCompare(listener.qualifier, qualifier)) && (!callback || listener.callback === callback)) {
+      if (listener.type === type && (!namespace && listener.namespace !== '.*' || listener.namespace === namespace) && (!qualifier || self.qualifierCompare(listener.qualifier, qualifier)) && (!callback || listener.callback === callback)) {
         listeners.splice(i, 1);
         return false;
       }
@@ -13422,7 +13426,7 @@ var Collection = function Collection(cy, elements, options) {
   this.length = 0;
 
   for (var _i = 0, _l = elements.length; _i < _l; _i++) {
-    var element$1 = elements[_i];
+    var element$1 = elements[_i][0]; // [0] in case elements is an array of collections, rather than array of elements
 
     if (element$1 == null) {
       continue;
@@ -16913,6 +16917,9 @@ var styfn$6 = {};
     textWrap: {
       enums: ['none', 'wrap', 'ellipsis']
     },
+    textOverflowWrap: {
+      enums: ['whitespace', 'anywhere']
+    },
     textBackgroundShape: {
       enums: ['rectangle', 'roundrectangle', 'round-rectangle']
     },
@@ -16945,6 +16952,9 @@ var styfn$6 = {};
     },
     halign: {
       enums: ['left', 'center', 'right']
+    },
+    justification: {
+      enums: ['left', 'center', 'right', 'auto']
     },
     text: {
       string: true
@@ -17148,12 +17158,20 @@ var styfn$6 = {};
     type: t.textWrap,
     triggersBounds: diff.any
   }, {
+    name: 'text-overflow-wrap',
+    type: t.textOverflowWrap,
+    triggersBounds: diff.any
+  }, {
     name: 'text-max-width',
     type: t.size,
     triggersBounds: diff.any
   }, {
     name: 'text-outline-width',
     type: t.size,
+    triggersBounds: diff.any
+  }, {
+    name: 'line-height',
+    type: t.positiveNumber,
     triggersBounds: diff.any
   }];
   var commonLabel = [{
@@ -17201,6 +17219,9 @@ var styfn$6 = {};
     name: 'text-background-shape',
     type: t.textBackgroundShape,
     triggersBounds: diff.any
+  }, {
+    name: 'text-justification',
+    type: t.justification
   }];
   var behavior = [{
     name: 'events',
@@ -17722,6 +17743,8 @@ styfn$6.getDefaultProperties = function () {
     'text-events': 'no',
     'text-valign': 'top',
     'text-halign': 'center',
+    'text-justification': 'auto',
+    'line-height': 1,
     'color': '#000',
     'text-outline-color': '#000',
     'text-outline-width': 0,
@@ -17730,6 +17753,7 @@ styfn$6.getDefaultProperties = function () {
     'text-decoration': 'none',
     'text-transform': 'none',
     'text-wrap': 'none',
+    'text-overflow-wrap': 'whitespace',
     'text-max-width': 9999,
     'text-background-color': '#000',
     'text-background-opacity': 0,
@@ -24126,21 +24150,21 @@ BRp$6.recalculateEdgeLabelProjections = function (edge) {
     } // update each ctrlpt with segment info
 
 
-    for (var i = 0; i < ctrlpts.length; i++) {
-      var cp = ctrlpts[i];
-      var prevCp = ctrlpts[i - 1];
+    for (var _i = 0; _i < ctrlpts.length; _i++) {
+      var cp = ctrlpts[_i];
+      var prevCp = ctrlpts[_i - 1];
 
       if (prevCp) {
         cp.startDist = prevCp.startDist + prevCp.length;
       }
 
-      addSegment(cp, cp.p0, bpts[i * nProjs], 0, r.bezierProjPcts[0]); // first
+      addSegment(cp, cp.p0, bpts[_i * nProjs], 0, r.bezierProjPcts[0]); // first
 
       for (var j = 0; j < nProjs - 1; j++) {
-        addSegment(cp, bpts[i * nProjs + j], bpts[i * nProjs + j + 1], r.bezierProjPcts[j], r.bezierProjPcts[j + 1]);
+        addSegment(cp, bpts[_i * nProjs + j], bpts[_i * nProjs + j + 1], r.bezierProjPcts[j], r.bezierProjPcts[j + 1]);
       }
 
-      addSegment(cp, bpts[i * nProjs + nProjs - 1], cp.p2, r.bezierProjPcts[nProjs - 1], 1); // last
+      addSegment(cp, bpts[_i * nProjs + nProjs - 1], cp.p2, r.bezierProjPcts[nProjs - 1], 1); // last
     }
 
     return createControlPointInfo.cache = ctrlpts;
@@ -24161,89 +24185,95 @@ BRp$6.recalculateEdgeLabelProjections = function (edge) {
       case 'compound':
       case 'bezier':
       case 'multibezier':
-        var cps = createControlPointInfo();
-        var selected;
-        var startDist = 0;
-        var totalDist = 0; // find the segment we're on
+        {
+          var cps = createControlPointInfo();
+          var selected;
+          var startDist = 0;
+          var totalDist = 0; // find the segment we're on
 
-        for (var i = 0; i < cps.length; i++) {
-          var cp = cps[isSrc ? i : cps.length - 1 - i];
+          for (var i = 0; i < cps.length; i++) {
+            var _cp = cps[isSrc ? i : cps.length - 1 - i];
 
-          for (var j = 0; j < cp.segments.length; j++) {
-            var seg = cp.segments[isSrc ? j : cp.segments.length - 1 - j];
-            var lastSeg = i === cps.length - 1 && j === cp.segments.length - 1;
-            startDist = totalDist;
-            totalDist += seg.length;
+            for (var j = 0; j < _cp.segments.length; j++) {
+              var _seg = _cp.segments[isSrc ? j : _cp.segments.length - 1 - j];
+              var lastSeg = i === cps.length - 1 && j === _cp.segments.length - 1;
+              startDist = totalDist;
+              totalDist += _seg.length;
 
-            if (totalDist >= offset || lastSeg) {
-              selected = {
-                cp: cp,
-                segment: seg
-              };
+              if (totalDist >= offset || lastSeg) {
+                selected = {
+                  cp: _cp,
+                  segment: _seg
+                };
+                break;
+              }
+            }
+
+            if (selected) {
               break;
             }
           }
 
-          if (selected) {
-            break;
-          }
+          var cp = selected.cp;
+          var seg = selected.segment;
+          var tSegment = (offset - startDist) / seg.length;
+          var segDt = seg.t1 - seg.t0;
+          var t = isSrc ? seg.t0 + segDt * tSegment : seg.t1 - segDt * tSegment;
+          t = bound(0, t, 1);
+          p = qbezierPtAt(cp.p0, cp.p1, cp.p2, t);
+          angle = bezierAngle(cp.p0, cp.p1, cp.p2, t, p);
+          break;
         }
-
-        var cp = selected.cp;
-        var seg = selected.segment;
-        var tSegment = (offset - startDist) / seg.length;
-        var segDt = seg.t1 - seg.t0;
-        var t = isSrc ? seg.t0 + segDt * tSegment : seg.t1 - segDt * tSegment;
-        t = bound(0, t, 1);
-        p = qbezierPtAt(cp.p0, cp.p1, cp.p2, t);
-        angle = bezierAngle(cp.p0, cp.p1, cp.p2, t, p);
-        break;
 
       case 'straight':
       case 'segments':
       case 'haystack':
-        var d = 0,
-            di,
-            d0;
-        var p0, p1;
-        var l = rs.allpts.length;
+        {
+          var d = 0,
+              di,
+              d0;
+          var p0, p1;
+          var l = rs.allpts.length;
 
-        for (var i = 0; i + 3 < l; i += 2) {
-          if (isSrc) {
-            p0 = {
-              x: rs.allpts[i],
-              y: rs.allpts[i + 1]
-            };
-            p1 = {
-              x: rs.allpts[i + 2],
-              y: rs.allpts[i + 3]
-            };
-          } else {
-            p0 = {
-              x: rs.allpts[l - 2 - i],
-              y: rs.allpts[l - 1 - i]
-            };
-            p1 = {
-              x: rs.allpts[l - 4 - i],
-              y: rs.allpts[l - 3 - i]
-            };
+          for (var _i2 = 0; _i2 + 3 < l; _i2 += 2) {
+            if (isSrc) {
+              p0 = {
+                x: rs.allpts[_i2],
+                y: rs.allpts[_i2 + 1]
+              };
+              p1 = {
+                x: rs.allpts[_i2 + 2],
+                y: rs.allpts[_i2 + 3]
+              };
+            } else {
+              p0 = {
+                x: rs.allpts[l - 2 - _i2],
+                y: rs.allpts[l - 1 - _i2]
+              };
+              p1 = {
+                x: rs.allpts[l - 4 - _i2],
+                y: rs.allpts[l - 3 - _i2]
+              };
+            }
+
+            di = dist(p0, p1);
+            d0 = d;
+            d += di;
+
+            if (d >= offset) {
+              break;
+            }
           }
 
-          di = dist(p0, p1);
-          d0 = d;
-          d += di;
+          var pD = offset - d0;
 
-          if (d >= offset) {
-            break;
-          }
+          var _t = pD / di;
+
+          _t = bound(0, _t, 1);
+          p = lineAt(p0, p1, _t);
+          angle = lineAngle(p0, p1);
+          break;
         }
-
-        var pD = offset - d0;
-        var t = pD / di;
-        t = bound(0, t, 1);
-        p = lineAt(p0, p1, t);
-        angle = lineAngle(p0, p1);
-        break;
     }
 
     setRs('labelX', prefix, p.x);
@@ -24269,10 +24299,19 @@ BRp$6.applyPrefixedLabelDimensions = function (ele, prefix) {
   var _p = ele._private;
   var text = this.getLabelText(ele, prefix);
   var labelDims = this.calculateLabelDimensions(ele, text);
-  setPrefixedProperty(_p.rstyle, 'labelWidth', prefix, labelDims.width);
-  setPrefixedProperty(_p.rscratch, 'labelWidth', prefix, labelDims.width);
-  setPrefixedProperty(_p.rstyle, 'labelHeight', prefix, labelDims.height);
-  setPrefixedProperty(_p.rscratch, 'labelHeight', prefix, labelDims.height);
+  var lineHeight = ele.pstyle('line-height').pfValue;
+  var textWrap = ele.pstyle('text-wrap').strValue;
+  var lines = getPrefixedProperty(_p.rscratch, 'labelWrapCachedLines', prefix) || [];
+  var numLines = textWrap !== 'wrap' ? 1 : Math.max(lines.length, 1);
+  var normPerLineHeight = labelDims.height / numLines;
+  var labelLineHeight = normPerLineHeight * lineHeight;
+  var width = labelDims.width;
+  var height = labelDims.height + (numLines - 1) * (lineHeight - 1) * normPerLineHeight;
+  setPrefixedProperty(_p.rstyle, 'labelWidth', prefix, width);
+  setPrefixedProperty(_p.rscratch, 'labelWidth', prefix, width);
+  setPrefixedProperty(_p.rstyle, 'labelHeight', prefix, height);
+  setPrefixedProperty(_p.rscratch, 'labelHeight', prefix, height);
+  setPrefixedProperty(_p.rscratch, 'labelLineHeight', prefix, labelLineHeight);
 };
 
 BRp$6.getLabelText = function (ele, prefix) {
@@ -24304,48 +24343,54 @@ BRp$6.getLabelText = function (ele, prefix) {
   var wrapStyle = ele.pstyle('text-wrap').value;
 
   if (wrapStyle === 'wrap') {
-    //console.log('wrap');
     var labelKey = rscratch('labelKey'); // save recalc if the label is the same as before
 
     if (labelKey != null && rscratch('labelWrapKey') === labelKey) {
-      // console.log('wrap cache hit');
       return rscratch('labelWrapCachedText');
-    } // console.log('wrap cache miss');
+    }
 
-
+    var zwsp = "\u200B";
     var lines = text.split('\n');
     var maxW = ele.pstyle('text-max-width').pfValue;
+    var overflow = ele.pstyle('text-overflow-wrap').value;
+    var overflowAny = overflow === 'anywhere';
     var wrappedLines = [];
+    var wordsRegex = /[\s\u200b]+/;
+    var wordSeparator = overflowAny ? '' : ' ';
 
     for (var l = 0; l < lines.length; l++) {
       var line = lines[l];
       var lineDims = this.calculateLabelDimensions(ele, line);
       var lineW = lineDims.width;
 
+      if (overflowAny) {
+        var processedLine = line.split('').join(zwsp);
+        line = processedLine;
+      }
+
       if (lineW > maxW) {
         // line is too long
-        var words = line.split(/\s+/); // NB: assume collapsed whitespace into single space
-
+        var words = line.split(wordsRegex);
         var subline = '';
 
         for (var w = 0; w < words.length; w++) {
           var word = words[w];
-          var testLine = subline.length === 0 ? word : subline + ' ' + word;
+          var testLine = subline.length === 0 ? word : subline + wordSeparator + word;
           var testDims = this.calculateLabelDimensions(ele, testLine);
           var testW = testDims.width;
 
           if (testW <= maxW) {
             // word fits on current line
-            subline += word + ' ';
+            subline += word + wordSeparator;
           } else {
             // word starts new line
             wrappedLines.push(subline);
-            subline = word + ' ';
+            subline = word + wordSeparator;
           }
         } // if there's remaining text, put it in a wrapped line
 
 
-        if (!subline.match(/^\s+$/)) {
+        if (!subline.match(/^[\s\u200b]+$/)) {
           wrappedLines.push(subline);
         }
       } else {
@@ -24357,9 +24402,9 @@ BRp$6.getLabelText = function (ele, prefix) {
 
     rscratch('labelWrapCachedLines', wrappedLines);
     text = rscratch('labelWrapCachedText', wrappedLines.join('\n'));
-    rscratch('labelWrapKey', labelKey); // console.log(text)
+    rscratch('labelWrapKey', labelKey);
   } else if (wrapStyle === 'ellipsis') {
-    var maxW = ele.pstyle('text-max-width').pfValue;
+    var _maxW = ele.pstyle('text-max-width').pfValue;
     var ellipsized = '';
     var ellipsis = "\u2026";
     var incLastCh = false;
@@ -24367,7 +24412,7 @@ BRp$6.getLabelText = function (ele, prefix) {
     for (var i = 0; i < text.length; i++) {
       var widthWithNextCh = this.calculateLabelDimensions(ele, ellipsized + text[i] + ellipsis).width;
 
-      if (widthWithNextCh > maxW) {
+      if (widthWithNextCh > _maxW) {
         break;
       }
 
@@ -24387,6 +24432,30 @@ BRp$6.getLabelText = function (ele, prefix) {
 
 
   return text;
+};
+
+BRp$6.getLabelJustification = function (ele) {
+  var justification = ele.pstyle('text-justification').strValue;
+  var textHalign = ele.pstyle('text-halign').strValue;
+
+  if (justification === 'auto') {
+    if (ele.isNode()) {
+      switch (textHalign) {
+        case 'left':
+          return 'right';
+
+        case 'right':
+          return 'left';
+
+        default:
+          return 'center';
+      }
+    } else {
+      return 'center';
+    }
+  } else {
+    return justification;
+  }
 };
 
 BRp$6.calculateLabelDimensions = function (ele, text) {
@@ -29705,29 +29774,16 @@ CRp$4.drawElementText = function (context, ele, shiftToOriginWithBb, force, pref
       return;
     }
 
-    var textHalign = ele.pstyle('text-halign').strValue;
-
-    switch (textHalign) {
-      case 'left':
-        context.textAlign = 'right';
-        break;
-
-      case 'right':
-        context.textAlign = 'left';
-        break;
-
-      default:
-        // e.g. center
-        context.textAlign = 'center';
-    }
-
+    var justification = r.getLabelJustification(ele);
+    context.textAlign = justification;
     context.textBaseline = 'bottom';
   } else {
-    var label = ele.pstyle('label');
+    var _label = ele.pstyle('label');
+
     var srcLabel = ele.pstyle('source-label');
     var tgtLabel = ele.pstyle('target-label');
 
-    if ((!label || !label.value) && (!srcLabel || !srcLabel.value) && (!tgtLabel || !tgtLabel.value)) {
+    if ((!_label || !_label.value) && (!srcLabel || !srcLabel.value) && (!tgtLabel || !tgtLabel.value)) {
       return;
     }
 
@@ -29799,8 +29855,8 @@ CRp$4.setupTextStyle = function (context, ele) {
 }; // TODO ensure re-used
 
 
-function roundRect(ctx, x, y, width, height, radius) {
-  var radius = radius || 5;
+function roundRect(ctx, x, y, width, height) {
+  var radius = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 5;
   ctx.beginPath();
   ctx.moveTo(x + radius, y);
   ctx.lineTo(x + width - radius, y);
@@ -29852,6 +29908,8 @@ CRp$4.drawText = function (context, ele, prefix) {
 
   var textX = getPrefixedProperty(rscratch, 'labelX', prefix);
   var textY = getPrefixedProperty(rscratch, 'labelY', prefix);
+  var orgTextX, orgTextY; // used for rotation
+
   var text = this.getLabelText(ele, prefix);
 
   if (text != null && text !== '' && !isNaN(textX) && !isNaN(textY)) {
@@ -29881,8 +29939,8 @@ CRp$4.drawText = function (context, ele, prefix) {
     }
 
     if (theta !== 0) {
-      var orgTextX = textX;
-      var orgTextY = textY;
+      orgTextX = textX;
+      orgTextY = textY;
       context.translate(orgTextX, orgTextY);
       context.rotate(theta);
       textX = 0;
@@ -29998,7 +30056,35 @@ CRp$4.drawText = function (context, ele, prefix) {
 
     if (ele.pstyle('text-wrap').value === 'wrap') {
       var lines = getPrefixedProperty(rscratch, 'labelWrapCachedLines', prefix);
-      var lineHeight = textH / lines.length;
+      var lineHeight = getPrefixedProperty(rscratch, 'labelLineHeight', prefix);
+      var halfTextW = textW / 2;
+      var justification = this.getLabelJustification(ele);
+
+      if (justification === 'auto') ; else if (halign === 'left') {
+        // auto justification : right
+        if (justification === 'left') {
+          textX += -textW;
+        } else if (justification === 'center') {
+          textX += -halfTextW;
+        } // else same as auto
+
+      } else if (halign === 'center') {
+        // auto justfication : center
+        if (justification === 'left') {
+          textX += -halfTextW;
+        } else if (justification === 'right') {
+          textX += halfTextW;
+        } // else same as auto
+
+      } else if (halign === 'right') {
+        // auto justification : left
+        if (justification === 'center') {
+          textX += halfTextW;
+        } else if (justification === 'right') {
+          textX += textW;
+        } // else same as auto
+
+      }
 
       switch (valign) {
         case 'top':
@@ -31377,26 +31463,38 @@ function CanvasRenderer(options) {
     bufferCanvases: new Array(CRp$a.BUFFER_COUNT),
     bufferContexts: new Array(CRp$a.CANVAS_LAYERS)
   };
-  var tapHlOff = '-webkit-tap-highlight-color: rgba(0,0,0,0);';
+  var tapHlOffAttr = '-webkit-tap-highlight-color';
+  var tapHlOffStyle = 'rgba(0,0,0,0)';
   r.data.canvasContainer = document.createElement('div'); // eslint-disable-line no-undef
 
   var containerStyle = r.data.canvasContainer.style;
-  r.data.canvasContainer.setAttribute('style', tapHlOff);
+  r.data.canvasContainer.style[tapHlOffAttr] = tapHlOffStyle;
   containerStyle.position = 'relative';
   containerStyle.zIndex = '0';
   containerStyle.overflow = 'hidden';
   var container = options.cy.container();
   container.appendChild(r.data.canvasContainer);
+  container.style[tapHlOffAttr] = tapHlOffStyle;
+  var styleMap = {
+    '-webkit-user-select': 'none',
+    '-moz-user-select': '-moz-none',
+    'user-select': 'none',
+    '-webkit-tap-highlight-color': 'rgba(0,0,0,0)',
+    'outline-style': 'none'
+  };
 
-  if ((container.getAttribute('style') || '').indexOf(tapHlOff) < 0) {
-    container.setAttribute('style', (container.getAttribute('style') || '') + tapHlOff);
+  if (ms()) {
+    styleMap['-ms-touch-action'] = 'none';
+    styleMap['touch-action'] = 'none';
   }
 
   for (var i = 0; i < CRp$a.CANVAS_LAYERS; i++) {
     var canvas = r.data.canvases[i] = document.createElement('canvas'); // eslint-disable-line no-undef
 
     r.data.contexts[i] = canvas.getContext('2d');
-    canvas.setAttribute('style', '-webkit-user-select: none; -moz-user-select: -moz-none; user-select: none; -webkit-tap-highlight-color: rgba(0,0,0,0); outline-style: none;' + (ms() ? ' -ms-touch-action: none; touch-action: none; ' : ''));
+    Object.keys(styleMap).forEach(function (k) {
+      canvas.style[k] = styleMap[k];
+    });
     canvas.style.position = 'absolute';
     canvas.setAttribute('data-id', 'layer' + i);
     canvas.style.zIndex = String(CRp$a.CANVAS_LAYERS - i);
@@ -32047,7 +32145,7 @@ sheetfn.appendToStyle = function (style) {
   return style;
 };
 
-var version = "3.5.7";
+var version = "3.6.2";
 
 var cytoscape = function cytoscape(options) {
   // if no options specified, use default

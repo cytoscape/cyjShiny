@@ -13,6 +13,8 @@
 #' @rdname cyjShiny
 #'
 #' @param graph an R graphNEL instance (igraph support coming soon).
+#' @param layoutName character one of:"preset", "cose", "cola", "circle", "concentric", "breadthfirst", "grid", "random", "dagre", "cose-bilkent"
+#' @param style_file, default NULL, can name a standard javascript cytoscape.js style file
 #' @param width integer  initial width of the widget.
 #' @param height integer initial height of the widget.
 #' @param elementId string the DOM id into which the widget is rendered, default NULL is best.
@@ -354,7 +356,7 @@ setNodePositions <- function(session, tbl.positions)
 
 removeGraph <- function(session)
 {
-   printf("entering cyjShiny::removeGraph")
+   message(sprintf("entering cyjShiny::removeGraph"))
    session$sendCustomMessage(type="removeGraph", message=list())
 
 } # removeGraph
@@ -394,7 +396,7 @@ addGraphFromDataFrame <- function(session, tbl.edges, tbl.nodes=NULL)
 #' addGraphFromJsonFile
 #'
 #' @param session a Shiny Server session object.
-#' @param name of a text file with JSON representation of a cytoscape.js graph
+#' @param jsonFilename of a text file with JSON representation of a cytoscape.js graph
 #'
 #' @examples
 #' \dontrun{
@@ -408,7 +410,6 @@ addGraphFromDataFrame <- function(session, tbl.edges, tbl.nodes=NULL)
 addGraphFromJsonFile <- function(session, jsonFilename)
 {
    g.json <- readLines(jsonFilename)
-   browser()
    session$sendCustomMessage(type="addGraph", message=list(graph=g.json))
 
 } # addGraphFromJSON
