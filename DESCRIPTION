@@ -1,11 +1,11 @@
 Package: cyjShiny
 Title: cyjShiny
-Version: 0.99.39
-Date: 2019-05-26
+Version: 0.99.40
+Date: 2019-06-18
 Author: Omar Shah, Paul Shannon
 Maintainer: Paul Shannon <pshannon@systemsbiology.org>
 Description: This package provides cytoscape.js as a shiny widget.
-Depends: R (>= 3.5.0), htmlwidgets, shiny, jsonlite, graph
+Depends: R (>= 3.5.0), htmlwidgets, shiny, jsonlite, graph, base64enc
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

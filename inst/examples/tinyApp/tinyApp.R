@@ -20,6 +20,9 @@ graph.json <- dataFramesToJSON(tbl.edges, tbl.nodes)
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
 
+  tags$head(
+     tags$style("#cyjShiny{height:95vh !important;}")),
+
   sidebarLayout(
      sidebarPanel(
         actionButton("selectRandomNodeButton", "Select random node"),
@@ -28,6 +31,8 @@ ui = shinyUI(fluidPage(
                     choices=c("Default" = "basicStyle.js", "Biological"="biologicalStyle.js")),
         h6("Send random node 'lfc' attributes (visible only with Biological Style, mapped to color):"),
         actionButton("randomNodeAttributes", "Send"),
+        h6("Try out png-saving capability, using the currently displayed network"),
+        actionButton("savePNGbutton", "Save PNG to 'foo.png'"),
         width=3
         ),
      mainPanel(
@@ -56,10 +61,30 @@ server = function(input, output, session) {
       setNodeAttributes(session, attributeName="lfc", nodes=nodeNames, newValues)
       })
 
-  output$value <- renderPrint({ input$action })
-  output$cyjShiny <- renderCyjShiny(
-    cyjShiny(graph=graph.json, layoutName="cola", style_file="basicStyle.js")
-    )
+   output$value <- renderPrint({ input$action })
+   output$cyjShiny <- renderCyjShiny(
+     cyjShiny(graph=graph.json, layoutName="cola", style_file="basicStyle.js")
+     )
+
+   observeEvent(input$savePNGbutton, ignoreInit=TRUE, {
+     file.name <- tempfile(fileext=".png")
+     savePNGtoFile(session, file.name)
+     })
+
+   observeEvent(input$pngData, ignoreInit=TRUE, {
+     printf("received pngData")
+     png.parsed <- fromJSON(input$pngData)
+     substr(png.parsed, 1, 30) # [1] "data:image/png;base64,iVBORw0K"
+     nchar(png.parsed)  # [1] 768714
+     png.parsed.headless <- substr(png.parsed, 23, nchar(png.parsed))  # chop off the uri header
+     png.parsed.binary <- base64decode(png.parsed.headless)
+     printf("writing png to foo.png")
+     conn <- file("foo.png", "wb")
+     writeBin(png.parsed.binary, conn)
+     close(conn)
+
+     })
+
 
 } # server
 #----------------------------------------------------------------------------------------------------

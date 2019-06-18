@@ -1,5 +1,6 @@
 #' @importFrom jsonlite toJSON fromJSON
 #' @importFrom htmlwidgets createWidget shinyWidgetOutput shinyRenderWidget
+#' @importFrom base64enc base64decode
 #' @import shiny
 #'
 #' @title cyjShiny
@@ -457,6 +458,22 @@ selectFirstNeighbors <- function(session)
 clearSelection <- function(session)
 {
    session$sendCustomMessage(type="clearSelection", message=list())
+
+} # clearSelection
+#------------------------------------------------------------------------------------------------------------------------
+#' save a png rendering of the current network view to the specified filename
+#'
+#' @param session a Shiny Server session object.
+#' @param filename a character string
+#'
+#' @aliases savePNGtoFile
+#' @rdname savePNGtoFile
+#'
+#' @export
+#'
+savePNGtoFile <- function(session, filename)
+{
+   session$sendCustomMessage(type="savePNGtoFile", message=list(filename))
 
 } # clearSelection
 #------------------------------------------------------------------------------------------------------------------------

@@ -289,3 +289,11 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("loadStyle", function(me
     });
 
 //------------------------------------------------------------------------------------------------------------------------
+if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("savePNGtoFile", function(message){
+
+   log("savePNGtoFile: " + message);
+   var pngJSON = JSON.stringify(window.cyj.png());
+   Shiny.setInputValue("pngData", pngJSON, {priority: "event"});
+
+})
+//------------------------------------------------------------------------------------------------------------------------
