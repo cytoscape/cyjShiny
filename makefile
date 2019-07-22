@@ -1,3 +1,5 @@
+basic: npm docs install
+
 all:  npm docs install build check
 
 docs:

@@ -461,6 +461,51 @@ clearSelection <- function(session)
 
 } # clearSelection
 #------------------------------------------------------------------------------------------------------------------------
+#' invertSelection all selected nodes and their edges are hidden
+#'
+#' @param session a Shiny Server session object.
+#'
+#' @aliases invertSelection
+#' @rdname invertSelection
+#'
+#' @export
+#'
+invertSelection <- function(session)
+{
+   session$sendCustomMessage(type="invertSelection", message=list())
+
+} # invertSelection
+#------------------------------------------------------------------------------------------------------------------------
+#' hideSelection all selected nodes and their edges are hidden
+#'
+#' @param session a Shiny Server session object.
+#'
+#' @aliases hideSelection
+#' @rdname hideSelection
+#'
+#' @export
+#'
+hideSelection <- function(session)
+{
+   session$sendCustomMessage(type="hideSelection", message=list())
+
+} # hideSelection
+#------------------------------------------------------------------------------------------------------------------------
+#' showAll all selected nodes and their edges are hidden
+#'
+#' @param session a Shiny Server session object.
+#'
+#' @aliases showAll
+#' @rdname showAll
+#'
+#' @export
+#'
+showAll <- function(session)
+{
+   session$sendCustomMessage(type="showAll", message=list())
+
+} # showAll
+#------------------------------------------------------------------------------------------------------------------------
 #' save a png rendering of the current network view to the specified filename
 #'
 #' @param session a Shiny Server session object.

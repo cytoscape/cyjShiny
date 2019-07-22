@@ -237,6 +237,29 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("clearSelection", functi
 
 })
 //------------------------------------------------------------------------------------------------------------------------
+if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("showAll", function(message){
+
+    log("showAll requested: " + message);
+    self.cyj.nodes().show()
+    self.cyj.edges().show()
+
+})
+//------------------------------------------------------------------------------------------------------------------------
+if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("invertSelection", function(message){
+
+    log("invertSelection requested: " + message);
+    var currentlySelected = self.cyj.filter("node:selected");
+    self.cyj.nodes().select();
+    currentlySelected.unselect();
+})
+//------------------------------------------------------------------------------------------------------------------------
+if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("hideSelection", function(message){
+
+    log("hideSelection requested: " + message);
+    self.cyj.filter("node:selected").hide();
+
+})
+//------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("getSelectedNodes", function(message){
 
     log("getSelectedNodes requested: " + message);
