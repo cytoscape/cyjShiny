@@ -13,7 +13,7 @@
 #' @aliases cyjShiny
 #' @rdname cyjShiny
 #'
-#' @param graph an R graphNEL instance (igraph support coming soon).
+#' @param graph a graph in json format; converters from graphNEL and data.frame/s offered ("see also" below)
 #' @param layoutName character one of:"preset", "cose", "cola", "circle", "concentric", "breadthfirst", "grid", "random", "dagre", "cose-bilkent"
 #' @param style_file, default NULL, can name a standard javascript cytoscape.js style file
 #' @param width integer  initial width of the widget.
@@ -22,11 +22,29 @@
 #'
 #' @return a reference to an htmlwidget.
 #'
+#' @seealso \code{\link{dataFramesToJSON}}
+#' @seealso \code{\link{graphNELtoJSON}}
 #'
 #' @examples
-#' \dontrun{
-#'   output$cyjShiny <- renderCyjShiny(cyjShiny(graph))
-#' }
+#'   tbl.nodes <- data.frame(id=c("A", "B", "C"),
+#'                           type=c("kinase", "TF", "glycoprotein"),
+#'                           lfc=c(-3, 1, 1),
+#'                           count=c(0, 0, 0),
+#'                           stringsAsFactors=FALSE)
+#'
+#'   tbl.edges <- data.frame(source=c("A", "B", "C"),
+#'                           target=c("B", "C", "A"),
+#'                           interaction=c("phosphorylates", "synthetic lethal", "unknown"),
+#'                           stringsAsFactors=FALSE)
+#'
+#'   graph.json.v1 <- dataFramesToJSON(tbl.edges) #  simple legitimate graph, nodes implied, but no node attributes
+#'   graph.json.v2 <- dataFramesToJSON(tbl.edges, tbl.nodes) # nodes and edges both explicit,  attributes specified
+#'
+#'   g <- graphNEL(nodes=c("A","B","C"), edgemode="directed")
+#'   g <- addEdge("A", "B", g)
+#'   graph.json.v3 <- graphNELtoJSON(g)
+#'
+#'   #output$cyjShiny <- renderCyjShiny(cyjShiny(graph.json.v[123]))
 #'
 #' @export
 

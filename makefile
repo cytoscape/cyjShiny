@@ -17,7 +17,7 @@ install:
 	(cd ..; R CMD INSTALL --no-test-load cyjShiny)
 
 check:
-	(cd ..; R CMD check `ls -t cyjShiny_* | head -1`)
+	(cd ..; R CMD check --no-vignettes --no-manual `ls -t cyjShiny_* | head -1`)
 
 biocCheck:
 	(cd ..; R CMD BiocCheck `ls -t cyjShiny_* | head -1`)

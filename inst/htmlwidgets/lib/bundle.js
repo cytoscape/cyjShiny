@@ -2118,8 +2118,9 @@ var requestAnimationFrame = function requestAnimationFrame(fn) {
 };
 var performanceNow = pnow;
 
+var DEFAULT_SEED = 5381;
 var hashIterableInts = function hashIterableInts(iterator) {
-  var seed = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 5381;
+  var seed = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : DEFAULT_SEED;
   // djb2/string-hash
   var hash = seed;
   var entry;
@@ -2131,15 +2132,15 @@ var hashIterableInts = function hashIterableInts(iterator) {
       break;
     }
 
-    hash = hash * 33 ^ entry.value;
+    hash = (hash << 5) + hash + entry.value | 0;
   }
 
-  return hash >>> 0;
+  return hash;
 };
 var hashInt = function hashInt(num) {
-  var seed = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 5381;
+  var seed = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : DEFAULT_SEED;
   // djb2/string-hash
-  return (seed * 33 ^ num) >>> 0;
+  return (seed << 5) + seed + num | 0;
 };
 var hashIntsArray = function hashIntsArray(ints, seed) {
   var entry = {
@@ -2574,6 +2575,13 @@ var Element = function Element(cy, params, restore) {
       source: null,
       target: null,
       main: null
+    },
+    arrowBounds: {
+      // bounds cache of edge arrows
+      source: null,
+      target: null,
+      'mid-source': null,
+      'mid-target': null
     }
   };
 
@@ -3018,7 +3026,7 @@ var elesfn$3 = {
     var popFromOpenSet = function popFromOpenSet() {
       cMin = openSet.pop();
       cMinId = cMin.id();
-      openSetIds.delete(cMinId);
+      openSetIds["delete"](cMinId);
     };
 
     var isInOpenSet = function isInOpenSet(id) {
@@ -3898,6 +3906,32 @@ var expandBoundingBox = function expandBoundingBox(bb) {
   bb.h = bb.y2 - bb.y1;
   return bb;
 };
+var expandBoundingBoxSides = function expandBoundingBoxSides(bb) {
+  var padding = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0];
+  var top, right, bottom, left;
+
+  if (padding.length === 1) {
+    top = right = bottom = left = padding[0];
+  } else if (padding.length === 2) {
+    top = bottom = padding[0];
+    left = right = padding[1];
+  } else if (padding.length === 4) {
+    var _padding = _slicedToArray(padding, 4);
+
+    top = _padding[0];
+    right = _padding[1];
+    bottom = _padding[2];
+    left = _padding[3];
+  }
+
+  bb.x1 -= left;
+  bb.x2 += right;
+  bb.y1 -= top;
+  bb.y2 += bottom;
+  bb.w = bb.x2 - bb.x1;
+  bb.h = bb.y2 - bb.y1;
+  return bb;
+};
 
 var assignBoundingBox = function assignBoundingBox(bb1, bb2) {
   bb1.x1 = bb2.x1;
@@ -4103,6 +4137,12 @@ var solveCubic = function solveCubic(a, b, c, d, result) {
   // r is the real component, i is the imaginary component
   // An implementation of the Cardano method from the year 1545
   // http://en.wikipedia.org/wiki/Cubic_function#The_nature_of_the_roots
+  var epsilon = 0.00001; // avoid division by zero while keeping the overall expression close in value
+
+  if (a === 0) {
+    a = epsilon;
+  }
+
   b /= a;
   c /= a;
   d /= a;
@@ -7729,7 +7769,7 @@ var elesfn$d = {
           eleClasses.add(cls);
           changedNow = true;
         } else if (!toggle || toggleUndefd && hasClass) {
-          eleClasses.delete(cls);
+          eleClasses["delete"](cls);
           changedNow = true;
         }
 
@@ -9963,12 +10003,7 @@ elesfn$j.updateCompoundBounds = function () {
         bottom: parent.pstyle('min-height-bias-bottom')
       }
     };
-
-    var takesUpSpace = function takesUpSpace(ele) {
-      return ele.pstyle('display').value === 'element';
-    };
-
-    var bb = children.filter(takesUpSpace).boundingBox({
+    var bb = children.boundingBox({
       includeLabels: includeLabels,
       includeOverlays: false,
       // updating the compound bounds happens outside of the regular
@@ -10325,18 +10360,25 @@ var boundingBoxImpl = function boundingBoxImpl(ele, options) {
   var headless = cy.headless();
   var bounds = makeBoundingBox();
   var _p = ele._private;
-  var display = styleEnabled ? ele.pstyle('display').value : 'element';
   var isNode = ele.isNode();
   var isEdge = ele.isEdge();
   var ex1, ex2, ey1, ey2; // extrema of body / lines
 
   var x, y; // node pos
 
-  var displayed = display !== 'none';
   var rstyle = _p.rstyle;
-  var manualExpansion = isNode && styleEnabled ? ele.pstyle('bounds-expansion').pfValue : 0;
+  var manualExpansion = isNode && styleEnabled ? ele.pstyle('bounds-expansion').pfValue : [0]; // must use `display` prop only, as reading `compound.width()` causes recursion
+  // (other factors like width values will be considered later in this function anyway)
+
+  var isDisplayed = function isDisplayed(ele) {
+    return ele.pstyle('display').value !== 'none';
+  };
+
+  var displayed = !styleEnabled || isDisplayed(ele) // must take into account connected nodes b/c of implicit edge hiding on display:none node
+  && (!isEdge || isDisplayed(ele.source()) && isDisplayed(ele.target()));
 
   if (displayed) {
+    // displayed suffices, since we will find zero area eles anyway
     var overlayOpacity = 0;
     var overlayPadding = 0;
 
@@ -10483,7 +10525,7 @@ var boundingBoxImpl = function boundingBoxImpl(ele, options) {
 
     var bbBody = _p.bodyBounds = _p.bodyBounds || {};
     assignBoundingBox(bbBody, bounds);
-    expandBoundingBox(bbBody, manualExpansion);
+    expandBoundingBoxSides(bbBody, manualExpansion);
     expandBoundingBox(bbBody, 1); // expand to work around browser dimension inaccuracies
     // overlay
     //////////
@@ -10499,7 +10541,7 @@ var boundingBoxImpl = function boundingBoxImpl(ele, options) {
 
     var bbOverlay = _p.overlayBounds = _p.overlayBounds || {};
     assignBoundingBox(bbOverlay, bounds);
-    expandBoundingBox(bbOverlay, manualExpansion);
+    expandBoundingBoxSides(bbOverlay, manualExpansion);
     expandBoundingBox(bbOverlay, 1); // expand to work around browser dimension inaccuracies
     // handle label dimensions
     //////////////////////////
@@ -10513,11 +10555,18 @@ var boundingBoxImpl = function boundingBoxImpl(ele, options) {
     }
 
     if (styleEnabled && options.includeLabels) {
-      updateBoundsFromLabel(bounds, ele, null);
+      if (options.includeMainLabels) {
+        updateBoundsFromLabel(bounds, ele, null);
+      }
 
       if (isEdge) {
-        updateBoundsFromLabel(bounds, ele, 'source');
-        updateBoundsFromLabel(bounds, ele, 'target');
+        if (options.includeSourceLabels) {
+          updateBoundsFromLabel(bounds, ele, 'source');
+        }
+
+        if (options.includeTargetLabels) {
+          updateBoundsFromLabel(bounds, ele, 'target');
+        }
       }
     } // style enabled for labels
 
@@ -10532,7 +10581,7 @@ var boundingBoxImpl = function boundingBoxImpl(ele, options) {
   bounds.h = noninf(bounds.y2 - bounds.y1);
 
   if (bounds.w > 0 && bounds.h > 0 && displayed) {
-    expandBoundingBox(bounds, manualExpansion); // expand bounds by 1 because antialiasing can increase the visual/effective size by 1 on all sides
+    expandBoundingBoxSides(bounds, manualExpansion); // expand bounds by 1 because antialiasing can increase the visual/effective size by 1 on all sides
 
     expandBoundingBox(bounds, 1);
   }
@@ -10551,6 +10600,9 @@ var getKey = function getKey(opts) {
   key += tf(opts.incudeNodes);
   key += tf(opts.includeEdges);
   key += tf(opts.includeLabels);
+  key += tf(opts.includeMainLabels);
+  key += tf(opts.includeSourceLabels);
+  key += tf(opts.includeTargetLabels);
   key += tf(opts.includeOverlays);
   return key;
 };
@@ -10573,6 +10625,7 @@ var getBoundingBoxPosKey = function getBoundingBoxPosKey(ele) {
 var cachedBoundingBoxImpl = function cachedBoundingBoxImpl(ele, opts) {
   var _p = ele._private;
   var bb;
+  var isEdge = ele.isEdge();
   var key = opts == null ? defBbOptsKey : getKey(opts);
   var usingDefOpts = key === defBbOptsKey;
   var currPosKey = getBoundingBoxPosKey(ele);
@@ -10642,7 +10695,21 @@ var cachedBoundingBoxImpl = function cachedBoundingBoxImpl(ele, opts) {
     }
 
     if (opts.includeLabels) {
-      updateBoundsFromBox(bb, _p.labelBounds.all);
+      if (opts.includeMainLabels && (!isEdge || opts.includeSourceLabels && opts.includeTargetLabels)) {
+        updateBoundsFromBox(bb, _p.labelBounds.all);
+      } else {
+        if (opts.includeMainLabels) {
+          updateBoundsFromBox(bb, _p.labelBounds.main);
+        }
+
+        if (opts.includeSourceLabels) {
+          updateBoundsFromBox(bb, _p.labelBounds.source);
+        }
+
+        if (opts.includeTargetLabels) {
+          updateBoundsFromBox(bb, _p.labelBounds.target);
+        }
+      }
     }
 
     bb.w = bb.x2 - bb.x1;
@@ -10656,6 +10723,9 @@ var defBbOpts = {
   includeNodes: true,
   includeEdges: true,
   includeLabels: true,
+  includeMainLabels: true,
+  includeSourceLabels: true,
+  includeTargetLabels: true,
   includeOverlays: true,
   useCache: true
 };
@@ -10663,9 +10733,10 @@ var defBbOptsKey = getKey(defBbOpts);
 var filledBbOpts = defaults(defBbOpts);
 
 elesfn$j.boundingBox = function (options) {
-  // the main usecase is ele.boundingBox() for a single element with no/def options
+  var bounds; // the main usecase is ele.boundingBox() for a single element with no/def options
   // specified s.t. the cache is used, so check for this case to make it faster by
   // avoiding the overhead of the rest of the function
+
   if (this.length === 1 && this[0]._private.bbCache != null && (options === undefined || options.useCache === undefined || options.useCache === true)) {
     if (options === undefined) {
       options = defBbOpts;
@@ -10673,32 +10744,32 @@ elesfn$j.boundingBox = function (options) {
       options = filledBbOpts(options);
     }
 
-    return cachedBoundingBoxImpl(this[0], options);
-  }
+    bounds = cachedBoundingBoxImpl(this[0], options);
+  } else {
+    bounds = makeBoundingBox();
+    options = options || defBbOpts;
+    var opts = filledBbOpts(options);
+    var eles = this;
+    var cy = eles.cy();
+    var styleEnabled = cy.styleEnabled();
 
-  var bounds = makeBoundingBox();
-  options = options || defBbOpts;
-  var opts = filledBbOpts(options);
-  var eles = this;
-  var cy = eles.cy();
-  var styleEnabled = cy.styleEnabled();
-
-  if (styleEnabled) {
-    for (var i = 0; i < eles.length; i++) {
-      var ele = eles[i];
-      var _p = ele._private;
-      var currPosKey = getBoundingBoxPosKey(ele);
-      var isPosKeySame = _p.bbCachePosKey === currPosKey;
-      var useCache = opts.useCache && isPosKeySame;
-      ele.recalculateRenderedStyle(useCache);
+    if (styleEnabled) {
+      for (var i = 0; i < eles.length; i++) {
+        var ele = eles[i];
+        var _p = ele._private;
+        var currPosKey = getBoundingBoxPosKey(ele);
+        var isPosKeySame = _p.bbCachePosKey === currPosKey;
+        var useCache = opts.useCache && isPosKeySame;
+        ele.recalculateRenderedStyle(useCache);
+      }
     }
-  }
 
-  this.updateCompoundBounds();
+    this.updateCompoundBounds();
 
-  for (var _i = 0; _i < eles.length; _i++) {
-    var _ele = eles[_i];
-    updateBoundsFromBox(bounds, cachedBoundingBoxImpl(_ele, opts));
+    for (var _i = 0; _i < eles.length; _i++) {
+      var _ele = eles[_i];
+      updateBoundsFromBox(bounds, cachedBoundingBoxImpl(_ele, opts));
+    }
   }
 
   bounds.x1 = noninf(bounds.x1);
@@ -10716,6 +10787,16 @@ elesfn$j.dirtyBoundingBoxCache = function () {
     _p.bbCache = null;
     _p.bbCacheShift.x = _p.bbCacheShift.y = 0;
     _p.bbCachePosKey = null;
+    _p.bodyBounds = null;
+    _p.overlayBounds = null;
+    _p.labelBounds.all = null;
+    _p.labelBounds.source = null;
+    _p.labelBounds.target = null;
+    _p.labelBounds.main = null;
+    _p.arrowBounds.source = null;
+    _p.arrowBounds.target = null;
+    _p.arrowBounds['mid-source'] = null;
+    _p.arrowBounds['mid-target'] = null;
   }
 
   this.emitAndNotify('bounds');
@@ -10887,6 +10968,16 @@ elesfn$k.padding = function () {
   } else {
     return ele.pstyle('padding').pfValue;
   }
+};
+
+elesfn$k.paddedHeight = function () {
+  var ele = this[0];
+  return ele.height() + 2 * ele.padding();
+};
+
+elesfn$k.paddedWidth = function () {
+  var ele = this[0];
+  return ele.width() + 2 * ele.padding();
 };
 
 var widthHeight = elesfn$k;
@@ -11731,7 +11822,7 @@ var elesfn$m = {
     var map = _p.map; // remove ele
 
     this[i] = undefined;
-    map.delete(id);
+    map["delete"](id);
     var unmergedLastEle = i === this.length - 1; // replace empty spot with last ele in collection
 
     if (this.length > 1 && !unmergedLastEle) {
@@ -12074,19 +12165,32 @@ var elesfn$p = {
   // Calculates and returns node dimensions { x, y } based on options given
   layoutDimensions: function layoutDimensions(options) {
     options = getLayoutDimensionOptions(options);
+    var dims;
 
-    if (options.nodeDimensionsIncludeLabels) {
+    if (!this.takesUpSpace()) {
+      dims = {
+        w: 0,
+        h: 0
+      };
+    } else if (options.nodeDimensionsIncludeLabels) {
       var bbDim = this.boundingBox();
-      return {
+      dims = {
         w: bbDim.w,
         h: bbDim.h
       };
     } else {
-      return {
+      dims = {
         w: this.outerWidth(),
         h: this.outerHeight()
       };
+    } // sanitise the dimensions for external layouts (avoid division by zero)
+
+
+    if (dims.w === 0 || dims.h === 0) {
+      dims.w = dims.h = 1;
     }
+
+    return dims;
   },
   // using standard layout options, apply position function (w/ or w/o animation)
   layoutPositions: function layoutPositions(layout, options, fn) {
@@ -15451,7 +15555,7 @@ styfn.applyContextStyle = function (cxtMeta, cxtStyle, ele) {
       } else {
         cxtProp = {
           name: diffPropName,
-          delete: true
+          "delete": true
         };
       }
     } // save cycles when the context prop doesn't need to be applied
@@ -15532,12 +15636,14 @@ styfn.updateStyleHints = function (ele) {
   }; // - hashing works on 32 bit ints b/c we use bitwise ops
   // - small numbers get cut off (e.g. 0.123 is seen as 0 by the hashing function)
   // - raise up small numbers so more significant digits are seen by hashing
-  // - make small numbers negative to avoid collisions -- most style values are positive numbers
+  // - make small numbers larger than a normal value to avoid collisions
   // - works in practice and it's relatively cheap
 
 
+  var N = 2000000000;
+
   var cleanNum = function cleanNum(val) {
-    return -128 < val && val < 128 && Math.floor(val) !== val ? -(val * 1024 | 0) : val;
+    return -128 < val && val < 128 && Math.floor(val) !== val ? N - (val * 1024 | 0) : val;
   };
 
   for (var _i = 0; _i < propNames.length; _i++) {
@@ -15692,7 +15798,7 @@ styfn.applyParsedProperty = function (ele, parsedProp) {
     prop = parsedProp = this.parse(parsedProp.name, 'bezier', propIsBypass);
   }
 
-  if (prop.delete) {
+  if (prop["delete"]) {
     // delete the property and use the default value on falsey value
     style[prop.name] = undefined;
     checkTriggers();
@@ -16966,6 +17072,15 @@ var styfn$6 = {};
     },
     gradientDirection: {
       enums: ['to-bottom', 'to-top', 'to-left', 'to-right', 'to-bottom-right', 'to-bottom-left', 'to-top-right', 'to-top-left', 'to-right-bottom', 'to-left-bottom', 'to-right-top', 'to-left-top']
+    },
+    boundsExpansion: {
+      number: true,
+      multiple: true,
+      min: 0,
+      validate: function validate(valArr) {
+        var length = valArr.length;
+        return length === 1 || length === 2 || length === 4;
+      }
     }
   };
   var diff = {
@@ -17263,7 +17378,7 @@ var styfn$6 = {};
     triggersBounds: diff.any
   }, {
     name: 'bounds-expansion',
-    type: t.size,
+    type: t.boundsExpansion,
     triggersBounds: diff.any
   }];
   var nodeBorder = [{
@@ -19876,7 +19991,7 @@ BreadthFirstLayout.prototype.run = function () {
 
       if (depth < eleDepth) {
         // only get influenced by elements above
-        percent += index / (nDepth - 1);
+        percent += index / nDepth;
         samples++;
       }
     }
@@ -23462,7 +23577,7 @@ BRp$3.findEdgeControlPoints = function (edges) {
       rs.srcIntn = passedPairInfo.srcIntn;
       rs.tgtIntn = passedPairInfo.tgtIntn;
 
-      if (hasCompounds && (src.isParent() || src.isChild() || tgt.isParent() || tgt.isChild()) && (src.parents().anySame(tgt) || tgt.parents().anySame(src) || src.same(tgt))) {
+      if (hasCompounds && (src.isParent() || src.isChild() || tgt.isParent() || tgt.isChild()) && (src.parents().anySame(tgt) || tgt.parents().anySame(src) || src.same(tgt) && src.isParent())) {
         _this.findCompoundLoopPoints(_edge, passedPairInfo, _i2, _edgeIsUnbundled);
       } else if (src === tgt) {
         _this.findLoopPoints(_edge, passedPairInfo, _i2, _edgeIsUnbundled);
@@ -24675,7 +24790,7 @@ BRp$b.getCachedImage = function (url, crossOrigin, onLoad) {
 };
 
 var BRp$c = {};
-/* global document, window */
+/* global document, window, ResizeObserver, MutationObserver */
 
 BRp$c.registerBinding = function (target, event, handler, useCapture) {
   // eslint-disable-line no-unused-vars
@@ -24930,7 +25045,8 @@ BRp$c.load = function () {
     }
   };
 
-  var haveMutationsApi = typeof MutationObserver !== 'undefined'; // watch for when the cy container is removed from the dom
+  var haveMutationsApi = typeof MutationObserver !== 'undefined';
+  var haveResizeObserverApi = typeof ResizeObserver !== 'undefined'; // watch for when the cy container is removed from the dom
 
   if (haveMutationsApi) {
     r.removeObserver = new MutationObserver(function (mutns) {
@@ -24978,6 +25094,12 @@ BRp$c.load = function () {
 
 
   r.registerBinding(window, 'resize', onResize); // eslint-disable-line no-undef
+
+  if (haveResizeObserverApi) {
+    r.resizeObserver = new ResizeObserver(onResize); // eslint-disable-line no-undef
+
+    r.resizeObserver.observe(r.container);
+  }
 
   var forEachUp = function forEachUp(domEle, fn) {
     while (domEle != null) {
@@ -27441,6 +27563,10 @@ BRp$f.destroy = function () {
     r.styleObserver.disconnect();
   }
 
+  if (r.resizeObserver) {
+    r.resizeObserver.disconnect();
+  }
+
   if (r.labelCalcDiv) {
     try {
       document.body.removeChild(r.labelCalcDiv); // eslint-disable-line no-undef
@@ -27587,7 +27713,7 @@ function () {
     key: "deleteIdForKey",
     value: function deleteIdForKey(key, id) {
       if (key != null) {
-        this.getIdsFor(key).delete(id);
+        this.getIdsFor(key)["delete"](id);
       }
     }
   }, {
@@ -27615,7 +27741,7 @@ function () {
       var id = ele.id();
       var prevKey = this.keyForId.get(id);
       this.deleteIdForKey(prevKey, id);
-      this.keyForId.delete(id);
+      this.keyForId["delete"](id);
     }
   }, {
     key: "keyHasChangedFor",
@@ -27697,7 +27823,7 @@ function () {
   }, {
     key: "deleteCache",
     value: function deleteCache(key, lvl) {
-      this.getCachesAt(lvl).delete(key);
+      this.getCachesAt(lvl)["delete"](key);
     }
   }, {
     key: "delete",
@@ -30434,8 +30560,8 @@ CRp$6.createGradientStyleFor = function (context, shapeStyleName, ele, fill, opa
         x: 0,
         y: 0
       } : ele.position(),
-          width = ele.width(),
-          height = ele.height();
+          width = ele.paddedWidth(),
+          height = ele.paddedHeight();
       gradientStyle = context.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, Math.max(width, height));
     }
   } else {
@@ -30449,8 +30575,8 @@ CRp$6.createGradientStyleFor = function (context, shapeStyleName, ele, fill, opa
         x: 0,
         y: 0
       } : ele.position(),
-          _width = ele.width(),
-          _height = ele.height(),
+          _width = ele.paddedWidth(),
+          _height = ele.paddedHeight(),
           halfWidth = _width / 2,
           halfHeight = _height / 2;
 
@@ -30466,11 +30592,11 @@ CRp$6.createGradientStyleFor = function (context, shapeStyleName, ele, fill, opa
           break;
 
         case 'to-left':
-          gradientStyle = context.createLinearGradient(_pos.x - halfWidth, _pos.y, _pos.x + halfWidth, _pos.y);
+          gradientStyle = context.createLinearGradient(_pos.x + halfWidth, _pos.y, _pos.x - halfWidth, _pos.y);
           break;
 
         case 'to-right':
-          gradientStyle = context.createLinearGradient(_pos.x + halfWidth, _pos.y, _pos.x - halfWidth, _pos.y);
+          gradientStyle = context.createLinearGradient(_pos.x - halfWidth, _pos.y, _pos.x + halfWidth, _pos.y);
           break;
 
         case 'to-bottom-right':
@@ -30833,7 +30959,7 @@ CRp$6.render = function (options) {
   }
 
   var extent = cy.extent();
-  var vpManip = r.pinching || r.hoverData.dragging || r.swipePanning || r.data.wheelZooming || r.hoverData.draggingEles;
+  var vpManip = r.pinching || r.hoverData.dragging || r.swipePanning || r.data.wheelZooming || r.hoverData.draggingEles || r.cy.animated();
   var hideEdges = r.hideEdgesOnViewport && vpManip;
   var needMbClear = [];
   needMbClear[r.NODE] = !needDraw[r.NODE] && motionBlur && !r.clearedForMotionBlur[r.NODE] || r.clearingMotionBlur;
@@ -32039,7 +32165,7 @@ sheetfn.appendToStyle = function (style) {
   return style;
 };
 
-var version = "3.8.1";
+var version = "3.10.0";
 
 var cytoscape = function cytoscape(options) {
   // if no options specified, use default
