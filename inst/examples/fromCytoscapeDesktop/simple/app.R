@@ -2,42 +2,19 @@ library(cyjShiny)
 library(later)
 #----------------------------------------------------------------------------------------------------
 styles <- c("",
-            "generic style"="basicStyle.js",
-            "style 01" = "style01.js")
+            "from Cytoscape desktop"="smallDemoStyle.json",
+            "generic style"="basicStyle.js")
 #----------------------------------------------------------------------------------------------------
-# create  data.frames for nodes, edges, and two simulated experimental variables, in 3 conditions
+# create  read json text for graph, two simulated experimental variables in data.frames, 3 conditions
 #----------------------------------------------------------------------------------------------------
-tbl.nodes <- data.frame(id=c("A", "B", "C"),
-                        type=c("kinase", "TF", "glycoprotein"),
-                        lfc=c(1, 1, 1),
-                        count=c(0, 0, 0),
-                        stringsAsFactors=FALSE)
-
-tbl.edges <- data.frame(source=c("A", "B", "C"),
-                        target=c("B", "C", "A"),
-                        interaction=c("phosphorylates", "synthetic lethal", "unknown"),
-                        stringsAsFactors=FALSE)
-
-graph.json <- dataFramesToJSON(tbl.edges, tbl.nodes)
-
-tbl.lfc <- data.frame(A=c(0,  1,   1,  -3),
-                      B=c(0,  3,   2,   3),
-                      C=c(0, -3,  -2,  -1),
-                      stringsAsFactors=FALSE)
-
-rownames(tbl.lfc) <- c("baseline", "cond1", "cond2", "cond3")
-
-tbl.count <- data.frame(A=c(1, 10,  100, 150),
-                        B=c(1, 5,   80,  3),
-                        C=c(1, 100, 50,  300),
-                        stringsAsFactors=FALSE)
-
-rownames(tbl.count) <- c("baseline", "cond1", "cond2", "cond3")
+json.filename <- "smallDemo.cyjs"
+graph.json <- paste(readLines(json.filename), collapse="")
 
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
 
-  tags$head(tags$style("#cyjShiny{height:95vh !important;}")),
+  tags$head(
+     tags$style("#cyjShiny{height:95vh !important;}")),
   sidebarLayout(
       sidebarPanel(
           selectInput("loadStyleFile", "Select Style: ", choices=styles),
@@ -54,8 +31,6 @@ ui = shinyUI(fluidPage(
                                 "cose-bilkent")),
 
 
-          selectInput("showCondition", "Select Condition:", choices=rownames(tbl.lfc)),
-          selectInput("selectName", "Select Node by ID:", choices = c("", sort(tbl.nodes$id))),
           actionButton("sfn", "Select First Neighbor"),
           actionButton("fit", "Fit Graph"),
           actionButton("fitSelected", "Fit Selected"),
@@ -65,9 +40,11 @@ ui = shinyUI(fluidPage(
           actionButton("addRandomGraphFromDataFramesButton", "Add Random Graph"), HTML("<br>"),
           actionButton("getSelectedNodes", "Get Selected Nodes"), HTML("<br><br>"),
           htmlOutput("selectedNodesDisplay"),
-          width=2
+          width=3
       ),
-      mainPanel(cyjShinyOutput('cyjShiny', height=400),width=10)
+      mainPanel(cyjShinyOutput('cyjShiny'),
+          width=9
+      )
   ) # sidebarLayout
 ))
 #----------------------------------------------------------------------------------------------------
@@ -75,19 +52,6 @@ server = function(input, output, session)
 {
     observeEvent(input$fit, ignoreInit=TRUE, {
        fit(session, 80)
-       })
-
-    observeEvent(input$showCondition, ignoreInit=TRUE, {
-       condition.name <- isolate(input$showCondition)
-       #printf(" condition.name: %s", condition.name)
-       values <- as.numeric(tbl.lfc[condition.name,])
-       node.names <- colnames(tbl.lfc)
-       #printf("sending lfc values for %s: %s", paste(node.names, collapse=", "), paste(values, collapse=", "))
-       setNodeAttributes(session, attributeName="lfc", nodes=node.names, values)
-       values <- as.numeric(tbl.count[condition.name,])
-       node.names <- colnames(tbl.count)
-       #printf("sending count values for %s: %s", paste(node.names, collapse=", "), paste(values, collapse=", "))
-       setNodeAttributes(session, attributeName="count", nodes=colnames(tbl.count), values)
        })
 
     observeEvent(input$loadStyleFile,  ignoreInit=TRUE, {
@@ -163,8 +127,6 @@ server = function(input, output, session)
         })
 
     observeEvent(input$selectedNodes, {
-          #  communicated here via assignement in cyjShiny.js
-          #     Shiny.setInputValue("selectedNodes", value, {priority: "event"});
         newNodes <- input$selectedNodes;
         output$selectedNodesDisplay <- renderText({
            paste(newNodes)

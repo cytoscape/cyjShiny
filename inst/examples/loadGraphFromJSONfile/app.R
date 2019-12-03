@@ -9,12 +9,17 @@ styles <- c("",
             "Hamid's style"="styleCancer_21July2017.js",
             "basic"="basicStyle.js")
 #----------------------------------------------------------------------------------------------------
-json.filename <- "celgene-unformatted.json"
+json.filename <- "celgene-formatted.json"
 json.filename <- "hamid.json"
-graphAsJSON <- readLines(json.filename)
+# graphAsJSON <- readLines(json.filename)
+graph.json.filename <- "smallDemo.cyjs"
+style.json.filename <- "smallDemoStyle.json"
+# graphAsJSON <- readAndStandardizeJSONNetworkFile(json.filename)
+# styleAsJSON <- readAndStandardizeJSONStyleFile(
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
 
+  tags$style("#cyjShiny{height:95vh !important;}"),
   sidebarLayout(
       sidebarPanel(
           selectInput("loadStyleFile", "Select Style: ", choices=styles),
@@ -142,7 +147,8 @@ server = function(input, output, session)
 
     output$value <- renderPrint({ input$action })
     output$cyjShiny <- renderCyjShiny({
-       cyjShiny(graph=graphAsJSON, layoutName="preset")
+       graphAsJSON <- readAndStandardizeJSONNetworkFile(graph.json.filename)
+       cyjShiny(graph=graphAsJSON, layoutName="breadthfirst", style_file=style.json.filename)
        })
 
 } # server

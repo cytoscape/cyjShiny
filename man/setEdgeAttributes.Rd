@@ -4,8 +4,14 @@
 \alias{setEdgeAttributes}
 \title{Assign the supplied edge attribute values to the graph structure contained in the browser.}
 \usage{
-setEdgeAttributes(session, attributeName, sourceNodes, targetNodes,
-  interactions, values)
+setEdgeAttributes(
+  session,
+  attributeName,
+  sourceNodes,
+  targetNodes,
+  interactions,
+  values
+)
 }
 \arguments{
 \item{session}{a Shiny Server session object.}

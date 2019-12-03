@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>cyjs &amp; dt</title>
+     <script type="text/javascript" language="javascript" src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+     <!-- script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.2.4/cytoscape.js"></script-->
+     <script src="cytoscape.min.js"></script>
+     <script src="network.js"></script>
+
+<style>
+#cyjs{
+  height: 1000px;
+  width: 95%;
+  }
+</style>
+
+<script>
+$(document).ready(function(){
+    console.log("document ready");
+    var dataString =
+            `{"nodes":[{"data":{"id":"n1"},"position":{"x":779.5, "y":500 }},
+                       {"data":{"id":"n2"},"position":{"x":979.5, "y":300 }}],
+              "edges":[{"data":{"source":"n1","target":"n2","id":"e1"}}]}`;
+    //var network = JSON.parse(dataString)
+    console.log(network)
+    options = {container: $('#cyjs'),
+               elements: network,
+               style: cytoscape.stylesheet()
+                   .selector('node').style({'background-color': '#ddd',
+                                            'label': 'data(id)', 
+                                            'text-valign': 'center',
+                                            'text-halign': 'center',
+                                            'border-width': 1})
+                   .selector('node:selected').style({'overlay-opacity': 0.2,
+                                                     'overlay-color': 'green'})
+                   .selector('edge').style({'line-color': 'black',
+                                            'target-arrow-shape': 'triangle',
+                                            'target-arrow-color': 'black',
+                                            'curve-style': 'bezier'})
+                   .selector('edge:selected').style({'overlay-opacity': 0.2,
+                                                     'overlay-color': 'gray'})
+                 }; // options
+    window.cy = cytoscape(options);
+    function resizeHandler(event){
+        $("#cyjs").height(window.innerHeight * 0.95);
+	cy.fit(300)
+        }
+    window.addEventListener("resize", resizeHandler, false)
+    setTimeout(function() {resizeHandler();}, 0);
+   }); // document.ready
+</script>
+
+</head>
+<body>
+<div id="cyjs"></div>
+
+</body>
+</html>

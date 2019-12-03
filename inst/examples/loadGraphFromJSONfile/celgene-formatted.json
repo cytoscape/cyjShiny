@@ -1,5 +1,4 @@
 {
-   "elements":{
       "nodes":[
          {
             "data":{
@@ -7130,4 +7129,3 @@
    "renderer":{
       "name":"canvas"
    }
-}

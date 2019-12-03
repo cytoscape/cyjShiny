@@ -9,6 +9,8 @@ styles <- c("",
 #----------------------------------------------------------------------------------------------------
 tbl.nodes <- data.frame(id=c("A", "B", "C"),
                         type=c("kinase", "TF", "glycoprotein"),
+                        xPos=c(0, 100, 200),
+                        yPos=c(200, 100, 0),
                         lfc=c(1, 1, 1),
                         count=c(0, 0, 0),
                         stringsAsFactors=FALSE)
@@ -49,6 +51,7 @@ ui = shinyUI(fluidPage(
                                 "concentric",
                                 "breadthfirst",
                                 "grid",
+                                "preset",
                                 "random",
                                 "dagre",
                                 "cose-bilkent")),
@@ -171,9 +174,13 @@ server = function(input, output, session)
            })
         })
 
-    output$value <- renderPrint({ input$action })
+    # output$value <- renderPrint({ input$action })
+
     output$cyjShiny <- renderCyjShiny({
-       cyjShiny(graph=graph.json, layoutName="cola")
+       printf(" renderCyjShiny invoked")
+       printf("graph.json:")
+       print(fromJSON(graph.json))
+       cyjShiny(graph=graph.json, layoutName="preset")
        })
 
 } # server

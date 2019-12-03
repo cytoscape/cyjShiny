@@ -65,11 +65,12 @@ cyjShiny <- function(graph, layoutName, style_file=NULL, width = NULL, height = 
       style = NULL
    } else {
       if(file.exists(style_file)){
-	     jsonText <- toJSON(fromJSON(style_file))   # very strict parser, no unquoted field names
-	     style <- list(json=jsonText)
+        #jsonText <- toJSON(fromJSON(style_file))   # very strict parser, no unquoted field names
+	jsonText <- readAndStandardizeJSONStyleFile(style_file)   # very strict parser, no unquoted field names
+	style <- list(json=jsonText)
       } else {
-              warning(sprintf("cannot read style file: %s, continuing with default", style_file))
-              style = NULL
+          warning(sprintf("cannot read style file: %s, continuing with default", style_file))
+          style = NULL
       }
    }
 
@@ -166,7 +167,8 @@ loadStyleFile <- function(filename)
       return();
       }
 
-   jsonText <- toJSON(fromJSON(filename))   # very strict parser, no unquoted field names
+   #jsonText <- toJSON(fromJSON(filename))   # very strict parser, no unquoted field names
+   jsonText <- readAndStandardizeJSONStyleFile(filename)
    #lines <- scan(filename, what=character(), strip.white=TRUE, quote="'")
    #jsonText <- paste(lines, collapse=" ")
    message <- list(json=jsonText)
@@ -319,8 +321,8 @@ setEdgeAttributes <- function(session, attributeName, sourceNodes, targetNodes, 
 
 doLayout <- function(session, strategy)
 {
-   stopifnot(strategy %in% c("cola", "cose", "circle", "concentric", "grid", "breadthfirst", "random",
-                             "dagre", "cose-bilkent"))
+   stopifnot(strategy %in% c("cola", "cose", "circle", "concentric", "grid", "breadthfirst",
+                             "preset", "random", "dagre", "cose-bilkent"))
 
    session$sendCustomMessage(type="doLayout", message=list(strategy=strategy))
 

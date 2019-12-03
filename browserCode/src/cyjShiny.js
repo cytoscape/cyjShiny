@@ -15,7 +15,7 @@ cytoscape.use(coseBilkent);
 
 $ = require('jquery');
 require('jquery-ui-bundle');
-// apparently two version of jquery loaded: by shiny, and just above
+// apparently two versions of jquery get loaded: by shiny, and just above
 // see https://api.jquery.com/jquery.noconflict/ and
 // this stackoverflow discussion: https://stackoverflow.com/questions/31227844/typeerror-datatable-is-not-a-function
 $.noConflict();
@@ -37,10 +37,11 @@ HTMLWidgets.widget({
 	var cyj;
 	return {
 	    renderValue: function(x, instance) {
-		log("---- ~/github/cyjsShiny/inst/browserCode/src/cyjShiny.js, renderValue")
-		var data = JSON.parse(x.graph);
-        var layoutName = x.layoutName;
-        var style = x.style;
+		log("---- ~/github/cyjsShiny/inst/browserCode/src/cyjShiny.js, renderValue");
+                log(x);
+                var data = x.graph;
+                var layoutName = x.layoutName;
+                var style = x.style;
 		log(data);
 		var cyDiv = el;
 		cyj = cytoscape({
@@ -98,7 +99,7 @@ HTMLWidgets.widget({
 		}) // cytoscape()
             }, // renderValue
             resize: function(newWidth, newHeight, instance){
-                  // automatically called onthe window resize event
+                  // automatically called on the window resize event
 		log("cyjShiny widget, resize: " + newWidth + ", " + newHeight)
 		//$("#cyjShiny").height(0.95 * window.innerHeight);
 		$("#cyjShiny").height(newHeight);
@@ -308,6 +309,7 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("loadStyle", function(me
 
     log("loading style");
     var styleSheet = message.json;
+    debugger;
     window.cyj.style(styleSheet);
     });
 

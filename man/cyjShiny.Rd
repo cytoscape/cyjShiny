@@ -5,8 +5,14 @@
 \title{cyjShiny
 cyjShiny}
 \usage{
-cyjShiny(graph, layoutName, style_file = NULL, width = NULL,
-  height = NULL, elementId = NULL)
+cyjShiny(
+  graph,
+  layoutName,
+  style_file = NULL,
+  width = NULL,
+  height = NULL,
+  elementId = NULL
+)
 }
 \arguments{
 \item{graph}{a graph in json format; converters from graphNEL and data.frame/s offered ("see also" below)}
