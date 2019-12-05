@@ -12,4 +12,6 @@ LazyData: true
 Collate:
    'graphsToJSON.R'
    'cyjShiny.R'
-RoxygenNote: 7.0.1
+VignetteBuilder:
+  knitr
+RoxygenNote: 7.0.2

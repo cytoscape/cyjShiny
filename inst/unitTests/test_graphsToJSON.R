@@ -559,12 +559,14 @@ test_readAndStandardizeJSONStyleFile <- function()
    file.1 <- system.file(package="cyjShiny", "extdata", "fromCytoscapeDesktop-3.7.2", "smallDemoStyle.json")
    checkTrue(file.exists(file.1))
    jsonText.1 <- readAndStandardizeJSONStyleFile(file.1)
-   checkEquals(substring(as.character(jsonText.1), 1, 13), "[{\"selector\":")
+   checkTrue("character" %in% is(jsonText.1))
+   checkEquals(substring(jsonText.1, 1, 13), "[{\"selector\":")
 
    file.2 <- system.file(package="cyjShiny", "extdata", "basicStyle.js")
    checkTrue(file.exists(file.2))
    jsonText.2 <- readAndStandardizeJSONStyleFile(file.2)
-   checkEquals(substring(as.character(jsonText.2), 1, 13), "[{\"selector\":")
+   checkTrue("character" %in% is(jsonText.2))
+   checkEquals(substring(jsonText.2, 1, 13), "[{\"selector\":")
 
 } # test_readAndStandardizeCytoscapeDesktopExportedStyle
 #----------------------------------------------------------------------------------------------------
@@ -588,13 +590,16 @@ test_readAndStandardizeJSONNetworkFile <- function()
    checkTrue(file.exists(file.3))
 
    jsonText.1 <- readAndStandardizeJSONNetworkFile(file.1)
-   checkEquals(substring(as.character(jsonText.1), 1, 22), "{\"elements\":{\"nodes\":[")
+   checkEquals(substring(jsonText.1, 1, 22), "{\"elements\":{\"nodes\":[")
+   checkTrue("character" %in% is(jsonText.1))
 
    jsonText.2 <- readAndStandardizeJSONNetworkFile(file.2)
-   checkEquals(substring(as.character(jsonText.2), 1, 22), "{\"elements\":{\"nodes\":[")
+   checkEquals(substr(jsonText.2, 1, 22), "{\"elements\":{\"nodes\":[")
+   checkTrue("character" %in% is(jsonText.2))
 
    jsonText.3 <- readAndStandardizeJSONNetworkFile(file.3)
-   checkEquals(substring(as.character(jsonText.3), 1, 22), "{\"elements\":{\"nodes\":[")
+   checkEquals(substring(jsonText.3, 1, 22), "{\"elements\":{\"nodes\":[")
+   checkTrue("character" %in% is(jsonText.3))
 
 } # test_readAndStandardizeJSONNetworkFile
 #----------------------------------------------------------------------------------------------------

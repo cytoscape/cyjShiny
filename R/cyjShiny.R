@@ -15,7 +15,7 @@
 #'
 #' @param graph a graph in json format; converters from graphNEL and data.frame/s offered ("see also" below)
 #' @param layoutName character one of:"preset", "cose", "cola", "circle", "concentric", "breadthfirst", "grid", "random", "dagre", "cose-bilkent"
-#' @param style_file, default NULL, can name a standard javascript cytoscape.js style file
+#' @param styleFile, default NULL, can name a standard javascript cytoscape.js style file
 #' @param width integer  initial width of the widget.
 #' @param height integer initial height of the widget.
 #' @param elementId string the DOM id into which the widget is rendered, default NULL is best.
@@ -48,7 +48,7 @@
 #'
 #' @export
 
-cyjShiny <- function(graph, layoutName, style_file=NULL, width = NULL, height = NULL, elementId = NULL)
+cyjShiny <- function(graph, layoutName, styleFile=NULL, width = NULL, height = NULL, elementId = NULL)
 {
    stopifnot(layoutName %in% c("preset",
                                "cose",
@@ -61,18 +61,14 @@ cyjShiny <- function(graph, layoutName, style_file=NULL, width = NULL, height = 
                                "dagre",
                                "cose-bilkent"))
 
-   if (is.null(style_file)) {
-      style = NULL
-   } else {
-      if(file.exists(style_file)){
-        #jsonText <- toJSON(fromJSON(style_file))   # very strict parser, no unquoted field names
-	jsonText <- readAndStandardizeJSONStyleFile(style_file)   # very strict parser, no unquoted field names
-	style <- list(json=jsonText)
-      } else {
-          warning(sprintf("cannot read style file: %s, continuing with default", style_file))
-          style = NULL
-      }
-   }
+   printf("--- styleFile: %s", styleFile)
+   defaultStyleFile <- system.file(package="cyjShiny", "extdata", "defaultStyle.json")
+   if (is.null(styleFile))
+      styleFile <- defaultSytleFile
+   stopifnot(file.exists(styleFile))
+
+   jsonText <- readAndStandardizeJSONStyleFile(styleFile)   # very strict parser, no unquoted field names
+   style <- list(json=jsonText)
 
    x <- list(graph=graph, layoutName=layoutName, style=style)
 

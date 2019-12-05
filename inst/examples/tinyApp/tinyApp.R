@@ -16,7 +16,7 @@ tbl.edges <- data.frame(source=c("A", "B", "C"),
                         interaction=c("phosphorylates", "synthetic lethal", "unknown"),
                         stringsAsFactors=FALSE)
 
-graph.json <- dataFramesToJSON(tbl.edges, tbl.nodes)
+graph.json <- toJSON(dataFramesToJSON(tbl.edges, tbl.nodes), auto_unbox=TRUE)
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
 
@@ -62,9 +62,12 @@ server = function(input, output, session) {
       })
 
    output$value <- renderPrint({ input$action })
-   output$cyjShiny <- renderCyjShiny(
+   output$cyjShiny <- renderCyjShiny({
+     printf("renderCyjShiny")
+     print(graph.json)
+     print(class(graph.json))
      cyjShiny(graph=graph.json, layoutName="cola", style_file="basicStyle.js")
-     )
+     })
 
    observeEvent(input$savePNGbutton, ignoreInit=TRUE, {
      file.name <- tempfile(fileext=".png")

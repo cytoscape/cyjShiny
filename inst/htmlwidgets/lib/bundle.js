@@ -95361,16 +95361,18 @@ HTMLWidgets.widget({
 	    renderValue: function(x, instance) {
 		log("---- ~/github/cyjsShiny/inst/browserCode/src/cyjShiny.js, renderValue");
                 log(x);
-                var data = x.graph;
+                var data = JSON.parse(x.graph);
                 var layoutName = x.layoutName;
-                var style = x.style;
+                var style = JSON.parse(x.style.json);
+                if (style == "default style")
+                    style = defaultStyle;
 		// log(data);
 		var cyDiv = el;
 		cyj = cytoscape({
 		    container: cyDiv,
 		    elements: data.elements,
 		    layout: {name: layoutName},
-		    style:  defaultStyle,
+		    style:  style, //defaultStyle,
 		    ready: function(){
                         log("cyjShiny cyjs ready");
 			//$("#cyjShiny").height(0.95*window.innerHeight);
@@ -95602,9 +95604,19 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("fit", function(message)
     self.cyj.fit(padding);
     });
 //------------------------------------------------------------------------------------------------------------------------
+// this can be confusing
+//   the message is a javascript object with one field: json
+//   that field's value is a character string representation of a graph
+//   parse that string into a JSON object, graph, which has one top-level field, "elements"
+//     and two immediate subfields:  nodes & edges
+//   add graph.elements to cytoscape.js ("cyj")
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("loadJSONNetwork", function(message) {
+
     window.cyj.remove(window.cyj.elements());
-    window.cyj.add(message.json.elements)
+    log("--- loadJSONNetwork")
+    window.msg = message;
+    var graph = JSON.parse(message.json)
+    window.cyj.add(graph.elements);
     window.cyj.fit(50)
     });
 
@@ -95612,10 +95624,12 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("loadJSONNetwork", funct
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("loadStyle", function(message) {
 
     log("loading style");
-    var styleSheet = message.json;
-    if(message.json == "default style")
-        styleSheet = defaultStyle;
-    window.cyj.style(styleSheet);
+    //var styleSheet = message.json;
+    log(message)
+    var style = JSON.parse(message.json)
+    if(style == "default style")
+        style = defaultStyle;
+    window.cyj.style(style);
     });
 
 //------------------------------------------------------------------------------------------------------------------------

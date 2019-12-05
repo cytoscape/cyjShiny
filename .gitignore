@@ -38,3 +38,5 @@ rsconnect/
 
 browserCode/node_modules/
 .Rproj.user
+doc
+Meta

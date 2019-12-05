@@ -218,10 +218,10 @@ readAndStandardizeJSONStyleFile <- function(filename)
     obj <- fromJSON(filename)   # very strict parser, no unquoted field names
 
     if("style" %in% names(obj))
-       return(toJSON(obj$style[[1]]))
+       return(as.character(toJSON(obj$style[[1]])))
 
     if("selector" %in% names(obj))
-       return(toJSON(obj))
+       return(as.character(toJSON(obj)))
 
     stop(sprintf("unrecognized JSON style file format in %s", filename))
 
@@ -242,13 +242,13 @@ readAndStandardizeJSONNetworkFile <- function(filename)
 
     if("elements" %in% names(obj)){
        obj <- obj["elements"]
-       return(toJSON(obj))
+       return(as.character(toJSON(obj)))
        }
 
     if(all(c("nodes", "edges") %in% names(obj))){
        x <- list()
        x$elements <- obj[c("nodes", "edges")]
-       return(toJSON(x))
+       return(as.character(toJSON(x)))
        }
 
     stop(sprintf("unrecognized JSON graph file format in %s", filename))

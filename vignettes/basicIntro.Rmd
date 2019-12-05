@@ -1,0 +1,71 @@
+---
+title: "cyjShiny Introduction: a simple demo"
+author: "Paul Shannon"
+package: igvR
+date: "`r Sys.Date()`"
+output:
+   BiocStyle::html_document
+vignette: >
+  %\VignetteIndexEntry{"cyjShiny Introduction: a simple demo"}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<style>
+.main-container { width: 1200px; max-width:2800px;}
+</style>
+
+
+```{r setup, include = FALSE}
+options(width=120)
+knitr::opts_chunk$set(
+   collapse = TRUE,
+   eval=interactive(),
+   echo=TRUE,
+   comment = "#>"
+)
+```
+
+
+# Load the libraries we need
+
+```{r loadLibraries,  results='hide'}
+library(shiny)
+library(cyjShiny)
+```
+
+Create the igvR instance, with all default parameters (portRange, quiet, title).  Javascript and HTML is loaded into
+your browser, igv.js is initialized, a websocket connection between your R process and that web page is constructed,
+over which subsequent commands and data will travel.
+
+```{r app code, prompt=TRUE, message=TRUE, results="show"}
+networks <- c("",
+              "tiny" = "simple/smallDemo.cyjs",
+              "galFiltered" = "galFiltered/galFiltered.cyjs")
+
+ui = shinyUI(fluidPage(
+
+  tags$style("#cyjShiny{height:95vh !important;}"),
+  sidebarLayout(
+      sidebarPanel(
+          selectInput("loadNetworkFile", "Select Network: ", choices=networks)
+          ),
+     mainPanel(cyjShinyOutput('cyjShiny'), width=10),
+     fluid=FALSE
+  ) # sidebarLayout
+))
+
+server = function(input, output, session){
+
+    observeEvent(input$loadNetworkFile,  ignoreInit=TRUE, {
+       print(" select network file")
+       })
+  }
+```
+
+```{r start app, prompt=TRUE, message=TRUE, results="show"}
+app <- shinyApp(ui = ui, server = server)
+app
+```
+
+

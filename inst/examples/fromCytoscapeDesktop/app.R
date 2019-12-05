@@ -15,9 +15,6 @@ networks <- c("",
               "galFiltered" = "galFiltered/galFiltered.cyjs")
 
 #----------------------------------------------------------------------------------------------------
-graph.json.filename <- "smallDemo.cyjs"
-style.json.filename <- "smallDemoStyle.json"
-
 graph.json.filename <- "galFiltered/galFiltered.cyjs"
 style.json.filename <- "galFiltered/galFiltered-style.json"
 
@@ -172,9 +169,9 @@ server = function(input, output, session)
     output$value <- renderPrint({ input$action })
     output$cyjShiny <- renderCyjShiny({
        graphAsJSON <- readAndStandardizeJSONNetworkFile(graph.json.filename)
-       cyjShiny(graph=graphAsJSON, layoutName="preset", style_file=style.json.filename)
+       cyjShiny(graph=graphAsJSON, layoutName="preset", styleFile=style.json.filename)
        })
 
 } # server
 #----------------------------------------------------------------------------------------------------
-app <- shinyApp(ui = ui, server = server)
+runApp(shinyApp(ui = ui, server = server))
