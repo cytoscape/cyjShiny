@@ -26,7 +26,7 @@ graphNELtoJSON <- function(g) #Copied from RCyjs/R/utils.R
     vec <- vector(mode="character", length=vector.count)
     i <- 1;
 
-    vec[i] <- '{"nodes": ['; i <- i + 1;
+    vec[i] <- '{"elements": {"nodes": ['; i <- i + 1;
     nodes <- nodes(g)
     edgeNames <- edgeNames(g)
     edges <- strsplit(edgeNames, "~")  # a list of pairs
@@ -83,6 +83,9 @@ graphNELtoJSON <- function(g) #Copied from RCyjs/R/utils.R
       } # if edgeCount > 0
 
    vec [i] <- "}"  # close the edges object
+   i <- i + 1;
+   vec [i] <- "}"  # close the elements object
+
    vec.trimmed <- vec [which(vec != "")]
 
    paste0(vec.trimmed, collapse=" ")
@@ -123,7 +126,7 @@ dataFramesToJSON <- function(tbl.edges, tbl.nodes=NULL)
    vec <- vector(mode="character", length=vector.count)
    i <- 1;
 
-   vec[i] <- '{"nodes": ['; i <- i + 1;
+   vec[i] <- '{"elements": {"nodes": ['; i <- i + 1;
 
 
    noa.names <- colnames(tbl.nodes)[-1]
@@ -167,8 +170,8 @@ dataFramesToJSON <- function(tbl.edges, tbl.nodes=NULL)
       } # if edgeCount > 0
 
    vec [i] <- "}"  # close the edges object
-   #i <- i + 1;
-   #vec [i] <- "}"  # close the elements object
+   i <- i + 1;
+   vec [i] <- "}"  # close the elements object
    vec.trimmed <- vec [which(vec != "")]
    paste0(vec.trimmed, collapse=" ")
 

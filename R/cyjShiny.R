@@ -142,6 +142,34 @@ renderCyjShiny <- function(expr, env = parent.frame(), quoted = FALSE)
 
 }
 #------------------------------------------------------------------------------------------------------------------------
+#' load a standard cytoscape.js JSON network file
+#'
+#' @param filename character string, either relative or absolute path.
+#'
+#' @return nothing
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'   loadNetworkFromJSONFile(system.file(package="cyjShiny", "extdata", "galFiltered.cyjs"))
+#' }
+#'
+#' @aliases loadNetworkFromJSONFile
+#' @rdname loadNetworkFromJSONFile
+#'
+#' @export
+
+loadNetworkFromJSONFile <- function(filename)
+{
+   jsonText <- readAndStandardizeJSONNetworkFile(filename)
+   message <- list(json=jsonText)
+
+   session <- shiny::getDefaultReactiveDomain()
+   session$sendCustomMessage("loadJSONNetwork", message)
+
+} # loadNetworkFromJSONFile
+#------------------------------------------------------------------------------------------------------------------------
 #' load a standard cytoscape.js style file
 #'
 #' @param filename character string, either relative or absolute path.
@@ -162,16 +190,17 @@ renderCyjShiny <- function(expr, env = parent.frame(), quoted = FALSE)
 
 loadStyleFile <- function(filename)
 {
-   if(!file.exists(filename)){
-      warning(sprintf("cannot read style file: %s", filename))
-      return();
-      }
+   if(filename == "default style"){
+      message <- list(json="default style")
+   }else{
+     if(!file.exists(filename)){
+        warning(sprintf("cannot read style file: %s", filename))
+        return();
+        }
+     jsonText <- readAndStandardizeJSONStyleFile(filename)
+     message <- list(json=jsonText)
+     } # else
 
-   #jsonText <- toJSON(fromJSON(filename))   # very strict parser, no unquoted field names
-   jsonText <- readAndStandardizeJSONStyleFile(filename)
-   #lines <- scan(filename, what=character(), strip.white=TRUE, quote="'")
-   #jsonText <- paste(lines, collapse=" ")
-   message <- list(json=jsonText)
    session <- shiny::getDefaultReactiveDomain()
    session$sendCustomMessage("loadStyle", message)
 

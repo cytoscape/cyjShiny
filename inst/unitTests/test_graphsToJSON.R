@@ -74,7 +74,7 @@ test_1669_3260 <- function(display=FALSE)
       } # display
 
 
-   g2 <- fromJSON(g.json, flatten=TRUE)
+   g2 <- fromJSON(g.json, flatten=TRUE)$elements
    checkEquals(lapply(g2, dim), list(nodes=c(11, 27), edges=c(14,4)))
 
    system.time(  # < 14 seconds elapsed: 1669 nodes, 3260 edges
@@ -87,7 +87,7 @@ test_1669_3260 <- function(display=FALSE)
       browseURL("cyjs-readNetworkFromFile.html")
       } # display
 
-   g2 <- fromJSON(g.json, flatten=TRUE)
+   g2 <- fromJSON(g.json, flatten=TRUE)$elements
    checkEquals(lapply(g2, dim), list(nodes=c(1669, 83), edges=c(3260, 4)))
 
  } # test_1669_3260
@@ -105,7 +105,7 @@ test_2_nodes_2_edges_no_attributes <- function(display=FALSE)
       browseURL("cyjs-readNetworkFromFile.html")
       } # display
 
-   g2 <- fromJSON(g.json, flatten=TRUE)
+   g2 <- fromJSON(g.json, flatten=TRUE)$elements
    tbl.nodes <- g2$nodes
    checkEquals(tbl.nodes$data.id, nodes(g))
    tbl.edges <- g2$edges
@@ -126,7 +126,7 @@ test_20_nodes_20_edges_no_attributes <- function(display=FALSE)
       browseURL("cyjs-readNetworkFromFile.html")
       } # display
 
-   g2 <- fromJSON(g.json, flatten=TRUE)
+   g2 <- fromJSON(g.json, flatten=TRUE)$elements
    tbl.nodes <- g2$nodes
    checkEquals(tbl.nodes$data.id, nodes(g))
    tbl.edges <- g2$edges
@@ -147,7 +147,7 @@ test_200_nodes_200_edges_no_attributes <- function(display=FALSE)
       browseURL("cyjs-readNetworkFromFile.html")
       } # display
 
-   g2 <- fromJSON(g.json, flatten=TRUE)
+   g2 <- fromJSON(g.json, flatten=TRUE)$elements
    tbl.nodes <- g2$nodes
    checkEquals(tbl.nodes$data.id, nodes(g))
    tbl.edges <- g2$edges
@@ -170,7 +170,7 @@ test_2000_nodes_2000_edges_no_attributes <- function(display=FALSE)
       browseURL("cyjs-readNetworkFromFile.html")
       } # display
 
-   g2 <- fromJSON(g.json, flatten=TRUE)
+   g2 <- fromJSON(g.json, flatten=TRUE)$elements
    tbl.nodes <- g2$nodes
    checkEquals(tbl.nodes$data.id, nodes(g))
    tbl.edges <- g2$edges
@@ -190,7 +190,7 @@ test_1_node <- function(display=FALSE)
       browseURL("cyjs-readNetworkFromFile.html")
       } # display
 
-   g2 <- fromJSON(g.json, flatten=TRUE)
+   g2 <- fromJSON(g.json, flatten=TRUE)$elements
    tbl.nodes <- g2$nodes
    checkEquals(tbl.nodes$data.id, nodes(g))
 
@@ -214,7 +214,7 @@ test_1_node_with_position <- function(display=FALSE)
       browseURL("cyjs-readNetworkFromFile.html")
       } # display
 
-   g2 <- fromJSON(g.json, flatten=TRUE)
+   g2 <- fromJSON(g.json, flatten=TRUE)$elements
    tbl.nodes <- g2$nodes
    checkEquals(tbl.nodes$data.id, nodes(g))
    checkEqualsNumeric(tbl.nodes$data.xPos,  3.1416, tol=1e-4)
@@ -237,7 +237,7 @@ test_2_nodes <- function(display=FALSE)
       browseURL("cyjs-readNetworkFromFile.html")
       } # display
 
-   g2 <- fromJSON(g.json, flatten=TRUE)
+   g2 <- fromJSON(g.json, flatten=TRUE)$elements
    tbl.nodes <- g2$nodes
    checkEquals(tbl.nodes$data.id, nodes(g))
 
@@ -258,7 +258,7 @@ test_2_nodes_1_edge <- function(display=FALSE)
       } # display
 
       #  flatten: automatically ‘flatten’ nested data frames into a single non-nested data frame
-   g2 <- fromJSON(g.json, flatten=TRUE)
+   g2 <- fromJSON(g.json, flatten=TRUE)$elements
    checkEquals(names(g2), c("nodes", "edges"))
    tbl.nodes <- g2$nodes
    checkEquals(dim(tbl.nodes), c(2,1))
@@ -289,7 +289,7 @@ test_1_node_2_attributes <- function(display=FALSE)
       browseURL("cyjs-readNetworkFromFile.html")
       } # display
 
-   g2 <- fromJSON(g.json, flatten=TRUE)
+   g2 <- fromJSON(g.json, flatten=TRUE)$elements
    tbl.nodes <- g2$nodes
    checkEquals(tbl.nodes$data.id, nodes(g))
    checkEquals(tbl.nodes$data.size, 99)
@@ -317,7 +317,7 @@ test_2_nodes_1_edge_2_edgeAttribute <- function(display=FALSE)
       } # display
 
       #  flatten: automatically ‘flatten’ nested data frames into a single non-nested data frame
-   g2 <- fromJSON(g.json, flatten=TRUE)
+   g2 <- fromJSON(g.json, flatten=TRUE)$elements
    checkEquals(names(g2), c("nodes", "edges"))
    tbl.nodes <- g2$nodes
    checkEquals(dim(tbl.nodes), c(2,1))
@@ -345,7 +345,7 @@ test_smallGraphWithAttributes <- function(display=FALSE)
       browseURL("cyjs-readNetworkFromFile.html")
       } # display
 
-   g2 <- fromJSON(g.json, flatten=TRUE)
+   g2 <- fromJSON(g.json, flatten=TRUE)$elements
    checkEquals(names(g2), c("nodes", "edges"))
    tbl.nodes <- g2$nodes
    tbl.edges <- g2$edges
@@ -414,7 +414,7 @@ test_dataFramesToJSON_edgeTableOnly_noExtraAttributes <- function(display)
                            stringsAsFactors=FALSE)
 
    g.json <- dataFramesToJSON(tbl.edges)
-   x <- fromJSON(g.json)
+   x <- fromJSON(g.json)$elements
    checkEquals(names(x), c("nodes", "edges"))
 
    tbl.nodes <- x$nodes$data
@@ -450,7 +450,7 @@ test_dataFramesToJSON_edgeTableOnly_orhpanNodeInNodeTable <- function(display)
                            stringsAsFactors=FALSE)
 
    g.json <- dataFramesToJSON(tbl.edges, tbl.nodes)
-   x <- fromJSON(g.json)
+   x <- fromJSON(g.json)$elements
    checkEquals(names(x), c("nodes", "edges"))
 
    tbl.nodes <- x$nodes$data
@@ -482,7 +482,7 @@ test_dataFramesToJSON_edgeTableOnly_addEdgeAttributes <- function(display)
                            stringsAsFactors=FALSE)
 
    g.json <- dataFramesToJSON(tbl.edges)
-   x <- fromJSON(g.json)
+   x <- fromJSON(g.json)$elements
    checkEquals(names(x), c("nodes", "edges"))
 
    tbl.nodes <- x$nodes$data
@@ -525,7 +525,7 @@ test_dataFramesToJSON_explicitNodePositions <- function(display)
                            stringsAsFactors=FALSE)
 
    g.json <- dataFramesToJSON(tbl.edges, tbl.nodes)
-   x <- fromJSON(g.json)
+   x <- fromJSON(g.json)$elements
    checkEquals(names(x), c("nodes", "edges"))
 
    tbl.nodes <- x$nodes$data

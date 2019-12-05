@@ -14,6 +14,10 @@ json.filename <- "hamid.json"
 # graphAsJSON <- readLines(json.filename)
 graph.json.filename <- "smallDemo.cyjs"
 style.json.filename <- "smallDemoStyle.json"
+
+graph.json.filename <- "../fromCytoscapeDesktop/galFiltered/galFiltered.cyjs"
+style.json.filename <- "../fromCytoscapeDesktop/galFiltered/galFiltered-style.json"
+
 # graphAsJSON <- readAndStandardizeJSONNetworkFile(json.filename)
 # styleAsJSON <- readAndStandardizeJSONStyleFile(
 #----------------------------------------------------------------------------------------------------
@@ -148,7 +152,7 @@ server = function(input, output, session)
     output$value <- renderPrint({ input$action })
     output$cyjShiny <- renderCyjShiny({
        graphAsJSON <- readAndStandardizeJSONNetworkFile(graph.json.filename)
-       cyjShiny(graph=graphAsJSON, layoutName="breadthfirst", style_file=style.json.filename)
+       cyjShiny(graph=graphAsJSON, layoutName="preset", style_file=style.json.filename)
        })
 
 } # server

@@ -95315,35 +95315,7 @@ __webpack_require__(31);
 // this stackoverflow discussion: https://stackoverflow.com/questions/31227844/typeerror-datatable-is-not-a-function
 $.noConflict();
 //----------------------------------------------------------------------------------------------------
-var executionMode = "devel";
-const log = function(msg)
-{
-  if(executionMode == "devel")
-      console.log(msg);
-}
-//----------------------------------------------------------------------------------------------------
-HTMLWidgets.widget({
-
-    name: 'cyjShiny',
-    type: 'output',
-
-    factory: function(el, allocatedWidth, allocatedHeight) {
-        log("---- entering factory, initial dimensions: " + allocatedWidth + ", " + allocatedHeight);
-	var cyj;
-	return {
-	    renderValue: function(x, instance) {
-		log("---- ~/github/cyjsShiny/inst/browserCode/src/cyjShiny.js, renderValue");
-                log(x);
-                var data = x.graph;
-                var layoutName = x.layoutName;
-                var style = x.style;
-		log(data);
-		var cyDiv = el;
-		cyj = cytoscape({
-		    container: cyDiv,
-		    elements: data.elements,
-		    layout: {name: layoutName},
-		    style:  [{selector: 'node', css: {
+var defaultStyle = [{selector: 'node', css: {
                         'text-valign': 'center',
                         'text-halign': 'center',
                         'content': 'data(id)',
@@ -95368,7 +95340,37 @@ HTMLWidgets.widget({
                         'overlay-color': 'gray',
                         'overlay-opacity': 0.4
                         }}
-                        ],
+                   ];
+//----------------------------------------------------------------------------------------------------
+var executionMode = "devel";
+const log = function(msg)
+{
+  if(executionMode == "devel")
+      console.log(msg);
+}
+//----------------------------------------------------------------------------------------------------
+HTMLWidgets.widget({
+
+    name: 'cyjShiny',
+    type: 'output',
+
+    factory: function(el, allocatedWidth, allocatedHeight) {
+        log("---- entering factory, initial dimensions: " + allocatedWidth + ", " + allocatedHeight);
+	var cyj;
+	return {
+	    renderValue: function(x, instance) {
+		log("---- ~/github/cyjsShiny/inst/browserCode/src/cyjShiny.js, renderValue");
+                log(x);
+                var data = x.graph;
+                var layoutName = x.layoutName;
+                var style = x.style;
+		// log(data);
+		var cyDiv = el;
+		cyj = cytoscape({
+		    container: cyDiv,
+		    elements: data.elements,
+		    layout: {name: layoutName},
+		    style:  defaultStyle,
 		    ready: function(){
                         log("cyjShiny cyjs ready");
 			//$("#cyjShiny").height(0.95*window.innerHeight);
@@ -95600,11 +95602,19 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("fit", function(message)
     self.cyj.fit(padding);
     });
 //------------------------------------------------------------------------------------------------------------------------
+if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("loadJSONNetwork", function(message) {
+    window.cyj.remove(window.cyj.elements());
+    window.cyj.add(message.json.elements)
+    window.cyj.fit(50)
+    });
+
+//------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("loadStyle", function(message) {
 
     log("loading style");
     var styleSheet = message.json;
-    debugger;
+    if(message.json == "default style")
+        styleSheet = defaultStyle;
     window.cyj.style(styleSheet);
     });
 

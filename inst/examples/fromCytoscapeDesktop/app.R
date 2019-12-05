@@ -1,42 +1,36 @@
+library(shiny)
 library(cyjShiny)
+library(htmlwidgets)
+library(graph)
+library(jsonlite)
 library(later)
 #----------------------------------------------------------------------------------------------------
 styles <- c("",
-            "generic style"="basicStyle.js",
-            "style 01" = "style01.js")
+            "default style" = "default style",
+            "simple" = "simple/smallDemoStyle.json",
+            "galFiltered"="galFiltered/galFiltered-style.json")
+
+networks <- c("",
+              "tiny" = "simple/smallDemo.cyjs",
+              "galFiltered" = "galFiltered/galFiltered.cyjs")
+
 #----------------------------------------------------------------------------------------------------
-# create  read json text for graph, two simulated experimental variables in data.frames, 3 conditions
-#----------------------------------------------------------------------------------------------------
-json.filename <- "simpleGraph.json"
-graph.json <- paste(readLines(json.filename), collapse="")
+graph.json.filename <- "smallDemo.cyjs"
+style.json.filename <- "smallDemoStyle.json"
 
-tbl.lfc <- data.frame(A=c(0, 1,   1, -3),
-                      B=c(0, 3,   2,  3),
-                      C=c(0, -3, -2, -1),
-                      stringsAsFactors=FALSE)
+graph.json.filename <- "galFiltered/galFiltered.cyjs"
+style.json.filename <- "galFiltered/galFiltered-style.json"
 
-rownames(tbl.lfc) <- c("baseline", "cond1", "cond2", "cond3")
-
-tbl.count <- data.frame(A=c(1, 10,  100, 150),
-                        B=c(1, 5,   80,  3),
-                        C=c(1, 100, 50,  300),
-                        stringsAsFactors=FALSE)
-rownames(tbl.count) <- c("baseline", "cond1", "cond2", "cond3")
-
-tbl.interactionScores <- data.frame(sourceNode=c("A", "B", "C"),
-                                    targetNode=c("B", "C", "A"),
-                                    interaction=c("phosphorylates", "synthetic lethal", "unknown"),
-                                    baseline=c(0, 0, 0),
-                                    cond1=c(-1, 3, 10),
-                                    cond2=c(10, -1, 3),
-                                    cond3=c(20, 25, 30),
-                                    stringsAsFactors=FALSE)
+graph.json.filename <- "simple/smallDemo.cyjs"
+style.json.filename <- "simple/smallDemoStyle.json"
 
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
 
+  tags$style("#cyjShiny{height:95vh !important;}"),
   sidebarLayout(
       sidebarPanel(
+          selectInput("loadNetworkFile", "Select Network: ", choices=networks),
           selectInput("loadStyleFile", "Select Style: ", choices=styles),
           selectInput("doLayout", "Select Layout:",
                       choices=c("",
@@ -51,22 +45,21 @@ ui = shinyUI(fluidPage(
                                 "cose-bilkent")),
 
 
-          selectInput("showCondition", "Select Condition:", choices=rownames(tbl.lfc)),
-          selectInput("selectName", "Select Node by ID:", choices = c("", colnames(tbl.lfc))),
+          #selectInput("setNodeAttributes", "Select Condition:", choices=condition),
+          #selectInput("selectName", "Select Node by ID:", choices = c("", nodes(g))),
           actionButton("sfn", "Select First Neighbor"),
           actionButton("fit", "Fit Graph"),
           actionButton("fitSelected", "Fit Selected"),
           actionButton("clearSelection", "Clear Selection"), HTML("<br>"),
-          #actionButton("loopConditions", "Loop Conditions"), HTML("<br>"),
+          actionButton("loopConditions", "Loop Conditions"), HTML("<br>"),
           actionButton("removeGraphButton", "Remove Graph"), HTML("<br>"),
           actionButton("addRandomGraphFromDataFramesButton", "Add Random Graph"), HTML("<br>"),
           actionButton("getSelectedNodes", "Get Selected Nodes"), HTML("<br><br>"),
           htmlOutput("selectedNodesDisplay"),
-          width=3
+          width=2
       ),
-      mainPanel(cyjShinyOutput('cyjShiny'),
-          width=9
-      )
+     mainPanel(cyjShinyOutput('cyjShiny'), width=10),
+     fluid=FALSE
   ) # sidebarLayout
 ))
 #----------------------------------------------------------------------------------------------------
@@ -76,22 +69,26 @@ server = function(input, output, session)
        fit(session, 80)
        })
 
-    observeEvent(input$showCondition, ignoreInit=TRUE, {
-       condition.name <- isolate(input$showCondition)
+    observeEvent(input$setNodeAttributes, ignoreInit=TRUE, {
+       attribute <- "lfc"
+       expression.vector <- switch(input$setNodeAttributes,
+                                   "gal1RGexp" = tbl.mrna$gal1RGexp,
+                                   "gal4RGexp" = tbl.mrna$gal4RGexp,
+                                   "gal80Rexp" = tbl.mrna$gal80Rexp)
+       setNodeAttributes(session, attributeName=attribute, nodes=yeastGalactodeNodeIDs, values=expression.vector)
+       })
 
-       values <- as.numeric(tbl.lfc[condition.name,])
-       node.names <- colnames(tbl.lfc)
-       setNodeAttributes(session, attributeName="lfc", nodes=node.names, values)
-       values <- as.numeric(tbl.count[condition.name,])
-       node.names <- colnames(tbl.count)
-       setNodeAttributes(session, attributeName="count", nodes=colnames(tbl.count), values)
-
-       setEdgeAttributes(session,
-                         attributeName="score",
-                         sourceNodes=tbl.interactionScores$sourceNode,
-                         targetNodes=tbl.interactionScores$targetNode,
-                         interactions=tbl.interactionScores$interaction,
-                         values=tbl.interactionScores[, condition.name])
+    observeEvent(input$loadNetworkFile,  ignoreInit=TRUE, {
+       filename <- input$loadNetworkFile
+       if(filename != ""){
+          tryCatch({
+             loadNetworkFromJSONFile(filename)
+             }, error=function(e) {
+                msg <- sprintf("ERROR in network file '%s': %s", input$loadNetworkFile, e$message)
+                showNotification(msg, duration=NULL, type="error")
+                })
+           later(function() {updateSelectInput(session, "loadNetworkFile", selected=character(0))}, 0.5)
+          }
        })
 
     observeEvent(input$loadStyleFile,  ignoreInit=TRUE, {
@@ -136,16 +133,13 @@ server = function(input, output, session)
        })
 
     observeEvent(input$loopConditions, ignoreInit=TRUE, {
-        condition.names <- rownames(tbl.lfc)
-        for(condition.name in condition.names[-1]){
-           #browser()
-           lfc.vector <- as.numeric(tbl.lfc[condition.name,])
-           node.names <- rownames(tbl.lfc)
-           setNodeAttributes(session, attributeName="lfc", nodes=node.names, values=lfc.vector)
-           #updateSelectInput(session, "setNodeAttributes", selected=condition.name)
+        condition.names <- c("gal1RGexp", "gal4RGexp", "gal80Rexp")
+        for(condition.name in condition.names){
+           expression.vector <- tbl.mrna[, condition.name]
+           setNodeAttributes(session, attributeName="lfc", nodes=yeastGalactodeNodeIDs, values=expression.vector)
            Sys.sleep(1)
            } # for condition.name
-        updateSelectInput(session, "setNodeAttributes", selected="baseline")
+        updateSelectInput(session, "setNodeAttributes", selected="gal1RGexp")
         })
 
     observeEvent(input$removeGraphButton, ignoreInit=TRUE, {
@@ -163,6 +157,8 @@ server = function(input, output, session)
         tbl.nodes <- data.frame(id=all.nodes,
                                 type=rep("unspecified", length(all.nodes)),
                                 stringsAsFactors=FALSE)
+        print(tbl.nodes)
+        print(tbl.edges)
         addGraphFromDataFrame(session, tbl.edges, tbl.nodes)
         })
 
@@ -175,7 +171,8 @@ server = function(input, output, session)
 
     output$value <- renderPrint({ input$action })
     output$cyjShiny <- renderCyjShiny({
-       cyjShiny(graph=graph.json, layoutName="cola")
+       graphAsJSON <- readAndStandardizeJSONNetworkFile(graph.json.filename)
+       cyjShiny(graph=graphAsJSON, layoutName="preset", style_file=style.json.filename)
        })
 
 } # server
