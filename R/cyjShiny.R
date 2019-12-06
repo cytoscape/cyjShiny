@@ -63,7 +63,7 @@ cyjShiny <- function(graph, layoutName, styleFile=NULL, width = NULL, height = N
 
    defaultStyleFile <- system.file(package="cyjShiny", "extdata", "defaultStyle.json")
    if (is.null(styleFile))
-      styleFile <- defaultSytleFile
+      styleFile <- defaultStyleFile
    stopifnot(file.exists(styleFile))
 
    jsonText <- readAndStandardizeJSONStyleFile(styleFile)   # very strict parser, no unquoted field names

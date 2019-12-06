@@ -9,9 +9,17 @@ styles <- c("",
 #----------------------------------------------------------------------------------------------------
 tbl.nodes <- data.frame(id=c("A", "B", "C"),
                         type=c("kinase", "TF", "glycoprotein"),
+                        xPos=c(0, 100, 800),
+                        yPos=c(200, 100, 150),
                         lfc=c(1, 1, 1),
                         count=c(0, 0, 0),
                         stringsAsFactors=FALSE)
+
+#tbl.nodes <- data.frame(id=c("A", "B", "C"),
+#                        type=c("kinase", "TF", "glycoprotein"),
+#                        lfc=c(1, 1, 1),
+#                        count=c(0, 0, 0),
+#                        stringsAsFactors=FALSE)
 
 tbl.edges <- data.frame(source=c("A", "B", "C"),
                         target=c("B", "C", "A"),
@@ -173,9 +181,9 @@ server = function(input, output, session)
 
     output$value <- renderPrint({ input$action })
     output$cyjShiny <- renderCyjShiny({
-       cyjShiny(graph=graph.json, layoutName="cola")
+       cyjShiny(graph=graph.json, layoutName="preset")
        })
 
 } # server
 #----------------------------------------------------------------------------------------------------
-app <- shinyApp(ui = ui, server = server)
+runApp(shinyApp(ui = ui, server = server))

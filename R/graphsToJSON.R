@@ -141,6 +141,14 @@ dataFramesToJSON <- function(tbl.edges, tbl.nodes=NULL)
          nodeList <- c(nodeList, as.list(tbl.nodes[n, -1, drop=FALSE]))
       nodeList.json <- toJSON(nodeList, auto_unbox=TRUE)
       vec[i] <- nodeList.json; i <- i + 1
+         # any position information?
+      if(all(c("xPos", "yPos") %in% colnames(tbl.nodes))){
+         position.markup <- sprintf(', "position": {"x": %f, "y": %f}',
+                                    tbl.nodes[n, "xPos"], tbl.nodes[n, "yPos"])
+         vec[i] <- position.markup
+         i <- i + 1
+         }
+
       if(n != nodeCount){
           vec [i] <- "},"; i <- i + 1 # sprintf("%s},", x)  # another node coming, add a comma
           }

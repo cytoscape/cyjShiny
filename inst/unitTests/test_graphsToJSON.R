@@ -35,7 +35,25 @@ runTests <- function(display=FALSE)
    test_readAndStandardizeJSONStyleFile()
    test_readAndStandardizeJSONNetworkFile()
 
-   runDataFrameTests()
+   test_1669_3260(display)
+   test_2_nodes_2_edges_no_attributes(display)
+   test_20_nodes_20_edges_no_attributes(display)
+   test_200_nodes_200_edges_no_attributes(display)
+   test_2000_nodes_2000_edges_no_attributes(display)
+   test_1_node(display)
+   test_1_node_with_position(display)
+   test_2_nodes(display)
+   test_2_nodes_1_edge(display)
+   test_1_node_2_attributes(display)
+   test_2_nodes_1_edge_2_edgeAttribute(display)
+   test_smallGraphWithAttributes(display)
+   test_dataFramesToJSON_edgeTableOnly_noExtraAttributes(display)
+   test_dataFramesToJSON_edgeTableOnly_orhpanNodeInNodeTable(display)
+   test_dataFramesToJSON_edgeTableOnly_addEdgeAttributes(display)
+   test_dataFramesToJSON_explicitNodePositions(display)
+   test_readAndStandardizeJSONStyleFile()
+   test_readAndStandardizeJSONNetworkFile()
+
 
 } # runTests
 #------------------------------------------------------------------------------------------------------------------------
@@ -64,7 +82,7 @@ createTestGraph <- function(nodeCount, edgeCount)
 #----------------------------------------------------------------------------------------------------
 test_1669_3260 <- function(display=FALSE)
 {
-   printf("--- test_1669_3260")
+   message(sprintf("--- test_1669_3260"))
    g.json <- graphNELtoJSON(g.small)
 
    if(display){
@@ -94,7 +112,7 @@ test_1669_3260 <- function(display=FALSE)
 #------------------------------------------------------------------------------------------------------------------------
 test_2_nodes_2_edges_no_attributes <- function(display=FALSE)
 {
-   printf("--- test_2_nodes_2_edges_no_attributes")
+   message(sprintf("--- test_2_nodes_2_edges_no_attributes"))
 
    g <- createTestGraph(2, 2)
    g.json <- graphNELtoJSON(g)
@@ -115,7 +133,7 @@ test_2_nodes_2_edges_no_attributes <- function(display=FALSE)
 #------------------------------------------------------------------------------------------------------------------------
 test_20_nodes_20_edges_no_attributes <- function(display=FALSE)
 {
-   printf("--- test_20_nodes_20_edges_no_attributes")
+   message(sprintf("--- test_20_nodes_20_edges_no_attributes"))
 
    g <- createTestGraph(20, 20)
    g.json <- graphNELtoJSON(g)
@@ -136,7 +154,7 @@ test_20_nodes_20_edges_no_attributes <- function(display=FALSE)
 #------------------------------------------------------------------------------------------------------------------------
 test_200_nodes_200_edges_no_attributes <- function(display=FALSE)
 {
-   printf("--- test_200_nodes_200_edges_no_attributes")
+   message(sprintf("--- test_200_nodes_200_edges_no_attributes"))
 
    g <- createTestGraph(200, 200)
    g.json <- graphNELtoJSON(g)
@@ -157,7 +175,7 @@ test_200_nodes_200_edges_no_attributes <- function(display=FALSE)
 #------------------------------------------------------------------------------------------------------------------------
 test_2000_nodes_2000_edges_no_attributes <- function(display=FALSE)
 {
-   printf("--- test_2000_nodes_2000_edges_no_attributes")
+   message(sprintf("--- test_2000_nodes_2000_edges_no_attributes"))
 
    print(system.time({   # 4 seconds
       g <- createTestGraph(2000, 2000)
@@ -180,7 +198,7 @@ test_2000_nodes_2000_edges_no_attributes <- function(display=FALSE)
 #------------------------------------------------------------------------------------------------------------------------
 test_1_node <- function(display=FALSE)
 {
-   printf("--- test_1_node")
+   message(sprintf("--- test_1_node"))
    g <- graphNEL(nodes="A", edgemode="directed")
    g.json <- graphNELtoJSON(g)
 
@@ -198,7 +216,7 @@ test_1_node <- function(display=FALSE)
 #------------------------------------------------------------------------------------------------------------------------
 test_1_node_with_position <- function(display=FALSE)
 {
-   printf("--- test_1_node_with_position")
+   message(sprintf("--- test_1_node_with_position"))
 
    g <- graphNEL(nodes="A", edgemode="directed")
    nodeDataDefaults(g, "xPos") <- 0
@@ -226,7 +244,7 @@ test_1_node_with_position <- function(display=FALSE)
 #------------------------------------------------------------------------------------------------------------------------
 test_2_nodes <- function(display=FALSE)
 {
-   printf("--- test_2_nodes")
+   message(sprintf("--- test_2_nodes"))
 
    g <- graphNEL(nodes=c("A", "B"), edgemode="directed")
    g.json <- graphNELtoJSON(g)
@@ -245,7 +263,7 @@ test_2_nodes <- function(display=FALSE)
 #------------------------------------------------------------------------------------------------------------------------
 test_2_nodes_1_edge <- function(display=FALSE)
 {
-   printf("--- test_2_nodes_1_edge")
+   message(sprintf("--- test_2_nodes_1_edge"))
 
    g <- graphNEL(nodes=c("X", "Y"), edgemode="directed")
    g <- addEdge("X", "Y", g);
@@ -272,7 +290,7 @@ test_2_nodes_1_edge <- function(display=FALSE)
 #------------------------------------------------------------------------------------------------------------------------
 test_1_node_2_attributes <- function(display=FALSE)
 {
-   printf("--- test_1_node_2_attributse")
+   message(sprintf("--- test_1_node_2_attributse"))
 
    g <- graphNEL(nodes="A", edgemode="directed")
    nodeDataDefaults(g, "size") <- 0
@@ -299,7 +317,7 @@ test_1_node_2_attributes <- function(display=FALSE)
 #------------------------------------------------------------------------------------------------------------------------
 test_2_nodes_1_edge_2_edgeAttribute <- function(display=FALSE)
 {
-   printf("--- test_2_nodes_2_edgeAttributes")
+   message(sprintf("--- test_2_nodes_2_edgeAttributes"))
 
    g <- graphNEL(nodes=c("X", "Y"), edgemode="directed")
    g <- addEdge("X", "Y", g);
@@ -335,7 +353,7 @@ test_2_nodes_1_edge_2_edgeAttribute <- function(display=FALSE)
 #------------------------------------------------------------------------------------------------------------------------
 test_smallGraphWithAttributes <- function(display=FALSE)
 {
-   printf("--- test_smallGraphWithAttributes")
+   message(sprintf("--- test_smallGraphWithAttributes"))
    g <- simpleDemoGraph()
    g.json <- graphNELtoJSON(g)
 
@@ -406,7 +424,7 @@ simpleDemoGraph = function ()
 #----------------------------------------------------------------------------------------------------
 test_dataFramesToJSON_edgeTableOnly_noExtraAttributes <- function(display)
 {
-   printf("--- test_dataFramesToJSON_edgeTableOnly_noExtraAttributes")
+   message(sprintf("--- test_dataFramesToJSON_edgeTableOnly_noExtraAttributes"))
 
    tbl.edges <- data.frame(source=c("A"),
                            target=c("B"),
@@ -437,7 +455,7 @@ test_dataFramesToJSON_edgeTableOnly_noExtraAttributes <- function(display)
 #----------------------------------------------------------------------------------------------------
 test_dataFramesToJSON_edgeTableOnly_orhpanNodeInNodeTable <- function(display)
 {
-   printf("--- test_dataFramesToJSON_edgeTableOnly_orhpanNodeInNodeTable")
+   message(sprintf("--- test_dataFramesToJSON_edgeTableOnly_orhpanNodeInNodeTable"))
 
    tbl.edges <- data.frame(source=c("A"),
                            target=c("B"),
@@ -472,7 +490,7 @@ test_dataFramesToJSON_edgeTableOnly_orhpanNodeInNodeTable <- function(display)
 #----------------------------------------------------------------------------------------------------
 test_dataFramesToJSON_edgeTableOnly_addEdgeAttributes <- function(display)
 {
-   printf("--- test_dataFramesToJSON_edgeTableOnly_orhpanNodeInNodeTable")
+   message(sprintf("--- test_dataFramesToJSON_edgeTableOnly_orhpanNodeInNodeTable"))
 
    tbl.edges <- data.frame(source=c("A"),
                            target=c("B"),
@@ -509,7 +527,7 @@ test_dataFramesToJSON_edgeTableOnly_addEdgeAttributes <- function(display)
 #----------------------------------------------------------------------------------------------------
 test_dataFramesToJSON_explicitNodePositions <- function(display)
 {
-   printf("--- test_dataFramesToJSON_explicitNodePositions")
+   message(sprintf("--- test_dataFramesToJSON_explicitNodePositions"))
 
    tbl.nodes <- data.frame(id=c("A", "B", "C"),
                            type=c("kinase", "TF", "glycoprotein"),
@@ -527,6 +545,14 @@ test_dataFramesToJSON_explicitNodePositions <- function(display)
    g.json <- dataFramesToJSON(tbl.edges, tbl.nodes)
    x <- fromJSON(g.json)$elements
    checkEquals(names(x), c("nodes", "edges"))
+     # make sure the xPos and yPos were translated into
+     #   "position": {"x": 0.000000, "y": 200.000000}
+     # data members for each node.  this is visible as position.x, position.y colnames
+     # of the fromJSON result just above
+
+   checkTrue(all(c("x", "y") %in% colnames(x$nodes$position)))
+   checkEquals(x$nodes$position$x, c(0, 100, 200))
+   checkEquals(x$nodes$position$y, c(200, 100, 0))
 
    tbl.nodes <- x$nodes$data
    checkEquals(dim(tbl.nodes), c(3, 6))
@@ -603,3 +629,4 @@ test_readAndStandardizeJSONNetworkFile <- function()
 
 } # test_readAndStandardizeJSONNetworkFile
 #----------------------------------------------------------------------------------------------------
+if(!interactive()) runTests()
