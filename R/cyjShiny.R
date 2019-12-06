@@ -61,7 +61,6 @@ cyjShiny <- function(graph, layoutName, styleFile=NULL, width = NULL, height = N
                                "dagre",
                                "cose-bilkent"))
 
-   printf("--- styleFile: %s", styleFile)
    defaultStyleFile <- system.file(package="cyjShiny", "extdata", "defaultStyle.json")
    if (is.null(styleFile))
       styleFile <- defaultSytleFile
@@ -79,14 +78,9 @@ cyjShiny <- function(graph, layoutName, styleFile=NULL, width = NULL, height = N
       height = height,
       package = 'cyjShiny',
       elementId = elementId,
-      sizingPolicy = htmlwidgets::sizingPolicy(browser.fill=TRUE, )
-                                    # defaultWidth=500,
-                                    # defaultHeight=500,
-                                    # viewer.padding=0,
-                                    # viewer.suppress=FALSE,
-                                    # viewer.paneHeight=500,
-                                    # browser.fill=TRUE)
+      sizingPolicy = htmlwidgets::sizingPolicy(browser.fill=TRUE)
       )
+
 
 } # cyjShiny constructor
 #------------------------------------------------------------------------------------------------------------------------
@@ -184,18 +178,15 @@ loadNetworkFromJSONFile <- function(filename)
 #'
 #' @export
 
-loadStyleFile <- function(filename)
+loadStyleFile <- function(styleFile)
 {
-   if(filename == "default style"){
-      message <- list(json="default style")
-   }else{
-     if(!file.exists(filename)){
-        warning(sprintf("cannot read style file: %s", filename))
-        return();
-        }
-     jsonText <- readAndStandardizeJSONStyleFile(filename)
-     message <- list(json=jsonText)
-     } # else
+   if(styleFile == "default style")
+      styleFile <- system.file(package="cyjShiny", "extdata", "defaultStyle.json")
+
+   stopifnot(file.exists(styleFile))
+
+   jsonText <- readAndStandardizeJSONStyleFile(styleFile)   # very strict parser, no unquoted field names
+   message <- list(json=jsonText)
 
    session <- shiny::getDefaultReactiveDomain()
    session$sendCustomMessage("loadStyle", message)
@@ -402,7 +393,6 @@ setNodePositions <- function(session, tbl.positions)
 
 removeGraph <- function(session)
 {
-   message(sprintf("entering cyjShiny::removeGraph"))
    session$sendCustomMessage(type="removeGraph", message=list())
 
 } # removeGraph

@@ -4,7 +4,7 @@
 \alias{loadStyleFile}
 \title{load a standard cytoscape.js style file}
 \usage{
-loadStyleFile(filename)
+loadStyleFile(styleFile)
 }
 \arguments{
 \item{filename}{character string, either relative or absolute path.}

@@ -1,0 +1,65 @@
+[ {
+  "format_version" : "1.0",
+  "generated_by" : "cytoscape-3.7.2",
+  "target_cytoscapejs_version" : "~2.1",
+  "title" : "cytoscapeSimple",
+  "style" : [ {
+    "selector" : "node",
+    "css" : {
+      "background-color" : "rgb(255,255,255)",
+      "shape" : "ellipse",
+      "border-opacity" : 1.0,
+      "background-opacity" : 1.0,
+      "border-color" : "rgb(0,0,0)",
+      "font-size" : 12,
+      "text-opacity" : 1.0,
+      "text-valign" : "center",
+      "text-halign" : "center",
+      "width" : 50.0,
+      "color" : "rgb(153,0,102)",
+      "font-family" : "SansSerif",
+      "font-weight" : "normal",
+      "border-width" : 2.0,
+      "height" : 50.0,
+      "content" : "data(name)"
+    }
+  }, {
+    "selector" : "node:selected",
+    "css" : {
+      "background-color" : "rgb(255,255,0)"
+    }
+  }, {
+    "selector" : "edge",
+    "css" : {
+      "text-opacity" : 1.0,
+      "font-family" : "SansSerif",
+      "font-weight" : "normal",
+      "opacity" : 1.0,
+      "source-arrow-color" : "rgb(0,0,0)",
+      "width" : 1.0,
+      "content" : "",
+      "line-color" : "rgb(64,64,64)",
+      "line-style" : "solid",
+      "font-size" : 10,
+      "color" : "rgb(0,0,0)",
+      "source-arrow-shape" : "none",
+      "target-arrow-color" : "rgb(0,0,0)",
+      "target-arrow-shape" : "triangle"
+    }
+  }, {
+    "selector" : "edge[interaction = 'regulates']",
+    "css" : {
+      "line-color" : "rgb(0,51,255)"
+    }
+  }, {
+    "selector" : "edge[interaction = 'represses']",
+    "css" : {
+      "line-color" : "rgb(0,153,0)"
+    }
+  }, {
+    "selector" : "edge:selected",
+    "css" : {
+      "line-color" : "rgb(255,0,0)"
+    }
+  } ]
+} ]

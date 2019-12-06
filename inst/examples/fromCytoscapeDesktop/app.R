@@ -5,14 +5,16 @@ library(graph)
 library(jsonlite)
 library(later)
 #----------------------------------------------------------------------------------------------------
+demo.directory <- system.file(package="cyjShiny", "extdata", "demoGraphsAndStyles")
 styles <- c("",
             "default style" = "default style",
-            "simple" = "simple/smallDemoStyle.json",
-            "galFiltered"="galFiltered/galFiltered-style.json")
+            "simple"      = file.path(demo.directory, "smallDemoStyle.json"),
+            "galFiltered" = file.path(demo.directory, "galFiltered-style.json"))
 
 networks <- c("",
-              "tiny" = "simple/smallDemo.cyjs",
-              "galFiltered" = "galFiltered/galFiltered.cyjs")
+              "simple"      = file.path(demo.directory, "smallDemo.cyjs"),
+              "galFiltered" = file.path(demo.directory, "galFiltered.cyjs"))
+
 
 #----------------------------------------------------------------------------------------------------
 graph.json.filename <- "galFiltered/galFiltered.cyjs"
