@@ -24,7 +24,8 @@ $(document).ready(function(){
     //var network = JSON.parse(dataString)
     console.log(network)
     options = {container: $('#cyjs'),
-               elements: network,
+               elements: network.elements,
+               layout: {name: "preset"},
                style: cytoscape.stylesheet()
                    .selector('node').style({'background-color': '#ddd',
                                             'label': 'data(id)', 

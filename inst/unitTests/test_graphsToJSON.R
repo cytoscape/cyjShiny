@@ -19,29 +19,13 @@ if(!exists("g.small")){
 #------------------------------------------------------------------------------------------------------------------------
 runTests <- function(display=FALSE)
 {
-   test_1_node(display)
-   test_1_node_with_position(display)
-   test_2_nodes(display)
-   test_2_nodes_1_edge(display)
-   test_1_node_2_attributes(display)
-   test_2_nodes_1_edge_2_edgeAttribute(display)
-   test_smallGraphWithAttributes(display)
-   test_2_nodes_2_edges_no_attributes(display)
-   test_20_nodes_20_edges_no_attributes(display)
-   test_200_nodes_200_edges_no_attributes(display)
-   test_2000_nodes_2000_edges_no_attributes(display)
-   test_1669_3260(display)
-
-   test_readAndStandardizeJSONStyleFile()
-   test_readAndStandardizeJSONNetworkFile()
-
    test_1669_3260(display)
    test_2_nodes_2_edges_no_attributes(display)
    test_20_nodes_20_edges_no_attributes(display)
    test_200_nodes_200_edges_no_attributes(display)
    test_2000_nodes_2000_edges_no_attributes(display)
    test_1_node(display)
-   test_1_node_with_position(display)
+   test_3_nodes_with_position(display)
    test_2_nodes(display)
    test_2_nodes_1_edge(display)
    test_1_node_2_attributes(display)
@@ -53,7 +37,6 @@ runTests <- function(display=FALSE)
    test_dataFramesToJSON_explicitNodePositions(display)
    test_readAndStandardizeJSONStyleFile()
    test_readAndStandardizeJSONNetworkFile()
-
 
 } # runTests
 #------------------------------------------------------------------------------------------------------------------------
@@ -214,15 +197,19 @@ test_1_node <- function(display=FALSE)
 
 } # test_1_node
 #------------------------------------------------------------------------------------------------------------------------
-test_1_node_with_position <- function(display=FALSE)
+test_3_nodes_with_position <- function(display=FALSE)
 {
-   message(sprintf("--- test_1_node_with_position"))
+   message(sprintf("--- test_3_nodes_with_position"))
 
-   g <- graphNEL(nodes="A", edgemode="directed")
+     #-------------------------------------------------------------------------------------
+     # first test the old-style (pre-2020) position attributes, which are still supported:
+     #-------------------------------------------------------------------------------------
+
+   g <- graphNEL(nodes=c("A", "B", "C"), edgemode="directed")
    nodeDataDefaults(g, "xPos") <- 0
    nodeDataDefaults(g, "yPos") <- 0
-   nodeData(g, n="A", "xPos") <- pi
-   nodeData(g, n="A", "yPos") <- cos(pi)
+   nodeData(g, n=c("A", "B", "C"), attr="xPos") <- c(100,200,300)
+   nodeData(g, n=c("A", "B", "C"), "yPos") <- c(100,200,300)
 
    g.json <- graphNELtoJSON(g)
 
@@ -232,15 +219,39 @@ test_1_node_with_position <- function(display=FALSE)
       browseURL("cyjs-readNetworkFromFile.html")
       } # display
 
-   g2 <- fromJSON(g.json, flatten=TRUE)$elements
+     #--------------------------------------------------------
+     # now test the new, more simply named position attributes
+     #--------------------------------------------------------
+
+   g1 <- graphNEL(nodes=c("A", "B", "C"), edgemode="directed")
+   nodeDataDefaults(g1, "x") <- 0
+   nodeDataDefaults(g1, "y") <- 0
+   nodeData(g1, n=c("A", "B", "C"), attr="x") <- c(100, 200, 300)
+   nodeData(g1, n=c("A", "B", "C"), "y") <- c(300, 200, 100)
+
+   g1.json <- graphNELtoJSON(g1)
+
+   if(display){
+      writeLines(sprintf("network = %s", g1.json), "network.js")
+      Sys.sleep(10)
+      browseURL("cyjs-readNetworkFromFile.html")
+      } # display
+
+      #--------------------------------------------------------------
+      # g1 has node positions in the "x" and "y" node attributes
+      # graphNELtoJSON(g1) copies them into a position data structure
+      # here we test that the same values are place in each
+      #--------------------------------------------------------------
+
+   g2 <- fromJSON(g1.json, flatten=TRUE)$elements
    tbl.nodes <- g2$nodes
    checkEquals(tbl.nodes$data.id, nodes(g))
-   checkEqualsNumeric(tbl.nodes$data.xPos,  3.1416, tol=1e-4)
-   checkEquals(tbl.nodes$position.x,        3.1416, tol=1e-4)
-   checkEqualsNumeric(tbl.nodes$data.yPos, -1,      tol=1e-4)
-   checkEquals(tbl.nodes$position.y,       -1,      tol=1e-4)
+   checkEqualsNumeric(tbl.nodes$data.x,  c(100, 200, 300))
+   checkEquals(tbl.nodes$position.x,     c(100, 200, 300))
+   checkEqualsNumeric(tbl.nodes$data.y,  c(300, 200, 100))
+   checkEquals(tbl.nodes$position.y,     c(300, 200, 100))
 
-} # test_1_node_with_position
+} # test_3_nodes_with_position
 #------------------------------------------------------------------------------------------------------------------------
 test_2_nodes <- function(display=FALSE)
 {
@@ -531,8 +542,8 @@ test_dataFramesToJSON_explicitNodePositions <- function(display)
 
    tbl.nodes <- data.frame(id=c("A", "B", "C"),
                            type=c("kinase", "TF", "glycoprotein"),
-                           xPos=c(0, 100, 200),
-                           yPos=c(200, 100, 0),
+                           x=c(0, 100, 200),
+                           y=c(200, 100, 0),
                            lfc=c(1, 1, 1),
                            count=c(0, 0, 0),
                            stringsAsFactors=FALSE)
@@ -557,7 +568,7 @@ test_dataFramesToJSON_explicitNodePositions <- function(display)
    tbl.nodes <- x$nodes$data
    checkEquals(dim(tbl.nodes), c(3, 6))
    checkEquals(tbl.nodes$id, c("A", "B", "C"))
-   checkEquals(colnames(tbl.nodes), c("id", "type", "xPos", "yPos", "lfc", "count"))
+   checkEquals(colnames(tbl.nodes), c("id", "type", "x", "y", "lfc", "count"))
 
    tbl.edges <- x$edges$data
    checkEquals(dim(tbl.edges), c(3, 4))

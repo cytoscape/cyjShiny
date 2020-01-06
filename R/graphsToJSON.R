@@ -47,10 +47,20 @@ graphNELtoJSON <- function(g) #Copied from RCyjs/R/utils.R
           nodeList <- c(nodeList, this.nodes.data)
        nodeList.json <- toJSON(nodeList, auto_unbox=TRUE)
        vec[i] <- nodeList.json; i <- i + 1
+         # pre-calculated node positions have historically been conveyed in
+         # node attributes titles "xPos" and "yPos".
+         # we now (6 jan 2020) add support for simpler noa names: "x", "y"
        if(all(c("xPos", "yPos") %in% names(graph::nodeDataDefaults(g)))){
           position.markup <- sprintf(', "position": {"x": %f, "y": %f}',
                                      graph::nodeData(g, node, "xPos")[[1]],
                                      graph::nodeData(g, node, "yPos")[[1]])
+          vec[i] <- position.markup
+          i <- i + 1
+          }
+       if(all(c("x", "y") %in% names(graph::nodeDataDefaults(g)))){
+          position.markup <- sprintf(', "position": {"x": %f, "y": %f}',
+                                     graph::nodeData(g, node, "x")[[1]],
+                                     graph::nodeData(g, node, "y")[[1]])
           vec[i] <- position.markup
           i <- i + 1
           }
@@ -142,9 +152,9 @@ dataFramesToJSON <- function(tbl.edges, tbl.nodes=NULL)
       nodeList.json <- toJSON(nodeList, auto_unbox=TRUE)
       vec[i] <- nodeList.json; i <- i + 1
          # any position information?
-      if(all(c("xPos", "yPos") %in% colnames(tbl.nodes))){
+      if(all(c("x", "y") %in% colnames(tbl.nodes))){
          position.markup <- sprintf(', "position": {"x": %f, "y": %f}',
-                                    tbl.nodes[n, "xPos"], tbl.nodes[n, "yPos"])
+                                    tbl.nodes[n, "x"], tbl.nodes[n, "y"])
          vec[i] <- position.markup
          i <- i + 1
          }
