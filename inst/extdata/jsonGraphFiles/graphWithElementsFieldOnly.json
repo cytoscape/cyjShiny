@@ -1,0 +1,84 @@
+{ "elements" : {
+    "nodes" : [ {
+      "data" : {
+        "id" : "1501",
+        "shared_name" : "C",
+        "name" : "C",
+        "SUID" : 1501,
+        "selected" : false
+      },
+      "position" : {
+        "x" : -43.597068786621094,
+        "y" : 58.10501117281356
+      },
+      "selected" : false
+    }, {
+      "data" : {
+        "id" : "1499",
+        "shared_name" : "B",
+        "name" : "B",
+        "SUID" : 1499,
+        "selected" : false
+      },
+      "position" : {
+        "x" : 26.4371337890625,
+        "y" : -30.090591430664062
+      },
+      "selected" : false
+    }, {
+      "data" : {
+        "id" : "1498",
+        "shared_name" : "A",
+        "name" : "A",
+        "SUID" : 1498,
+        "selected" : false
+      },
+      "position" : {
+        "x" : -99.86776733398438,
+        "y" : -43.23326873779297
+      },
+      "selected" : false
+    } ],
+    "edges" : [ {
+      "data" : {
+        "id" : "1503",
+        "source" : "1501",
+        "target" : "1498",
+        "shared_name" : "C (represses) A",
+        "name" : "C (represses) A",
+        "interaction" : "represses",
+        "SUID" : 1503,
+        "shared_interaction" : "represses",
+        "selected" : false
+      },
+      "selected" : false
+    }, {
+      "data" : {
+        "id" : "1502",
+        "source" : "1499",
+        "target" : "1501",
+        "shared_name" : "B (regulates) C",
+        "name" : "B (regulates) C",
+        "interaction" : "regulates",
+        "SUID" : 1502,
+        "shared_interaction" : "regulates",
+        "selected" : false
+      },
+      "selected" : false
+    }, {
+      "data" : {
+        "id" : "1500",
+        "source" : "1498",
+        "target" : "1499",
+        "shared_name" : "A (regulates) B",
+        "name" : "A (regulates) B",
+        "interaction" : "regulates",
+        "SUID" : 1500,
+        "shared_interaction" : "regulates",
+        "selected" : false
+      },
+      "selected" : false
+    } ]
+  }
+}
+

@@ -1,0 +1,110 @@
+[ {
+  "format_version" : "1.0",
+  "generated_by" : "cytoscape-3.7.2",
+  "target_cytoscapejs_version" : "~2.1",
+  "title" : "galFiltered.sif-Style-1",
+  "style" : [ {
+    "selector" : "node",
+    "css" : {
+      "background-color" : "rgb(255,255,255)",
+      "shape" : "ellipse",
+      "border-opacity" : 1.0,
+      "background-opacity" : 1.0,
+      "border-color" : "rgb(204,204,204)",
+      "font-size" : 12,
+      "text-opacity" : 1.0,
+      "text-valign" : "center",
+      "text-halign" : "center",
+      "width" : 50.0,
+      "color" : "rgb(51,51,51)",
+      "font-family" : "Dialog",
+      "font-weight" : "normal",
+      "border-width" : 2.0,
+      "height" : 50.0,
+      "content" : "data(COMMON)"
+    }
+  }, {
+    "selector" : "node[Degree > 18]",
+    "css" : {
+      "font-size" : 1
+    }
+  }, {
+    "selector" : "node[Degree = 18]",
+    "css" : {
+      "font-size" : 40
+    }
+  }, {
+    "selector" : "node[Degree > 1][Degree < 18]",
+    "css" : {
+      "font-size" : "mapData(Degree,1,18,10,40)"
+    }
+  }, {
+    "selector" : "node[Degree = 1]",
+    "css" : {
+      "font-size" : 10
+    }
+  }, {
+    "selector" : "node[Degree < 1]",
+    "css" : {
+      "font-size" : 1
+    }
+  }, {
+    "selector" : "node[gal1RGexp > 2.058]",
+    "css" : {
+      "background-color" : "rgb(255,255,0)"
+    }
+  }, {
+    "selector" : "node[gal1RGexp = 2.058]",
+    "css" : {
+      "background-color" : "rgb(255,255,0)"
+    }
+  }, {
+    "selector" : "node[gal1RGexp > 0.00000012][gal1RGexp < 2.058]",
+    "css" : {
+      "background-color" : "mapData(gal1RGexp,0.00000012,2.058,rgb(255,255,255),rgb(255,255,0))"
+    }
+  }, {
+    "selector" : "node[gal1RGexp > -2.426][gal1RGexp < 0.00000012]",
+    "css" : {
+      "background-color" : "mapData(gal1RGexp,-2.426,0.00000012,rgb(0,102,204),rgb(255,255,255))"
+    }
+  }, {
+    "selector" : "node[gal1RGexp = -2.426]",
+    "css" : {
+      "background-color" : "rgb(0,102,204)"
+    }
+  }, {
+    "selector" : "node[gal1RGexp < -2.426]",
+    "css" : {
+      "background-color" : "rgb(0,102,204)"
+    }
+  }, {
+    "selector" : "node:selected",
+    "css" : {
+      "background-color" : "rgb(255,255,0)"
+    }
+  }, {
+    "selector" : "edge",
+    "css" : {
+      "text-opacity" : 1.0,
+      "font-family" : "Dialog",
+      "font-weight" : "normal",
+      "opacity" : 0.6666666666666666,
+      "source-arrow-color" : "rgb(0,0,0)",
+      "width" : 2.0,
+      "content" : "",
+      "line-color" : "rgb(153,153,153)",
+      "line-style" : "solid",
+      "font-size" : 10,
+      "color" : "rgb(0,0,0)",
+      "source-arrow-shape" : "none",
+      "target-arrow-color" : "rgb(0,0,0)",
+      "target-arrow-shape" : "none"
+    }
+  }, {
+    "selector" : "edge:selected",
+    "css" : {
+      "line-color" : "rgb(255,0,0)"
+    }
+  } ]
+} ]

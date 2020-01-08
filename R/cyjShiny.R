@@ -15,7 +15,7 @@
 #'
 #' @param graph a graph in json format; converters from graphNEL and data.frame/s offered ("see also" below)
 #' @param layoutName character one of:"preset", "cose", "cola", "circle", "concentric", "breadthfirst", "grid", "random", "dagre", "cose-bilkent"
-#' @param style_file, default NULL, can name a standard javascript cytoscape.js style file
+#' @param styleFile, default NULL, can name a standard javascript cytoscape.js style file
 #' @param width integer  initial width of the widget.
 #' @param height integer initial height of the widget.
 #' @param elementId string the DOM id into which the widget is rendered, default NULL is best.
@@ -48,7 +48,7 @@
 #'
 #' @export
 
-cyjShiny <- function(graph, layoutName, style_file=NULL, width = NULL, height = NULL, elementId = NULL)
+cyjShiny <- function(graph, layoutName, styleFile=NULL, width = NULL, height = NULL, elementId = NULL)
 {
    stopifnot(layoutName %in% c("preset",
                                "cose",
@@ -61,17 +61,13 @@ cyjShiny <- function(graph, layoutName, style_file=NULL, width = NULL, height = 
                                "dagre",
                                "cose-bilkent"))
 
-   if (is.null(style_file)) {
-      style = NULL
-   } else {
-      if(file.exists(style_file)){
-	     jsonText <- toJSON(fromJSON(style_file))   # very strict parser, no unquoted field names
-	     style <- list(json=jsonText)
-      } else {
-              warning(sprintf("cannot read style file: %s, continuing with default", style_file))
-              style = NULL
-      }
-   }
+   defaultStyleFile <- system.file(package="cyjShiny", "extdata", "defaultStyle.json")
+   if (is.null(styleFile))
+      styleFile <- defaultStyleFile
+   stopifnot(file.exists(styleFile))
+
+   jsonText <- readAndStandardizeJSONStyleFile(styleFile)   # very strict parser, no unquoted field names
+   style <- list(json=jsonText)
 
    x <- list(graph=graph, layoutName=layoutName, style=style)
 
@@ -82,14 +78,9 @@ cyjShiny <- function(graph, layoutName, style_file=NULL, width = NULL, height = 
       height = height,
       package = 'cyjShiny',
       elementId = elementId,
-      sizingPolicy = htmlwidgets::sizingPolicy(browser.fill=TRUE, )
-                                    # defaultWidth=500,
-                                    # defaultHeight=500,
-                                    # viewer.padding=0,
-                                    # viewer.suppress=FALSE,
-                                    # viewer.paneHeight=500,
-                                    # browser.fill=TRUE)
+      sizingPolicy = htmlwidgets::sizingPolicy(browser.fill=TRUE)
       )
+
 
 } # cyjShiny constructor
 #------------------------------------------------------------------------------------------------------------------------
@@ -141,6 +132,34 @@ renderCyjShiny <- function(expr, env = parent.frame(), quoted = FALSE)
 
 }
 #------------------------------------------------------------------------------------------------------------------------
+#' load a standard cytoscape.js JSON network file
+#'
+#' @param filename character string, either relative or absolute path.
+#'
+#' @return nothing
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'   loadNetworkFromJSONFile(system.file(package="cyjShiny", "extdata", "galFiltered.cyjs"))
+#' }
+#'
+#' @aliases loadNetworkFromJSONFile
+#' @rdname loadNetworkFromJSONFile
+#'
+#' @export
+
+loadNetworkFromJSONFile <- function(filename)
+{
+   jsonText <- readAndStandardizeJSONNetworkFile(filename)
+   message <- list(json=jsonText)
+
+   session <- shiny::getDefaultReactiveDomain()
+   session$sendCustomMessage("loadJSONNetwork", message)
+
+} # loadNetworkFromJSONFile
+#------------------------------------------------------------------------------------------------------------------------
 #' load a standard cytoscape.js style file
 #'
 #' @param filename character string, either relative or absolute path.
@@ -159,17 +178,16 @@ renderCyjShiny <- function(expr, env = parent.frame(), quoted = FALSE)
 #'
 #' @export
 
-loadStyleFile <- function(filename)
+loadStyleFile <- function(styleFile)
 {
-   if(!file.exists(filename)){
-      warning(sprintf("cannot read style file: %s", filename))
-      return();
-      }
+   if(styleFile == "default style")
+      styleFile <- system.file(package="cyjShiny", "extdata", "defaultStyle.json")
 
-   jsonText <- toJSON(fromJSON(filename))   # very strict parser, no unquoted field names
-   #lines <- scan(filename, what=character(), strip.white=TRUE, quote="'")
-   #jsonText <- paste(lines, collapse=" ")
+   stopifnot(file.exists(styleFile))
+
+   jsonText <- readAndStandardizeJSONStyleFile(styleFile)   # very strict parser, no unquoted field names
    message <- list(json=jsonText)
+
    session <- shiny::getDefaultReactiveDomain()
    session$sendCustomMessage("loadStyle", message)
 
@@ -319,8 +337,8 @@ setEdgeAttributes <- function(session, attributeName, sourceNodes, targetNodes, 
 
 doLayout <- function(session, strategy)
 {
-   stopifnot(strategy %in% c("cola", "cose", "circle", "concentric", "grid", "breadthfirst", "random",
-                             "dagre", "cose-bilkent"))
+   stopifnot(strategy %in% c("cola", "cose", "circle", "concentric", "grid", "breadthfirst",
+                             "preset", "random", "dagre", "cose-bilkent"))
 
    session$sendCustomMessage(type="doLayout", message=list(strategy=strategy))
 
@@ -375,7 +393,6 @@ setNodePositions <- function(session, tbl.positions)
 
 removeGraph <- function(session)
 {
-   message(sprintf("entering cyjShiny::removeGraph"))
    session$sendCustomMessage(type="removeGraph", message=list())
 
 } # removeGraph

@@ -1,3 +1,4 @@
+inst/examples/jenEklund
 # History files
 .Rhistory
 .Rapp.history
@@ -38,3 +39,5 @@ rsconnect/
 
 browserCode/node_modules/
 .Rproj.user
+doc
+Meta

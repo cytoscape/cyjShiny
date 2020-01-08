@@ -5,27 +5,31 @@ library(graph)
 library(jsonlite)
 library(later)
 #----------------------------------------------------------------------------------------------------
+demo.directory <- system.file(package="cyjShiny", "extdata", "demoGraphsAndStyles")
 styles <- c("",
-            "Hamid's style"="styleCancer_21July2017.js",
-            "basic"="basicStyle.js")
+            "default style" = "default style",
+            "simple"      = file.path(demo.directory, "smallDemoStyle.json"),
+            "galFiltered" = file.path(demo.directory, "galFiltered-style.json"))
+
+networks <- c("",
+              "simple"      = file.path(demo.directory, "smallDemo.cyjs"),
+              "galFiltered" = file.path(demo.directory, "galFiltered.cyjs"))
+
+
 #----------------------------------------------------------------------------------------------------
-json.filename <- "celgene-formatted.json"
-json.filename <- "hamid.json"
-# graphAsJSON <- readLines(json.filename)
-graph.json.filename <- "smallDemo.cyjs"
-style.json.filename <- "smallDemoStyle.json"
+graph.json.filename <- "galFiltered/galFiltered.cyjs"
+style.json.filename <- "galFiltered/galFiltered-style.json"
 
-graph.json.filename <- "../fromCytoscapeDesktop/galFiltered/galFiltered.cyjs"
-style.json.filename <- "../fromCytoscapeDesktop/galFiltered/galFiltered-style.json"
+graph.json.filename <- "simple/smallDemo.cyjs"
+style.json.filename <- "simple/smallDemoStyle.json"
 
-# graphAsJSON <- readAndStandardizeJSONNetworkFile(json.filename)
-# styleAsJSON <- readAndStandardizeJSONStyleFile(
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
 
   tags$style("#cyjShiny{height:95vh !important;}"),
   sidebarLayout(
       sidebarPanel(
+          selectInput("loadNetworkFile", "Select Network: ", choices=networks),
           selectInput("loadStyleFile", "Select Style: ", choices=styles),
           selectInput("doLayout", "Select Layout:",
                       choices=c("",
@@ -71,6 +75,19 @@ server = function(input, output, session)
                                    "gal4RGexp" = tbl.mrna$gal4RGexp,
                                    "gal80Rexp" = tbl.mrna$gal80Rexp)
        setNodeAttributes(session, attributeName=attribute, nodes=yeastGalactodeNodeIDs, values=expression.vector)
+       })
+
+    observeEvent(input$loadNetworkFile,  ignoreInit=TRUE, {
+       filename <- input$loadNetworkFile
+       if(filename != ""){
+          tryCatch({
+             loadNetworkFromJSONFile(filename)
+             }, error=function(e) {
+                msg <- sprintf("ERROR in network file '%s': %s", input$loadNetworkFile, e$message)
+                showNotification(msg, duration=NULL, type="error")
+                })
+           later(function() {updateSelectInput(session, "loadNetworkFile", selected=character(0))}, 0.5)
+          }
        })
 
     observeEvent(input$loadStyleFile,  ignoreInit=TRUE, {
@@ -139,6 +156,8 @@ server = function(input, output, session)
         tbl.nodes <- data.frame(id=all.nodes,
                                 type=rep("unspecified", length(all.nodes)),
                                 stringsAsFactors=FALSE)
+        print(tbl.nodes)
+        print(tbl.edges)
         addGraphFromDataFrame(session, tbl.edges, tbl.nodes)
         })
 
@@ -152,9 +171,9 @@ server = function(input, output, session)
     output$value <- renderPrint({ input$action })
     output$cyjShiny <- renderCyjShiny({
        graphAsJSON <- readAndStandardizeJSONNetworkFile(graph.json.filename)
-       cyjShiny(graph=graphAsJSON, layoutName="preset", style_file=style.json.filename)
+       cyjShiny(graph=graphAsJSON, layoutName="preset", styleFile=style.json.filename)
        })
 
 } # server
 #----------------------------------------------------------------------------------------------------
-app <- shinyApp(ui = ui, server = server)
+runApp(shinyApp(ui = ui, server = server))

@@ -9,6 +9,8 @@ styles <- c("",
 #----------------------------------------------------------------------------------------------------
 tbl.nodes <- data.frame(id=c("A", "B", "C"),
                         type=c("kinase", "TF", "glycoprotein"),
+                        x=c(0, 100, 800),
+                        y=c(200, 100, 150),
                         lfc=c(1, 1, 1),
                         count=c(0, 0, 0),
                         stringsAsFactors=FALSE)
@@ -37,6 +39,7 @@ rownames(tbl.count) <- c("baseline", "cond1", "cond2", "cond3")
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
 
+  tags$head(tags$style("#cyjShiny{height:95vh !important;}")),
   sidebarLayout(
       sidebarPanel(
           selectInput("loadStyleFile", "Select Style: ", choices=styles),
@@ -172,9 +175,9 @@ server = function(input, output, session)
 
     output$value <- renderPrint({ input$action })
     output$cyjShiny <- renderCyjShiny({
-       cyjShiny(graph=graph.json, layoutName="cola")
+       cyjShiny(graph=graph.json, layoutName="preset")
        })
 
 } # server
 #----------------------------------------------------------------------------------------------------
-app <- shinyApp(ui = ui, server = server)
+runApp(shinyApp(ui = ui, server = server))

@@ -15,39 +15,12 @@ cytoscape.use(coseBilkent);
 
 $ = require('jquery');
 require('jquery-ui-bundle');
-// apparently two version of jquery loaded: by shiny, and just above
+// apparently two versions of jquery get loaded: by shiny, and just above
 // see https://api.jquery.com/jquery.noconflict/ and
 // this stackoverflow discussion: https://stackoverflow.com/questions/31227844/typeerror-datatable-is-not-a-function
 $.noConflict();
 //----------------------------------------------------------------------------------------------------
-var executionMode = "devel";
-const log = function(msg)
-{
-  if(executionMode == "devel")
-      console.log(msg);
-}
-//----------------------------------------------------------------------------------------------------
-HTMLWidgets.widget({
-
-    name: 'cyjShiny',
-    type: 'output',
-
-    factory: function(el, allocatedWidth, allocatedHeight) {
-        log("---- entering factory, initial dimensions: " + allocatedWidth + ", " + allocatedHeight);
-	var cyj;
-	return {
-	    renderValue: function(x, instance) {
-		log("---- ~/github/cyjsShiny/inst/browserCode/src/cyjShiny.js, renderValue")
-		var data = JSON.parse(x.graph);
-        var layoutName = x.layoutName;
-        var style = x.style;
-		log(data);
-		var cyDiv = el;
-		cyj = cytoscape({
-		    container: cyDiv,
-		    elements: data.elements,
-		    layout: {name: layoutName},
-		    style:  [{selector: 'node', css: {
+var defaultStyle = [{selector: 'node', css: {
                         'text-valign': 'center',
                         'text-halign': 'center',
                         'content': 'data(id)',
@@ -72,7 +45,39 @@ HTMLWidgets.widget({
                         'overlay-color': 'gray',
                         'overlay-opacity': 0.4
                         }}
-                        ],
+                   ];
+//----------------------------------------------------------------------------------------------------
+var executionMode = "devel";
+const log = function(msg)
+{
+  if(executionMode == "devel")
+      console.log(msg);
+}
+//----------------------------------------------------------------------------------------------------
+HTMLWidgets.widget({
+
+    name: 'cyjShiny',
+    type: 'output',
+
+    factory: function(el, allocatedWidth, allocatedHeight) {
+        log("---- entering factory, initial dimensions: " + allocatedWidth + ", " + allocatedHeight);
+	var cyj;
+	return {
+	    renderValue: function(x, instance) {
+		log("---- ~/github/cyjsShiny/inst/browserCode/src/cyjShiny.js, renderValue");
+                log(x);
+                var data = JSON.parse(x.graph);
+                var layoutName = x.layoutName;
+                var style = JSON.parse(x.style.json);
+                if (style == "default style")
+                    style = defaultStyle;
+		// log(data);
+		var cyDiv = el;
+		cyj = cytoscape({
+		    container: cyDiv,
+		    elements: data.elements,
+		    layout: {name: layoutName},
+		    style:  style, //defaultStyle,
 		    ready: function(){
                         log("cyjShiny cyjs ready");
 			//$("#cyjShiny").height(0.95*window.innerHeight);
@@ -98,7 +103,7 @@ HTMLWidgets.widget({
 		}) // cytoscape()
             }, // renderValue
             resize: function(newWidth, newHeight, instance){
-                  // automatically called onthe window resize event
+                  // automatically called on the window resize event
 		log("cyjShiny widget, resize: " + newWidth + ", " + newHeight)
 		//$("#cyjShiny").height(0.95 * window.innerHeight);
 		$("#cyjShiny").height(newHeight);
@@ -304,11 +309,32 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("fit", function(message)
     self.cyj.fit(padding);
     });
 //------------------------------------------------------------------------------------------------------------------------
+// this can be confusing
+//   the message is a javascript object with one field: json
+//   that field's value is a character string representation of a graph
+//   parse that string into a JSON object, graph, which has one top-level field, "elements"
+//     and two immediate subfields:  nodes & edges
+//   add graph.elements to cytoscape.js ("cyj")
+if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("loadJSONNetwork", function(message) {
+
+    window.cyj.remove(window.cyj.elements());
+    log("--- loadJSONNetwork")
+    window.msg = message;
+    var graph = JSON.parse(message.json)
+    window.cyj.add(graph.elements);
+    window.cyj.fit(50)
+    });
+
+//------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("loadStyle", function(message) {
 
     log("loading style");
-    var styleSheet = message.json;
-    window.cyj.style(styleSheet);
+    //var styleSheet = message.json;
+    log(message)
+    var style = JSON.parse(message.json)
+    if(style == "default style")
+        style = defaultStyle;
+    window.cyj.style(style);
     });
 
 //------------------------------------------------------------------------------------------------------------------------

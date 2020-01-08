@@ -47,10 +47,20 @@ graphNELtoJSON <- function(g) #Copied from RCyjs/R/utils.R
           nodeList <- c(nodeList, this.nodes.data)
        nodeList.json <- toJSON(nodeList, auto_unbox=TRUE)
        vec[i] <- nodeList.json; i <- i + 1
+         # pre-calculated node positions have historically been conveyed in
+         # node attributes titles "xPos" and "yPos".
+         # we now (6 jan 2020) add support for simpler noa names: "x", "y"
        if(all(c("xPos", "yPos") %in% names(graph::nodeDataDefaults(g)))){
           position.markup <- sprintf(', "position": {"x": %f, "y": %f}',
                                      graph::nodeData(g, node, "xPos")[[1]],
                                      graph::nodeData(g, node, "yPos")[[1]])
+          vec[i] <- position.markup
+          i <- i + 1
+          }
+       if(all(c("x", "y") %in% names(graph::nodeDataDefaults(g)))){
+          position.markup <- sprintf(', "position": {"x": %f, "y": %f}',
+                                     graph::nodeData(g, node, "x")[[1]],
+                                     graph::nodeData(g, node, "y")[[1]])
           vec[i] <- position.markup
           i <- i + 1
           }
@@ -85,8 +95,9 @@ graphNELtoJSON <- function(g) #Copied from RCyjs/R/utils.R
    vec [i] <- "}"  # close the edges object
    i <- i + 1;
    vec [i] <- "}"  # close the elements object
+
    vec.trimmed <- vec [which(vec != "")]
-   #printf("%d strings used in constructing json", length(vec.trimmed))
+
    paste0(vec.trimmed, collapse=" ")
 
 } # graphNELtoJSON
@@ -140,6 +151,14 @@ dataFramesToJSON <- function(tbl.edges, tbl.nodes=NULL)
          nodeList <- c(nodeList, as.list(tbl.nodes[n, -1, drop=FALSE]))
       nodeList.json <- toJSON(nodeList, auto_unbox=TRUE)
       vec[i] <- nodeList.json; i <- i + 1
+         # any position information?
+      if(all(c("x", "y") %in% colnames(tbl.nodes))){
+         position.markup <- sprintf(', "position": {"x": %f, "y": %f}',
+                                    tbl.nodes[n, "x"], tbl.nodes[n, "y"])
+         vec[i] <- position.markup
+         i <- i + 1
+         }
+
       if(n != nodeCount){
           vec [i] <- "},"; i <- i + 1 # sprintf("%s},", x)  # another node coming, add a comma
           }
@@ -175,4 +194,82 @@ dataFramesToJSON <- function(tbl.edges, tbl.nodes=NULL)
    paste0(vec.trimmed, collapse=" ")
 
 } # dataFramesToJSON
+#----------------------------------------------------------------------------------------------------------
+# we know of at least two JSON object structures used to specify style:
+# simple: an array of selector objects:
+#    [ {"selector": "node", "css": {
+#      "shape": "ellipse",
+#      "text-valign":"center",
+#      "text-halign":"center",
+#      ...
+#      }]
+# more complex, exported from the Cytoscape desktop application
+# this is also an array of objects, one named "style" which (like the simple format described above)
+# contains an array of selectors:
+#  [ {
+#   "format_version" : "1.0",
+#   "generated_by" : "cytoscape-3.7.2",
+#   "target_cytoscapejs_version" : "~2.1",
+#   "title" : "cytoscapeSimple",
+#   "style" : [ {
+#     "selector" : "node",
+#     "css" : {
+#       "background-color" : "rgb(255,255,255)",
+#       "shape" : "ellipse",
+#       ...
+#       }]}]
+#
+# the following utility function examines the incoming JSON, returns exactly and only an array of
+# selector objects
+#--------------------------------------------------------------------------------------------------------------
+#' Read in a JSON file, extract the selector elements, return JSON
+#'
+#' @param file  a json file
+#'
+#' @aliases readAndStandardizeJSONStyleFile
+#' @rdname readAndStandardizeJSONStyleFile
+#'
+#' @export
+#'
+readAndStandardizeJSONStyleFile <- function(filename)
+{
+    obj <- fromJSON(filename)   # very strict parser, no unquoted field names
+
+    if("style" %in% names(obj))
+       return(as.character(toJSON(obj$style[[1]])))
+
+    if("selector" %in% names(obj))
+       return(as.character(toJSON(obj)))
+
+    stop(sprintf("unrecognized JSON style file format in %s", filename))
+
+} # readAndStandardizeJSONStyleFile
+#----------------------------------------------------------------------------------------------------------
+#' Read in a JSON network file, identify (or add) elements field return JSON
+#'
+#' @param file  a json file
+#'
+#' @aliases readAndStandardizeJSONNetworkFile
+#' @rdname readAndStandardizeJSONNetworkFile
+#'
+#' @export
+#'
+readAndStandardizeJSONNetworkFile <- function(filename)
+{
+    obj <- fromJSON(filename)   # very strict parser, no unquoted field names
+
+    if("elements" %in% names(obj)){
+       obj <- obj["elements"]
+       return(as.character(toJSON(obj)))
+       }
+
+    if(all(c("nodes", "edges") %in% names(obj))){
+       x <- list()
+       x$elements <- obj[c("nodes", "edges")]
+       return(as.character(toJSON(x)))
+       }
+
+    stop(sprintf("unrecognized JSON graph file format in %s", filename))
+
+} # readAndStandardizeJSONNetworkFile
 #----------------------------------------------------------------------------------------------------------

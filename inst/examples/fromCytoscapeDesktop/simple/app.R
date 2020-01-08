@@ -1,29 +1,20 @@
-library(shiny)
 library(cyjShiny)
-library(htmlwidgets)
-library(graph)
-library(jsonlite)
 library(later)
 #----------------------------------------------------------------------------------------------------
 styles <- c("",
-            "Hamid's style"="styleCancer_21July2017.js",
-            "basic"="basicStyle.js")
+            "from Cytoscape desktop"="smallDemoStyle.json",
+            "generic style"="basicStyle.js")
 #----------------------------------------------------------------------------------------------------
-json.filename <- "celgene-formatted.json"
-json.filename <- "hamid.json"
-# graphAsJSON <- readLines(json.filename)
-graph.json.filename <- "smallDemo.cyjs"
-style.json.filename <- "smallDemoStyle.json"
+# create  read json text for graph, two simulated experimental variables in data.frames, 3 conditions
+#----------------------------------------------------------------------------------------------------
+json.filename <- "smallDemo.cyjs"
+graph.json <- paste(readLines(json.filename), collapse="")
 
-graph.json.filename <- "../fromCytoscapeDesktop/galFiltered/galFiltered.cyjs"
-style.json.filename <- "../fromCytoscapeDesktop/galFiltered/galFiltered-style.json"
-
-# graphAsJSON <- readAndStandardizeJSONNetworkFile(json.filename)
-# styleAsJSON <- readAndStandardizeJSONStyleFile(
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
 
-  tags$style("#cyjShiny{height:95vh !important;}"),
+  tags$head(
+     tags$style("#cyjShiny{height:95vh !important;}")),
   sidebarLayout(
       sidebarPanel(
           selectInput("loadStyleFile", "Select Style: ", choices=styles),
@@ -40,21 +31,20 @@ ui = shinyUI(fluidPage(
                                 "cose-bilkent")),
 
 
-          #selectInput("setNodeAttributes", "Select Condition:", choices=condition),
-          #selectInput("selectName", "Select Node by ID:", choices = c("", nodes(g))),
           actionButton("sfn", "Select First Neighbor"),
           actionButton("fit", "Fit Graph"),
           actionButton("fitSelected", "Fit Selected"),
           actionButton("clearSelection", "Clear Selection"), HTML("<br>"),
-          actionButton("loopConditions", "Loop Conditions"), HTML("<br>"),
+          #actionButton("loopConditions", "Loop Conditions"), HTML("<br>"),
           actionButton("removeGraphButton", "Remove Graph"), HTML("<br>"),
           actionButton("addRandomGraphFromDataFramesButton", "Add Random Graph"), HTML("<br>"),
           actionButton("getSelectedNodes", "Get Selected Nodes"), HTML("<br><br>"),
           htmlOutput("selectedNodesDisplay"),
-          width=2
+          width=3
       ),
-     mainPanel(cyjShinyOutput('cyjShiny'), width=10),
-     fluid=FALSE
+      mainPanel(cyjShinyOutput('cyjShiny'),
+          width=9
+      )
   ) # sidebarLayout
 ))
 #----------------------------------------------------------------------------------------------------
@@ -62,15 +52,6 @@ server = function(input, output, session)
 {
     observeEvent(input$fit, ignoreInit=TRUE, {
        fit(session, 80)
-       })
-
-    observeEvent(input$setNodeAttributes, ignoreInit=TRUE, {
-       attribute <- "lfc"
-       expression.vector <- switch(input$setNodeAttributes,
-                                   "gal1RGexp" = tbl.mrna$gal1RGexp,
-                                   "gal4RGexp" = tbl.mrna$gal4RGexp,
-                                   "gal80Rexp" = tbl.mrna$gal80Rexp)
-       setNodeAttributes(session, attributeName=attribute, nodes=yeastGalactodeNodeIDs, values=expression.vector)
        })
 
     observeEvent(input$loadStyleFile,  ignoreInit=TRUE, {
@@ -115,13 +96,16 @@ server = function(input, output, session)
        })
 
     observeEvent(input$loopConditions, ignoreInit=TRUE, {
-        condition.names <- c("gal1RGexp", "gal4RGexp", "gal80Rexp")
-        for(condition.name in condition.names){
-           expression.vector <- tbl.mrna[, condition.name]
-           setNodeAttributes(session, attributeName="lfc", nodes=yeastGalactodeNodeIDs, values=expression.vector)
+        condition.names <- rownames(tbl.lfc)
+        for(condition.name in condition.names[-1]){
+           #browser()
+           lfc.vector <- as.numeric(tbl.lfc[condition.name,])
+           node.names <- rownames(tbl.lfc)
+           setNodeAttributes(session, attributeName="lfc", nodes=node.names, values=lfc.vector)
+           #updateSelectInput(session, "setNodeAttributes", selected=condition.name)
            Sys.sleep(1)
            } # for condition.name
-        updateSelectInput(session, "setNodeAttributes", selected="gal1RGexp")
+        updateSelectInput(session, "setNodeAttributes", selected="baseline")
         })
 
     observeEvent(input$removeGraphButton, ignoreInit=TRUE, {
@@ -151,8 +135,7 @@ server = function(input, output, session)
 
     output$value <- renderPrint({ input$action })
     output$cyjShiny <- renderCyjShiny({
-       graphAsJSON <- readAndStandardizeJSONNetworkFile(graph.json.filename)
-       cyjShiny(graph=graphAsJSON, layoutName="preset", style_file=style.json.filename)
+       cyjShiny(graph=graph.json, layoutName="cola")
        })
 
 } # server

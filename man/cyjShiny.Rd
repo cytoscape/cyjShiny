@@ -5,15 +5,21 @@
 \title{cyjShiny
 cyjShiny}
 \usage{
-cyjShiny(graph, layoutName, style_file = NULL, width = NULL,
-  height = NULL, elementId = NULL)
+cyjShiny(
+  graph,
+  layoutName,
+  styleFile = NULL,
+  width = NULL,
+  height = NULL,
+  elementId = NULL
+)
 }
 \arguments{
 \item{graph}{a graph in json format; converters from graphNEL and data.frame/s offered ("see also" below)}
 
 \item{layoutName}{character one of:"preset", "cose", "cola", "circle", "concentric", "breadthfirst", "grid", "random", "dagre", "cose-bilkent"}
 
-\item{style_file, }{default NULL, can name a standard javascript cytoscape.js style file}
+\item{styleFile, }{default NULL, can name a standard javascript cytoscape.js style file}
 
 \item{width}{integer  initial width of the widget.}
 
