@@ -120,7 +120,7 @@ dataFramesToJSON <- function(tbl.edges, tbl.nodes=NULL)
    stopifnot(all(c("source", "target") %in% colnames(tbl.edges)))
    stopifnot("interaction" %in% colnames(tbl.edges))
 
-   nodes.implied.by.edgeData <- sort(unique(c(tbl.edges$source, tbl.edges$target)))
+   nodes.implied.by.edgeData <- unique(c(tbl.edges$source, tbl.edges$target))
 
    if(is.null(tbl.nodes)){ # derive one from tbl.edges, for consistent processing below
       node.count <- length(nodes.implied.by.edgeData)
@@ -128,6 +128,9 @@ dataFramesToJSON <- function(tbl.edges, tbl.nodes=NULL)
                               type=rep("unspecified", node.count),
                               stringsAsFactors=FALSE)
       } # no tbl.nodes supplied
+
+   stopifnot("id" %in% colnames(tbl.nodes))
+   tbl.nodes <- tbl.nodes[order(tbl.nodes$id),]
 
    nodes <- sort(unique(c(tbl.edges$source, tbl.edges$target, tbl.nodes$id)))
 

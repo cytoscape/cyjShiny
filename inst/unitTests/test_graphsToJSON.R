@@ -37,6 +37,7 @@ runTests <- function(display=FALSE)
    test_dataFramesToJSON_explicitNodePositions(display)
    test_readAndStandardizeJSONStyleFile()
    test_readAndStandardizeJSONNetworkFile()
+   test_unorderedNodeIDs()
 
 } # runTests
 #------------------------------------------------------------------------------------------------------------------------
@@ -639,5 +640,35 @@ test_readAndStandardizeJSONNetworkFile <- function()
    checkTrue("character" %in% is(jsonText.3))
 
 } # test_readAndStandardizeJSONNetworkFile
+#----------------------------------------------------------------------------------------------------
+# in early experiments with neo4j, I discovered a bug:  if node ids are not sequentially ordered,
+# they break an assumption of the toJSON function.  this test provides a tbl.nodes unordered by id
+test_unorderedNodeIDs <- function()
+{
+   message(sprintf("--- test_unorderedNodeIDs"))
+
+   tbl.nodes <- data.frame(id=c("8","1","2"), label=c("N8", "N1", "N2"), stringsAsFactors=FALSE)
+   tbl.edges <- data.frame(id=c(34,23), source=c("8", "2"), target=c("1", "8"),
+                           interaction=c("causes", "modifies"), stringsAsFactors=FALSE)
+   x <- fromJSON(dataFramesToJSON(tbl.edges, tbl.nodes), simplifyDataFrame=TRUE)
+   tbl.e <- x$elements$edges
+   tbl.n <- x$elements$nodes
+
+      # fromJSON nests data.frames within the edge and node data.frames
+      # not knowing how to fix that, I accomodate that here, reaching
+      # deeper into the data structure to make comparisons
+
+      # start by checking the out-of-ascending order N8-causes-N1
+
+   checkEquals(as.character(tbl.e[1,1][, c("source", "target", "interaction")]),
+               c("8", "1", "causes"))
+   checkEquals(as.character(tbl.e[2,1][, c("source", "target", "interaction")]),
+               c("2", "8", "modifies"))
+
+   checkEquals(as.character(tbl.n[1,1]), c("1", "N1"))
+   checkEquals(as.character(tbl.n[2,1]), c("2", "N2"))
+   checkEquals(as.character(tbl.n[3,1]), c("8", "N8"))
+
+} # test_unorderedNodeIDs
 #----------------------------------------------------------------------------------------------------
 if(!interactive()) runTests()
