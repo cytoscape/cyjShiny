@@ -66,7 +66,7 @@ server = function(input, output, session) {
      printf("renderCyjShiny")
      print(graph.json)
      print(class(graph.json))
-     cyjShiny(graph=graph.json, layoutName="cola", style_file="basicStyle.js")
+     cyjShiny(graph=graph.json, layoutName="cola", styleFile="basicStyle.js")
      })
 
    observeEvent(input$savePNGbutton, ignoreInit=TRUE, {

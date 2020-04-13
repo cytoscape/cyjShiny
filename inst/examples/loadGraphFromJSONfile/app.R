@@ -152,7 +152,7 @@ server = function(input, output, session)
     output$value <- renderPrint({ input$action })
     output$cyjShiny <- renderCyjShiny({
        graphAsJSON <- readAndStandardizeJSONNetworkFile(graph.json.filename)
-       cyjShiny(graph=graphAsJSON, layoutName="preset", style_file=style.json.filename)
+       cyjShiny(graph=graphAsJSON, layoutName="preset", styleFile=style.json.filename)
        })
 
 } # server
