@@ -18,7 +18,7 @@
     "cytoscape-cola": "^2.3.0",
     "cytoscape-cose-bilkent": "^4.0.0",
     "cytoscape-dagre": "^2.2.1",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "jquery-ui-bundle": "^1.12.1-migrate"
   },
   "devDependencies": {

@@ -104,13 +104,13 @@ HTMLWidgets.widget({
             }, // renderValue
             resize: function(newWidth, newHeight, instance){
                   // automatically called on the window resize event
-		log("cyjShiny widget, resize: " + newWidth + ", " + newHeight)
+		//log("cyjShiny widget, resize: " + newWidth + ", " + newHeight)
 		//$("#cyjShiny").height(0.95 * window.innerHeight);
 		$("#cyjShiny").height(newHeight);
 		cyj.resize()
-		log("  after resize, widget dimensions: " +
-                            $("#cyjShiny").width() + ", " +
-                            $("#cyjShiny").height());
+		//log("  after resize, widget dimensions: " +
+                //            $("#cyjShiny").width() + ", " +
+                //            $("#cyjShiny").height());
             },
             cyjWidget: cyj
         }; // return
