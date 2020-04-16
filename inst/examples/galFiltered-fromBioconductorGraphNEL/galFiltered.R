@@ -27,8 +27,7 @@ ui = shinyUI(fluidPage(
   # includeScript("message-handler.js"),
 
   tags$head(
-          tags$link(rel = "stylesheet", type = "text/css",
-                    href = "http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css")),
+     tags$style("#cyjShiny{height:95vh !important;}")),
   sidebarLayout(
       sidebarPanel(
           selectInput("loadStyleFile", "Select Style: ", choices=styleList),
@@ -152,9 +151,9 @@ server = function(input, output, session)
 
     output$value <- renderPrint({ input$action })
     output$cyjShiny <- renderCyjShiny(
-        cyjShiny(graphAsJSON)
+        cyjShiny(graphAsJSON, layout="preset")
     )
 
 } # server
 #----------------------------------------------------------------------------------------------------
-app <- shinyApp(ui = ui, server = server)
+runApp(shinyApp(ui = ui, server = server), port=10001)
