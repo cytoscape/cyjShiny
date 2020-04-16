@@ -216,7 +216,7 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("selectNodes", function(
 
    log("selectNodes requested: " + message);
 
-   var nodeIDs = message;
+   var nodeIDs = fromJSON(message);
 
    if(typeof(nodeIDs) == "string")
       nodeIDs = [nodeIDs];
@@ -228,7 +228,7 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("selectNodes", function(
      filterStrings.push(s);
      } // for i
 
-   log("filtersStrings, joined: " + filterStrings);
+   log("filtersStrings, joined: " + filterStrings.join());
 
    var nodesToSelect = window.cyj.nodes(filterStrings.join());
    nodesToSelect.select()

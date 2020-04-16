@@ -26,6 +26,7 @@ ui = shinyUI(fluidPage(
   sidebarLayout(
      sidebarPanel(
         actionButton("selectRandomNodeButton", "Select random node"),
+        actionButton("selectTwoRandomNodesButton", "Select two random nodes"),
         hr(),
         selectInput("visualStyleSelector", "Select Visual Style",
                     choices=c("Default" = "basicStyle.js", "Biological"="biologicalStyle.js")),
@@ -46,7 +47,14 @@ server = function(input, output, session) {
 
    observeEvent(input$selectRandomNodeButton, ignoreInit=TRUE, {
       clearSelection(session)
+      Sys.sleep(0.5)
       selectNodes(session, tbl.nodes$id[sample(1:3, 1)])
+      })
+
+   observeEvent(input$selectTwoRandomNodesButton, ignoreInit=TRUE, {
+      clearSelection(session)
+      Sys.sleep(0.5)
+      selectNodes(session, tbl.nodes$id[sample(1:3, 2)])
       })
 
    observeEvent(input$visualStyleSelector, ignoreInit=TRUE, {
