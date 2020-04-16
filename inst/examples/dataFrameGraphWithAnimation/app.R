@@ -1,9 +1,9 @@
 library(cyjShiny)
 library(later)
 #----------------------------------------------------------------------------------------------------
-styles <- c("",
-            "generic style"="basicStyle.js",
-            "style 01" = "style01.js")
+styles <- c("style 01" = "style01.js",
+            "generic style"="basicStyle.js")
+
 #----------------------------------------------------------------------------------------------------
 # create  data.frames for nodes, edges, and two simulated experimental variables, in 3 conditions
 #----------------------------------------------------------------------------------------------------
@@ -92,7 +92,7 @@ server = function(input, output, session)
        setNodeAttributes(session, attributeName="count", nodes=colnames(tbl.count), values)
        })
 
-    observeEvent(input$loadStyleFile,  ignoreInit=TRUE, {
+    observeEvent(input$loadStyleFile,  ignoreInit=FALSE, {
        if(input$loadStyleFile != ""){
           tryCatch({
              loadStyleFile(input$loadStyleFile)
@@ -100,7 +100,7 @@ server = function(input, output, session)
                 msg <- sprintf("ERROR in stylesheet file '%s': %s", input$loadStyleFile, e$message)
                 showNotification(msg, duration=NULL, type="error")
                 })
-           later(function() {updateSelectInput(session, "loadStyleFile", selected=character(0))}, 0.5)
+           #later(function() {updateSelectInput(session, "loadStyleFile", selected=character(0))}, 0.5)
           }
        })
 
@@ -180,4 +180,4 @@ server = function(input, output, session)
 
 } # server
 #----------------------------------------------------------------------------------------------------
-runApp(shinyApp(ui = ui, server = server))
+runApp(shinyApp(ui = ui, server = server), port=10002)
