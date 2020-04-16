@@ -67,9 +67,9 @@ ui = shinyUI(fluidPage(
           actionButton("addRandomGraphFromDataFramesButton", "Add Random Graph"), HTML("<br>"),
           actionButton("getSelectedNodes", "Get Selected Nodes"), HTML("<br><br>"),
           htmlOutput("selectedNodesDisplay"),
-          width=2
+          width=3
       ),
-      mainPanel(cyjShinyOutput('cyjShiny', height=400),width=10)
+      mainPanel(cyjShinyOutput('cyjShiny', height=400),width=9)
   ) # sidebarLayout
 ))
 #----------------------------------------------------------------------------------------------------
