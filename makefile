@@ -11,10 +11,10 @@ npm:
 	(cd browserCode; make)
 
 build:
-	(cd ..; R CMD build --no-build-vignettes cyjShiny)
+	(R CMD build --no-build-vignettes .)
 
 install:
-	(cd ..; R CMD INSTALL --no-test-load cyjShiny)
+	(R CMD INSTALL --no-test-load .)
 
 check:
 	(cd ..; R CMD check --no-vignettes --no-manual `ls -t cyjShiny_* | head -1`)

@@ -1,6 +1,6 @@
 {
   "name": "cyjsShiny",
-  "version": "0.99.0",
+  "version": "1.0.13",
   "description": "html, js, css and libraries for the R/shiny package, cyjsShiny",
   "main": "cyjsShiny.js",
   "scripts": {

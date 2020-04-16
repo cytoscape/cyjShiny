@@ -214,9 +214,9 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("setEdgeAttributes", fun
 //----------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("selectNodes", function(message){
 
-   log("selectNodes requested: " + message);
+   log("selectNodes requested (16 apr 2020, 835a) : " + message);
 
-   var nodeIDs = fromJSON(message);
+   var nodeIDs = message;
 
    if(typeof(nodeIDs) == "string")
       nodeIDs = [nodeIDs];
