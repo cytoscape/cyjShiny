@@ -95963,19 +95963,17 @@ HTMLWidgets.widget({
 			//setTimeout(function() {
 			//    cyj.fit(10)
 			//}, 600);
-		    } // ready
+		    }, // ready
 		}) // cytoscape()
             }, // renderValue
-            resize: function(newWidth, newHeight, instance){
-                  // automatically called on the window resize event
-		//log("cyjShiny widget, resize: " + newWidth + ", " + newHeight)
-		//$("#cyjShiny").height(0.95 * window.innerHeight);
-		$("#cyjShiny").height(newHeight);
-		cyj.resize()
-		//log("  after resize, widget dimensions: " +
-                //            $("#cyjShiny").width() + ", " +
-                //            $("#cyjShiny").height());
-            },
+            resize: function(width, height) {
+		console.log("widget resize");
+		var parentWidth = $("#cyjShiny").parent().width()
+		var parentHeight = $("#cyjShiny").parent().height()
+		console.log("widget resize, parentWidth: " + parentWidth + "  height: " + parentHeight);
+		$("#cyjShiny").width(parentWidth)
+		$("#cyjShiny").height(parentHeight)
+	    },
             cyjWidget: cyj
         }; // return
     } // factory

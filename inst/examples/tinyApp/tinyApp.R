@@ -21,8 +21,9 @@ graph.json <- toJSON(dataFramesToJSON(tbl.edges, tbl.nodes), auto_unbox=TRUE)
 ui = shinyUI(fluidPage(
 
   tags$head(
-     tags$style("#cyjShiny{height:95vh !important;}")),
-
+     tags$style("#cyjShiny{height:95vh !important;}"),
+     tags$style(".well{border-width:0px;}")
+     ),
   sidebarLayout(
      sidebarPanel(
         actionButton("selectRandomNodeButton", "Select random node"),
@@ -34,11 +35,13 @@ ui = shinyUI(fluidPage(
         actionButton("randomNodeAttributes", "Send"),
         h6("Try out png-saving capability, using the currently displayed network"),
         actionButton("savePNGbutton", "Save PNG to 'foo.png'"),
-        width=3
+        width=3,
+        style="margin-right:0px; padding-right:0px;"
         ),
      mainPanel(
         cyjShinyOutput('cyjShiny'),
-        width=9
+        width=9,
+        style="margin-left:0px; padding-left:0px;"
         )
      ) # sidebarLayout
 ))
@@ -99,4 +102,5 @@ server = function(input, output, session) {
 
 } # server
 #----------------------------------------------------------------------------------------------------
+browseURL("http://localhost:6789")
 runApp(shinyApp(ui=ui,server=server), port=6789)
