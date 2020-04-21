@@ -35,13 +35,13 @@ ui = shinyUI(fluidPage(
         actionButton("randomNodeAttributes", "Send"),
         h6("Try out png-saving capability, using the currently displayed network"),
         actionButton("savePNGbutton", "Save PNG to 'foo.png'"),
-        width=3,
-        style="margin-right:0px; padding-right:0px;"
+        width=3
+        #style="margin-right:10px; padding-right:0px;"
         ),
      mainPanel(
         cyjShinyOutput('cyjShiny'),
-        width=9,
-        style="margin-left:0px; padding-left:0px;"
+        width=9
+        #style="margin-left:0px; padding-left:0px;"
         )
      ) # sidebarLayout
 ))

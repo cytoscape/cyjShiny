@@ -462,7 +462,6 @@ addGraphFromJsonFile <- function(session, jsonFilename)
 #'
 selectNodes <- function(session, nodeNames)
 {
-   printf("--- cyjShiny::selectNodes")
    print(nodeNames)
    session$sendCustomMessage(type="selectNodes", message=toJSON(nodeNames))
 
