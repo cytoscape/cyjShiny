@@ -556,5 +556,5 @@ savePNGtoFile <- function(session, filename)
 {
    session$sendCustomMessage(type="savePNGtoFile", message=list(filename))
 
-} # clearSelection
+} # savePNGtoFile
 #------------------------------------------------------------------------------------------------------------------------
