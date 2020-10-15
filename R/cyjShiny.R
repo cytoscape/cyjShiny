@@ -52,14 +52,15 @@ cyjShiny <- function(graph, layoutName, styleFile=NULL, width = NULL, height = N
 {
    stopifnot(layoutName %in% c("preset",
                                "cose",
-                               "cola",
+                               #"cola",
                                "circle",
                                "concentric",
                                "breadthfirst",
                                "grid",
-                               "random",
-                               "dagre",
-                               "cose-bilkent"))
+                               "random"
+                               #"dagre",
+                               #"cose-bilkent"
+                               ))
 
    defaultStyleFile <- system.file(package="cyjShiny", "extdata", "defaultStyle.json")
    if (is.null(styleFile))
