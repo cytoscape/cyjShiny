@@ -1,6 +1,5 @@
 library(shiny)
 library(cyjShiny)
-library(htmlwidgets)
 library(graph)
 library(jsonlite)
 #----------------------------------------------------------------------------------------------------
@@ -32,14 +31,15 @@ ui = shinyUI(fluidPage(
           selectInput("doLayout", "Select Layout:",
                       choices=c("",
                                 "cose",
-                                "cola",
+                                #"cola",
                                 "circle",
                                 "concentric",
                                 "breadthfirst",
                                 "grid",
-                                "random",
-                                "dagre",
-                                "cose-bilkent")),
+                                "random"
+                                #"dagre",
+                                #"cose-bilkent"
+                                )),
 
           selectInput("setNodeAttributes", "Select Condition:", choices=condition),
           selectInput("selectName", "Select Node by ID:", choices = c("", nodes(g))),
@@ -127,9 +127,9 @@ server = function(input, output, session)
 
     output$value <- renderPrint({ input$action })
     output$cyjShiny <- renderCyjShiny(
-       cyjShiny(graph, layoutName="cola", style_file="yeastGalactoseStyle.js")
+       cyjShiny(graph, layoutName="cose", styleFile="yeastGalactoseStyle.js")
        )
 
 } # server
 #----------------------------------------------------------------------------------------------------
-app <- shinyApp(ui = ui, server = server)
+runApp(shinyApp(ui = ui, server = server), port=9876)

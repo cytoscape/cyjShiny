@@ -1,24 +1,7 @@
-// following http://www.htmlwidgets.org/develop_intro.html
+// cyjShiny.js
+
 "use strict";
 
-var cytoscape = require('cytoscape');
-//----------------------------------------------------------------------------------------------------
-// add layout extensions
-var cola = require('cytoscape-cola');
-cytoscape.use(cola);
-
-let dagre = require('cytoscape-dagre');
-cytoscape.use(dagre);
-
-let coseBilkent = require('cytoscape-cose-bilkent');
-cytoscape.use(coseBilkent);
-
-$ = require('jquery');
-require('jquery-ui-bundle');
-// apparently two versions of jquery get loaded: by shiny, and just above
-// see https://api.jquery.com/jquery.noconflict/ and
-// this stackoverflow discussion: https://stackoverflow.com/questions/31227844/typeerror-datatable-is-not-a-function
-$.noConflict();
 //----------------------------------------------------------------------------------------------------
 var defaultStyle = [{selector: 'node', css: {
                         'text-valign': 'center',
@@ -73,7 +56,7 @@ HTMLWidgets.widget({
                     style = defaultStyle;
 		// log(data);
 		var cyDiv = el;
-		cyj = cytoscape({
+		cyj = new cytoscape({
 		    container: cyDiv,
 		    elements: data.elements,
 		    layout: {name: layoutName},
@@ -87,14 +70,17 @@ HTMLWidgets.widget({
 			var cyj = this;
 			window.cyj = this;   // terrible hack.  but gives us a simple way to call cytosacpe functions
 			//If given a style, this is the place to set it!
-			if (style != null) {
-				cyj.style(style.json);
-			}
-			log("small cyjs network ready, with " + cyj.nodes().length + " nodes.");
+			if (style != null){
+			   cyj.style(style.json);
+			   }
+			console.log("SMALL cyjs network ready, with " + cyj.nodes().length + " nodes.");
 		        log("  initial widget dimensions: " +
                             $("#cyjShiny").width() + ", " +
                             $("#cyjShiny").height());
-
+                        console.log("--- about to add custom select");
+                        cyj.on("select", "node", function(event){
+			   console.log("custom select")
+                           });
 			cyj.nodes().map(function(node){node.data({degree: node.degree()})});
 			//setTimeout(function() {
 			//    cyj.fit(10)

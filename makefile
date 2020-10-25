@@ -1,4 +1,4 @@
-basic: npm docs install
+basic: docs install
 
 all:  npm docs install build check
 
@@ -7,8 +7,8 @@ docs:
 vig:
 	R -e "devtools::build_vignettes()"
 
-npm:
-	(cd browserCode; make)
+#npm:
+#	(cd browserCode; make)
 
 build:
 	(R CMD build --no-build-vignettes .)
@@ -24,3 +24,6 @@ biocCheck:
 
 test:
 	(for x in inst/unitTests/test_*.R; do echo ============== $$x; R -f $$x; done)
+
+demo:
+	(cd inst/unitTests; R -f cyjShinyDemo.R )
