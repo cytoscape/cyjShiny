@@ -5,10 +5,17 @@ Date: 2020-04-29
 Author: Omar Shah, Paul Shannon
 Maintainer: Paul Shannon <pshannon@systemsbiology.org>
 Description: This package provides cytoscape.js as a shiny widget.
-Depends: R (>= 3.5.0), htmlwidgets, shiny, jsonlite, graph, base64enc
+Depends: R (>= 3.5.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+biocViews:
+Imports:
+    htmlwidgets, 
+    shiny, 
+    jsonlite, 
+    graph, 
+    base64enc
 Collate:
    'graphsToJSON.R'
    'cyjShiny.R'
