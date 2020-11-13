@@ -9,6 +9,7 @@ Depends: R (>= 3.5.0), htmlwidgets, shiny, jsonlite, graph, base64enc
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+biocViews:
 Collate:
    'graphsToJSON.R'
    'cyjShiny.R'
