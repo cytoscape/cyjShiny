@@ -13,6 +13,18 @@ cytoscape.use(dagre);
 let coseBilkent = require('cytoscape-cose-bilkent');
 cytoscape.use(coseBilkent);
 
+let euler = require('cytoscape-euler');
+cytoscape.use(euler);
+
+let fcose = require('cytoscape-fcose');
+cytoscape.use(fcose);
+
+let springy = require('cytoscape-springy');
+cytoscape.use(springy);
+
+let spread = require('cytoscape-spread');
+cytoscape.use(spread);
+
 $ = require('jquery');
 require('jquery-ui-bundle');
 // apparently two versions of jquery get loaded: by shiny, and just above
