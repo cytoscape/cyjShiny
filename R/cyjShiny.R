@@ -26,62 +26,65 @@
 #' @seealso \code{\link{graphNELtoJSON}}
 #'
 #' @examples
-#'   tbl.nodes <- data.frame(id=c("A", "B", "C"),
-#'                           type=c("kinase", "TF", "glycoprotein"),
-#'                           lfc=c(-3, 1, 1),
-#'                           count=c(0, 0, 0),
-#'                           stringsAsFactors=FALSE)
+#' tbl.nodes <- data.frame(
+#'   id = c("A", "B", "C"),
+#'   type = c("kinase", "TF", "glycoprotein"),
+#'   lfc = c(-3, 1, 1),
+#'   count = c(0, 0, 0),
+#'   stringsAsFactors = FALSE
+#' )
 #'
-#'   tbl.edges <- data.frame(source=c("A", "B", "C"),
-#'                           target=c("B", "C", "A"),
-#'                           interaction=c("phosphorylates", "synthetic lethal", "unknown"),
-#'                           stringsAsFactors=FALSE)
+#' tbl.edges <- data.frame(
+#'   source = c("A", "B", "C"),
+#'   target = c("B", "C", "A"),
+#'   interaction = c("phosphorylates", "synthetic lethal", "unknown"),
+#'   stringsAsFactors = FALSE
+#' )
 #'
-#'   graph.json.v1 <- dataFramesToJSON(tbl.edges) #  simple legitimate graph, nodes implied, but no node attributes
-#'   graph.json.v2 <- dataFramesToJSON(tbl.edges, tbl.nodes) # nodes and edges both explicit,  attributes specified
+#' graph.json.v1 <- dataFramesToJSON(tbl.edges) #  simple legitimate graph, nodes implied, but no node attributes
+#' graph.json.v2 <- dataFramesToJSON(tbl.edges, tbl.nodes) # nodes and edges both explicit,  attributes specified
 #'
-#'   g <- graphNEL(nodes=c("A","B","C"), edgemode="directed")
-#'   g <- addEdge("A", "B", g)
-#'   graph.json.v3 <- graphNELtoJSON(g)
+#' g <- graphNEL(nodes = c("A", "B", "C"), edgemode = "directed")
+#' g <- addEdge("A", "B", g)
+#' graph.json.v3 <- graphNELtoJSON(g)
 #'
-#'   #output$cyjShiny <- renderCyjShiny(cyjShiny(graph.json.v[123]))
-#'
+#' # output$cyjShiny <- renderCyjShiny(cyjShiny(graph.json.v[123]))
 #' @export
 
-cyjShiny <- function(graph, layoutName, styleFile=NULL, width = NULL, height = NULL, elementId = NULL)
-{
-   stopifnot(layoutName %in% c("preset",
-                               "cose",
-                               "cola",
-                               "circle",
-                               "concentric",
-                               "breadthfirst",
-                               "grid",
-                               "random",
-                               "dagre",
-                               "cose-bilkent"))
+cyjShiny <- function(graph, layoutName, styleFile = NULL, width = NULL, height = NULL, elementId = NULL) {
+  stopifnot(layoutName %in% c(
+    "preset",
+    "cose",
+    "cola",
+    "circle",
+    "concentric",
+    "breadthfirst",
+    "grid",
+    "random",
+    "dagre",
+    "cose-bilkent"
+  ))
 
-   defaultStyleFile <- system.file(package="cyjShiny", "extdata", "defaultStyle.json")
-   if (is.null(styleFile))
-      styleFile <- defaultStyleFile
-   stopifnot(file.exists(styleFile))
+  defaultStyleFile <- system.file(package = "cyjShiny", "extdata", "defaultStyle.json")
+  if (is.null(styleFile)) {
+    styleFile <- defaultStyleFile
+  }
+  stopifnot(file.exists(styleFile))
 
-   jsonText <- readAndStandardizeJSONStyleFile(styleFile)   # very strict parser, no unquoted field names
-   style <- list(json=jsonText)
+  jsonText <- readAndStandardizeJSONStyleFile(styleFile) # very strict parser, no unquoted field names
+  style <- list(json = jsonText)
 
-   x <- list(graph=graph, layoutName=layoutName, style=style)
+  x <- list(graph = graph, layoutName = layoutName, style = style)
 
-   htmlwidgets::createWidget(
-      name = 'cyjShiny',
-      x,
-      width = width,
-      height = height,
-      package = 'cyjShiny',
-      elementId = elementId,
-      sizingPolicy = htmlwidgets::sizingPolicy(browser.fill=TRUE)
-      )
-
-
+  htmlwidgets::createWidget(
+    name = "cyjShiny",
+    x,
+    width = width,
+    height = height,
+    package = "cyjShiny",
+    elementId = elementId,
+    sizingPolicy = htmlwidgets::sizingPolicy(browser.fill = TRUE)
+  )
 } # cyjShiny constructor
 #------------------------------------------------------------------------------------------------------------------------
 #' Standard shiny ui rendering construct
@@ -96,7 +99,7 @@ cyjShiny <- function(graph, layoutName, styleFile=NULL, width = NULL, height = N
 #'
 #' @examples
 #' \dontrun{
-#'   mainPanel(cyjShinyOutput('cyjShiny'), width=10)
+#' mainPanel(cyjShinyOutput("cyjShiny"), width = 10)
 #' }
 #'
 #' @aliases cyjShinyOutput
@@ -104,9 +107,8 @@ cyjShiny <- function(graph, layoutName, styleFile=NULL, width = NULL, height = N
 #'
 #' @export
 
-cyjShinyOutput <- function(outputId, width = '100%', height = '400')
-{
-    htmlwidgets::shinyWidgetOutput(outputId, 'cyjShiny', width, height, package = 'cyjShiny')
+cyjShinyOutput <- function(outputId, width = "100%", height = "400") {
+  htmlwidgets::shinyWidgetOutput(outputId, "cyjShiny", width, height, package = "cyjShiny")
 }
 #------------------------------------------------------------------------------------------------------------------------
 #' More shiny plumbing -  a cyjShiny wrapper for htmlwidget standard rendering operation
@@ -122,14 +124,12 @@ cyjShinyOutput <- function(outputId, width = '100%', height = '400')
 #'
 #' @export
 
-renderCyjShiny <- function(expr, env = parent.frame(), quoted = FALSE)
-{
-   if (!quoted){
-      expr <- substitute(expr)
-      } # force quoted
+renderCyjShiny <- function(expr, env = parent.frame(), quoted = FALSE) {
+  if (!quoted) {
+    expr <- substitute(expr)
+  } # force quoted
 
   htmlwidgets::shinyRenderWidget(expr, cyjShinyOutput, env, quoted = TRUE)
-
 }
 #------------------------------------------------------------------------------------------------------------------------
 #' load a standard cytoscape.js JSON network file
@@ -142,7 +142,7 @@ renderCyjShiny <- function(expr, env = parent.frame(), quoted = FALSE)
 #'
 #' @examples
 #' \dontrun{
-#'   loadNetworkFromJSONFile(system.file(package="cyjShiny", "extdata", "galFiltered.cyjs"))
+#' loadNetworkFromJSONFile(system.file(package = "cyjShiny", "extdata", "galFiltered.cyjs"))
 #' }
 #'
 #' @aliases loadNetworkFromJSONFile
@@ -150,14 +150,12 @@ renderCyjShiny <- function(expr, env = parent.frame(), quoted = FALSE)
 #'
 #' @export
 
-loadNetworkFromJSONFile <- function(filename)
-{
-   jsonText <- readAndStandardizeJSONNetworkFile(filename)
-   message <- list(json=jsonText)
+loadNetworkFromJSONFile <- function(filename) {
+  jsonText <- readAndStandardizeJSONNetworkFile(filename)
+  message <- list(json = jsonText)
 
-   session <- shiny::getDefaultReactiveDomain()
-   session$sendCustomMessage("loadJSONNetwork", message)
-
+  session <- shiny::getDefaultReactiveDomain()
+  session$sendCustomMessage("loadJSONNetwork", message)
 } # loadNetworkFromJSONFile
 #------------------------------------------------------------------------------------------------------------------------
 #' load a standard cytoscape.js style file
@@ -170,7 +168,7 @@ loadNetworkFromJSONFile <- function(filename)
 #'
 #' @examples
 #' \dontrun{
-#'   loadStyleFile(system.file(package="cyjShiny", "extdata", "yeastGalactoseStyle.js"))
+#' loadStyleFile(system.file(package = "cyjShiny", "extdata", "yeastGalactoseStyle.js"))
 #' }
 #'
 #' @aliases loadStyleFile
@@ -178,19 +176,18 @@ loadNetworkFromJSONFile <- function(filename)
 #'
 #' @export
 
-loadStyleFile <- function(styleFile)
-{
-   if(styleFile == "default style")
-      styleFile <- system.file(package="cyjShiny", "extdata", "defaultStyle.json")
+loadStyleFile <- function(styleFile) {
+  if (styleFile == "default style") {
+    styleFile <- system.file(package = "cyjShiny", "extdata", "defaultStyle.json")
+  }
 
-   stopifnot(file.exists(styleFile))
+  stopifnot(file.exists(styleFile))
 
-   jsonText <- readAndStandardizeJSONStyleFile(styleFile)   # very strict parser, no unquoted field names
-   message <- list(json=jsonText)
+  jsonText <- readAndStandardizeJSONStyleFile(styleFile) # very strict parser, no unquoted field names
+  message <- list(json = jsonText)
 
-   session <- shiny::getDefaultReactiveDomain()
-   session$sendCustomMessage("loadStyle", message)
-
+  session <- shiny::getDefaultReactiveDomain()
+  session$sendCustomMessage("loadStyle", message)
 } # loadStyleFile
 #------------------------------------------------------------------------------------------------------------------------
 #' Set zoom and center of the graph display so that graph fills the display.
@@ -200,8 +197,8 @@ loadStyleFile <- function(styleFile)
 #'
 #' @examples
 #' \dontrun{
-#'   fit(session, 100)
-#'}
+#' fit(session, 100)
+#' }
 #'
 #' @aliases fit
 #' @rdname fit
@@ -210,10 +207,8 @@ loadStyleFile <- function(styleFile)
 #'
 #' @export
 
-fit <- function(session, padding=50)
-{
-   session$sendCustomMessage("fit", list(padding=padding))
-
+fit <- function(session, padding = 50) {
+  session$sendCustomMessage("fit", list(padding = padding))
 } # fitSelected
 #------------------------------------------------------------------------------------------------------------------------
 #' Set zoom and center of the graph display so that the currently selected nodes fill the display
@@ -223,7 +218,7 @@ fit <- function(session, padding=50)
 #'
 #' @examples
 #' \dontrun{
-#'   fitSelected(session, 100)
+#' fitSelected(session, 100)
 #' }
 #'
 #' @aliases fitSelected
@@ -233,10 +228,8 @@ fit <- function(session, padding=50)
 #'
 #' @export
 
-fitSelected <- function(session, padding=50)
-{
-   session$sendCustomMessage("fitSelected", list(padding=padding))
-
+fitSelected <- function(session, padding = 50) {
+  session$sendCustomMessage("fitSelected", list(padding = padding))
 } # fitSelected
 #------------------------------------------------------------------------------------------------------------------------
 #' getSelectedNodes
@@ -253,10 +246,8 @@ fitSelected <- function(session, padding=50)
 #' @export
 #'
 
-getSelectedNodes <- function(session)
-{
-   session$sendCustomMessage("getSelectedNodes", message=list())
-
+getSelectedNodes <- function(session) {
+  session$sendCustomMessage("getSelectedNodes", message = list())
 } # getSelectedNodes
 #----------------------------------------------------------------------------------------------------
 #' Assign the supplied node attribute values to the graph structure contained in the browser.
@@ -268,10 +259,11 @@ getSelectedNodes <- function(session)
 #'
 #' @examples
 #' \dontrun{
-#'   setNodeAttributes(session,
-#'                     attributeName=attribute,
-#'                     nodes=yeastGalactodeNodeIDs,
-#'                     values=expression.vector)
+#' setNodeAttributes(session,
+#'   attributeName = attribute,
+#'   nodes = yeastGalactodeNodeIDs,
+#'   values = expression.vector
+#' )
 #' }
 #'
 #' @aliases setNodeAttributes
@@ -279,12 +271,15 @@ getSelectedNodes <- function(session)
 #'
 #' @export
 
-setNodeAttributes <- function(session, attributeName, nodes, values)
-{
-   session$sendCustomMessage(type="setNodeAttributes",
-                             message=list(attribute=attributeName,
-                                          nodes=nodes,
-                                          values=values))
+setNodeAttributes <- function(session, attributeName, nodes, values) {
+  session$sendCustomMessage(
+    type = "setNodeAttributes",
+    message = list(
+      attribute = attributeName,
+      nodes = nodes,
+      values = values
+    )
+  )
 } # setNodeAttributes
 #------------------------------------------------------------------------------------------------------------------------
 #' Assign the supplied edge attribute values to the graph structure contained in the browser.
@@ -298,12 +293,13 @@ setNodeAttributes <- function(session, attributeName, nodes, values)
 #'
 #' @examples
 #' \dontrun{
-#'   setEdgeAttributes(session,
-#'                     attributeName="score",
-#'                     sourceNodes=c("A", "B", "C"),
-#'                     targetNodes=c("D", "E", "A"),
-#'                     interactions=c("promotes", "promotes", "inhibits"),
-#'                     values=new.scores)
+#' setEdgeAttributes(session,
+#'   attributeName = "score",
+#'   sourceNodes = c("A", "B", "C"),
+#'   targetNodes = c("D", "E", "A"),
+#'   interactions = c("promotes", "promotes", "inhibits"),
+#'   values = new.scores
+#' )
 #' }
 #'
 #' @aliases setEdgeAttributes
@@ -311,14 +307,17 @@ setNodeAttributes <- function(session, attributeName, nodes, values)
 #'
 #' @export
 
-setEdgeAttributes <- function(session, attributeName, sourceNodes, targetNodes, interactions, values)
-{
-   session$sendCustomMessage(type="setEdgeAttributes",
-                             message=list(attributeName=attributeName,
-                                          sourceNodes=sourceNodes,
-                                          targetNodes=targetNodes,
-                                          interactions=interactions,
-                                          values=values))
+setEdgeAttributes <- function(session, attributeName, sourceNodes, targetNodes, interactions, values) {
+  session$sendCustomMessage(
+    type = "setEdgeAttributes",
+    message = list(
+      attributeName = attributeName,
+      sourceNodes = sourceNodes,
+      targetNodes = targetNodes,
+      interactions = interactions,
+      values = values
+    )
+  )
 } # setEdgeAttributes
 #------------------------------------------------------------------------------------------------------------------------
 #' Layout the current graph using the specified strategy.
@@ -328,20 +327,20 @@ setEdgeAttributes <- function(session, attributeName, sourceNodes, targetNodes, 
 #'
 #' @examples
 #' \dontrun{
-#'   doLayout(session, "cola")
+#' doLayout(session, "cola")
 #' }
 #' @aliases doLayout
 #' @rdname doLayout
 #'
 #' @export
 
-doLayout <- function(session, strategy)
-{
-   stopifnot(strategy %in% c("cola", "cose", "circle", "concentric", "grid", "breadthfirst",
-                             "preset", "random", "dagre", "cose-bilkent"))
+doLayout <- function(session, strategy) {
+  stopifnot(strategy %in% c(
+    "cola", "cose", "circle", "concentric", "grid", "breadthfirst",
+    "preset", "random", "dagre", "cose-bilkent"
+  ))
 
-   session$sendCustomMessage(type="doLayout", message=list(strategy=strategy))
-
+  session$sendCustomMessage(type = "doLayout", message = list(strategy = strategy))
 } # doLayout
 #------------------------------------------------------------------------------------------------------------------------
 #' get node positions
@@ -353,10 +352,8 @@ doLayout <- function(session, strategy)
 #'
 #' @export
 
-getNodePositions <- function(session)
-{
-   x <- session$sendCustomMessage(type="getNodePositions", message=list())
-
+getNodePositions <- function(session) {
+  x <- session$sendCustomMessage(type = "getNodePositions", message = list())
 } # getNodePositions
 #------------------------------------------------------------------------------------------------------------------------
 #' set node positions from the supplied data.frame
@@ -369,13 +366,11 @@ getNodePositions <- function(session)
 #'
 #' @export
 
-setNodePositions <- function(session, tbl.positions)
-{
-   stopifnot(colnames(tbl.positions) == c("id", "x", "y"))
+setNodePositions <- function(session, tbl.positions) {
+  stopifnot(colnames(tbl.positions) == c("id", "x", "y"))
 
-   tbl.json <- toJSON(tbl.positions) # force a json representation which is an array of {id,x,y{ objects
-   session$sendCustomMessage(type="setNodePositions", message=list(tbl=tbl.json))
-
+  tbl.json <- toJSON(tbl.positions) # force a json representation which is an array of {id,x,y{ objects
+  session$sendCustomMessage(type = "setNodePositions", message = list(tbl = tbl.json))
 } # setNodePositions
 #------------------------------------------------------------------------------------------------------------------------
 #' remove the current graph
@@ -384,17 +379,15 @@ setNodePositions <- function(session, tbl.positions)
 #'
 #' @examples
 #' \dontrun{
-#'   removeGraph(session)
+#' removeGraph(session)
 #' }
 #' @aliases removeGraph
 #' @rdname removeGraph
 #'
 #' @export
 
-removeGraph <- function(session)
-{
-   session$sendCustomMessage(type="removeGraph", message=list())
-
+removeGraph <- function(session) {
+  session$sendCustomMessage(type = "removeGraph", message = list())
 } # removeGraph
 #------------------------------------------------------------------------------------------------------------------------
 #' addGraphFromDataFrame
@@ -405,7 +398,7 @@ removeGraph <- function(session)
 #'
 #' @examples
 #' \dontrun{
-#'   addGraphFromDataFrame (session)
+#' addGraphFromDataFrame(session)
 #' }
 #'
 #' @aliases addGraphFromDataFrame
@@ -413,20 +406,18 @@ removeGraph <- function(session)
 #'
 #' @export
 
-addGraphFromDataFrame <- function(session, tbl.edges, tbl.nodes=NULL)
-{
-   illegal.tbl <- ncol(tbl.edges) < 3
-   illegal.colnames <- !(all(colnames(tbl.edges)[1:3] == c("source", "target", "interaction")))
+addGraphFromDataFrame <- function(session, tbl.edges, tbl.nodes = NULL) {
+  illegal.tbl <- ncol(tbl.edges) < 3
+  illegal.colnames <- !(all(colnames(tbl.edges)[1:3] == c("source", "target", "interaction")))
 
-   if(illegal.tbl | illegal.colnames){
-      msg <- sprintf("required colnames for tbl.edges: 'source'  'target'  'interaction'")
-      cat(msg)
-      return()
-      }
+  if (illegal.tbl | illegal.colnames) {
+    msg <- sprintf("required colnames for tbl.edges: 'source'  'target'  'interaction'")
+    cat(msg)
+    return()
+  }
 
-   g.json <- dataFramesToJSON(tbl.edges, tbl.nodes)
-   session$sendCustomMessage(type="addGraph", message=list(graph=g.json))
-
+  g.json <- dataFramesToJSON(tbl.edges, tbl.nodes)
+  session$sendCustomMessage(type = "addGraph", message = list(graph = g.json))
 } # addGraphFromDataFrame
 #------------------------------------------------------------------------------------------------------------------------
 #' addGraphFromJsonFile
@@ -436,18 +427,16 @@ addGraphFromDataFrame <- function(session, tbl.edges, tbl.nodes=NULL)
 #'
 #' @examples
 #' \dontrun{
-#'   addGraphFromJsonFile (session)
+#' addGraphFromJsonFile(session)
 #' }
 #' @aliases addGraphFromJsonFile
 #' @rdname addGraphFromJsonFile
 #'
 #' @export
 #'
-addGraphFromJsonFile <- function(session, jsonFilename)
-{
-   g.json <- readLines(jsonFilename)
-   session$sendCustomMessage(type="addGraph", message=list(graph=g.json))
-
+addGraphFromJsonFile <- function(session, jsonFilename) {
+  g.json <- readLines(jsonFilename)
+  session$sendCustomMessage(type = "addGraph", message = list(graph = g.json))
 } # addGraphFromJSON
 #------------------------------------------------------------------------------------------------------------------------
 #' selectNodes
@@ -460,11 +449,9 @@ addGraphFromJsonFile <- function(session, jsonFilename)
 #'
 #' @export
 #'
-selectNodes <- function(session, nodeNames)
-{
-   print(nodeNames)
-   session$sendCustomMessage(type="selectNodes", message=toJSON(nodeNames))
-
+selectNodes <- function(session, nodeNames) {
+  print(nodeNames)
+  session$sendCustomMessage(type = "selectNodes", message = toJSON(nodeNames))
 } # selectNodes
 #------------------------------------------------------------------------------------------------------------------------
 #' selectFirstNeighbors of the currently selected nodes
@@ -476,10 +463,8 @@ selectNodes <- function(session, nodeNames)
 #'
 #' @export
 #'
-selectFirstNeighbors <- function(session)
-{
-   session$sendCustomMessage(type="sfn", message=list())
-
+selectFirstNeighbors <- function(session) {
+  session$sendCustomMessage(type = "sfn", message = list())
 } # selectFirstNeighbors
 #------------------------------------------------------------------------------------------------------------------------
 #' clearSelection all node and edge selections removed
@@ -491,10 +476,8 @@ selectFirstNeighbors <- function(session)
 #'
 #' @export
 #'
-clearSelection <- function(session)
-{
-   session$sendCustomMessage(type="clearSelection", message=list())
-
+clearSelection <- function(session) {
+  session$sendCustomMessage(type = "clearSelection", message = list())
 } # clearSelection
 #------------------------------------------------------------------------------------------------------------------------
 #' invertSelection all selected nodes and their edges are hidden
@@ -506,10 +489,8 @@ clearSelection <- function(session)
 #'
 #' @export
 #'
-invertSelection <- function(session)
-{
-   session$sendCustomMessage(type="invertSelection", message=list())
-
+invertSelection <- function(session) {
+  session$sendCustomMessage(type = "invertSelection", message = list())
 } # invertSelection
 #------------------------------------------------------------------------------------------------------------------------
 #' hideSelection all selected nodes and their edges are hidden
@@ -521,10 +502,8 @@ invertSelection <- function(session)
 #'
 #' @export
 #'
-hideSelection <- function(session)
-{
-   session$sendCustomMessage(type="hideSelection", message=list())
-
+hideSelection <- function(session) {
+  session$sendCustomMessage(type = "hideSelection", message = list())
 } # hideSelection
 #------------------------------------------------------------------------------------------------------------------------
 #' showAll all selected nodes and their edges are hidden
@@ -536,10 +515,8 @@ hideSelection <- function(session)
 #'
 #' @export
 #'
-showAll <- function(session)
-{
-   session$sendCustomMessage(type="showAll", message=list())
-
+showAll <- function(session) {
+  session$sendCustomMessage(type = "showAll", message = list())
 } # showAll
 #------------------------------------------------------------------------------------------------------------------------
 #' save a png rendering of the current network view to the specified filename
