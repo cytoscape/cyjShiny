@@ -177,8 +177,8 @@ server = function(input, output, session)
     # output$value <- renderPrint({ input$action })
 
     output$cyjShiny <- renderCyjShiny({
-       printf(" renderCyjShiny invoked")
-       printf("graph.json:")
+       print(" renderCyjShiny invoked")
+       print("graph.json:")
        print(fromJSON(graph.json))
        cyjShiny(graph=graph.json, layoutName="preset")
        })
