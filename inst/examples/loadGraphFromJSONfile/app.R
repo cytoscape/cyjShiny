@@ -37,7 +37,12 @@ ui = shinyUI(fluidPage(
                                 "grid",
                                 "random",
                                 "dagre",
-                                "cose-bilkent")),
+                                "cose-bilkent",
+                                "preset",
+                                "euler",
+                                "fcose",
+                                "springy",
+                                "spread")),
 
 
           #selectInput("setNodeAttributes", "Select Condition:", choices=condition),

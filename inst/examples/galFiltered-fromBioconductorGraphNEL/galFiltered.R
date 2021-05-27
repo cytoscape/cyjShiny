@@ -28,6 +28,7 @@ ui = shinyUI(fluidPage(
 
   tags$head(
      tags$style("#cyjShiny{height:95vh !important;}")),
+  titlePanel(title="galFiltered from Bioconductor GraphNel"),
   sidebarLayout(
       sidebarPanel(
           selectInput("loadStyleFile", "Select Style: ", choices=styleList),
@@ -41,7 +42,12 @@ ui = shinyUI(fluidPage(
                                 "grid",
                                 "random",
                                 "dagre",
-                                "cose-bilkent")),
+                                "cose-bilkent",
+                                "preset",
+                                "euler",
+                                "fcose",
+                                "springy",
+                                "spread")),
 
           selectInput("setNodeAttributes", "Select Condition:", choices=condition),
           selectInput("selectName", "Select Node by ID:", choices = c("", nodes(g))),

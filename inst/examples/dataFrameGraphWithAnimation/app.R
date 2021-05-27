@@ -40,6 +40,7 @@ rownames(tbl.count) <- c("baseline", "cond1", "cond2", "cond3")
 ui = shinyUI(fluidPage(
 
   tags$head(tags$style("#cyjShiny{height:95vh !important;}")),
+  titlePanel(title="dataFrame graph with animation"),
   sidebarLayout(
       sidebarPanel(
           selectInput("loadStyleFile", "Select Style: ", choices=styles),
@@ -53,7 +54,13 @@ ui = shinyUI(fluidPage(
                                 "grid",
                                 "random",
                                 "dagre",
-                                "cose-bilkent")),
+                                "cose-bilkent",
+                                "preset",
+                                "euler",
+                                "fcose",
+                                "springy",
+                                "spread")),
+          
 
 
           selectInput("showCondition", "Select Condition:", choices=rownames(tbl.lfc)),
@@ -73,6 +80,7 @@ ui = shinyUI(fluidPage(
   ) # sidebarLayout
 ))
 #----------------------------------------------------------------------------------------------------
+
 server = function(input, output, session)
 {
     observeEvent(input$fit, ignoreInit=TRUE, {
@@ -180,4 +188,5 @@ server = function(input, output, session)
 
 } # server
 #----------------------------------------------------------------------------------------------------
+
 runApp(shinyApp(ui = ui, server = server), port=10002)

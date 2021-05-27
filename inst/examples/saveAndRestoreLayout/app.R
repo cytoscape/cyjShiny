@@ -54,7 +54,12 @@ ui = shinyUI(fluidPage(
                                 "grid",
                                 "random",
                                 "dagre",
-                                "cose-bilkent")),
+                                "cose-bilkent",
+                                "preset",
+                                "euler",
+                                "fcose",
+                                "springy",
+                                "spread")),
 
 
           selectInput("showCondition", "Select Condition:", choices=rownames(tbl.lfc)),
