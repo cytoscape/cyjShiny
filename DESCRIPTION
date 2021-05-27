@@ -13,6 +13,7 @@ biocViews:
 Collate:
    'graphsToJSON.R'
    'cyjShiny.R'
+Suggests: rmarkdown   
 VignetteBuilder:
   knitr
 RoxygenNote: 7.1.0

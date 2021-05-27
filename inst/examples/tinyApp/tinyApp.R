@@ -74,10 +74,10 @@ server = function(input, output, session) {
 
    output$value <- renderPrint({ input$action })
    output$cyjShiny <- renderCyjShiny({
-     printf("renderCyjShiny")
+     print("renderCyjShiny")
      print(graph.json)
      print(class(graph.json))
-     cyjShiny(graph=graph.json, layoutName="cola", styleFile="basicStyle.js")
+     cyjShiny(graph=graph.json, layoutName="cola")
      })
 
    observeEvent(input$savePNGbutton, ignoreInit=TRUE, {
@@ -86,13 +86,13 @@ server = function(input, output, session) {
      })
 
    observeEvent(input$pngData, ignoreInit=TRUE, {
-     printf("received pngData")
+     print("received pngData")
      png.parsed <- fromJSON(input$pngData)
      substr(png.parsed, 1, 30) # [1] "data:image/png;base64,iVBORw0K"
      nchar(png.parsed)  # [1] 768714
      png.parsed.headless <- substr(png.parsed, 23, nchar(png.parsed))  # chop off the uri header
      png.parsed.binary <- base64decode(png.parsed.headless)
-     printf("writing png to foo.png")
+     print("writing png to foo.png")
      conn <- file("foo.png", "wb")
      writeBin(png.parsed.binary, conn)
      close(conn)
