@@ -34,7 +34,7 @@ tbl.interactionScores <- data.frame(sourceNode=c("A", "B", "C"),
 
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
-
+  titlePanel(title="json Graph with animations"),
   sidebarLayout(
       sidebarPanel(
           selectInput("loadStyleFile", "Select Style: ", choices=styles),
@@ -48,7 +48,12 @@ ui = shinyUI(fluidPage(
                                 "grid",
                                 "random",
                                 "dagre",
-                                "cose-bilkent")),
+                                "cose-bilkent",
+                                "preset",
+                                "euler",
+                                "fcose",
+                                "springy",
+                                "spread")),
 
 
           selectInput("showCondition", "Select Condition:", choices=rownames(tbl.lfc)),

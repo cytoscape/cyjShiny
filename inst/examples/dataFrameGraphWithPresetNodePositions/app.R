@@ -40,6 +40,7 @@ rownames(tbl.count) <- c("baseline", "cond1", "cond2", "cond3")
 ui = shinyUI(fluidPage(
 
   tags$head(tags$style("#cyjShiny{height:95vh !important;}")),
+  titlePanel(title="dataFrame graph with preset node positions"),
   sidebarLayout(
       sidebarPanel(
           selectInput("loadStyleFile", "Select Style: ", choices=styles),
@@ -51,10 +52,15 @@ ui = shinyUI(fluidPage(
                                 "concentric",
                                 "breadthfirst",
                                 "grid",
-                                "preset",
                                 "random",
                                 "dagre",
-                                "cose-bilkent")),
+                                "cose-bilkent",
+                                "preset",
+                                "euler",
+                                "fcose",
+                                "springy",
+                                "spread")),
+          
 
 
           selectInput("showCondition", "Select Condition:", choices=rownames(tbl.lfc)),
@@ -185,4 +191,5 @@ server = function(input, output, session)
 
 } # server
 #----------------------------------------------------------------------------------------------------
+
 app <- shinyApp(ui = ui, server = server)

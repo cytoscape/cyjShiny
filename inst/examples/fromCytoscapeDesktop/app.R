@@ -27,6 +27,7 @@ style.json.filename <- "simple/smallDemoStyle.json"
 ui = shinyUI(fluidPage(
 
   tags$style("#cyjShiny{height:95vh !important;}"),
+  titlePanel(title="from cytoscape desktop"),
   sidebarLayout(
       sidebarPanel(
           selectInput("loadNetworkFile", "Select Network: ", choices=networks),
@@ -41,7 +42,12 @@ ui = shinyUI(fluidPage(
                                 "grid",
                                 "random",
                                 "dagre",
-                                "cose-bilkent")),
+                                "cose-bilkent",
+                                "preset",
+                                "euler",
+                                "fcose",
+                                "springy",
+                                "spread")),
 
 
           #selectInput("setNodeAttributes", "Select Condition:", choices=condition),
