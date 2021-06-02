@@ -1,8 +1,8 @@
 dependencies:
   - name: cyjShiny
-    version: 0.99.0
+    version: 1.0.19
     src: htmlwidgets
-    script: ./lib/bundle.js
+    script: ./lib/cytoscape-3.18.2-min.js
     stylesheet: ./lib/cyjShiny.css
 
 

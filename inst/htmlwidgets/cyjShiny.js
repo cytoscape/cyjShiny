@@ -1,6 +1,6 @@
 // following http://www.htmlwidgets.org/develop_intro.html
 "use strict";
-
+/*****************
 var cytoscape = require('cytoscape');
 //----------------------------------------------------------------------------------------------------
 // add layout extensions
@@ -31,6 +31,7 @@ require('jquery-ui-bundle');
 // see https://api.jquery.com/jquery.noconflict/ and
 // this stackoverflow discussion: https://stackoverflow.com/questions/31227844/typeerror-datatable-is-not-a-function
 $.noConflict();
+****************/
 //----------------------------------------------------------------------------------------------------
 var defaultStyle = [{selector: 'node', css: {
                         'text-valign': 'center',

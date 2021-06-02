@@ -21,3 +21,6 @@ biocCheck:
 
 test:
 	(for x in inst/unitTests/test_*.R; do echo ============== $$x; R -f $$x; done)
+
+demo:
+	R -f inst/demos/basicDemo/cyjShinyDemo.R
