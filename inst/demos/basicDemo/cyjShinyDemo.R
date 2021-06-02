@@ -4,8 +4,11 @@ library(htmlwidgets)
 library(graph)
 library(jsonlite)
 #----------------------------------------------------------------------------------------------------
-load("yeastGalactoseGraphNEL.RData")
-load("yeastGalactose.RData")
+# the yeast galactose network was the earliest demo used in the Cytoscape project,
+# consisting of the graph (a Bioconductor graphNEL) and expression (a data.frame)
+g <- get(load(system.file(package="cyjShiny", "extdata", "yeastGalactoseGraphNEL.RData")))
+tbl.mrna <- get(load(system.file(package="cyjShiny", "extdata", "yeastGalactoseExpressionTable.RData")))
+#----------------------------------------------------------------------------------------------------
 tbl.mrna <- as.data.frame(tbl.mrna)
 nodeAttrs <- nodeData(g, attr="label")
 
@@ -126,10 +129,11 @@ server = function(input, output, session)
         })
 
     output$value <- renderPrint({ input$action })
-    output$cyjShiny <- renderCyjShiny(
-       cyjShiny(graph, layoutName="cola", styleFile="yeastGalactoseStyle.js")
-       )
+    output$cyjShiny <- renderCyjShiny({
+       styleFile <- system.file(package="cyjShiny", "extdata", "yeastGalactoseStyle.js")
+       cyjShiny(graph, layoutName="cola", styleFile=styleFile)
+       })
 
 } # server
 #----------------------------------------------------------------------------------------------------
-app <- shinyApp(ui = ui, server = server)
+runApp(shinyApp(ui = ui, server = server))

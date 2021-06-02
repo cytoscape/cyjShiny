@@ -23,7 +23,7 @@ graph.json <- dataFramesToJSON(tbl.edges, tbl.nodes)
 
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
-  
+
   tags$head(tags$style("#cyjShiny{height:95vh !important;}")),
   titlePanel(title="cyjShiny automate test"),
   sidebarLayout(
@@ -39,7 +39,7 @@ ui = shinyUI(fluidPage(
                             "random",
                             "fcose",
                             "springy")),
-      
+
       selectInput("selectName", "Select Node by ID:", choices = c("", sort(tbl.nodes$id))),
       actionButton("sfn", "Select First Neighbor"),
       actionButton("fit", "Fit Graph"),
@@ -59,7 +59,7 @@ server = function(input, output, session)
   observeEvent(input$fit, ignoreInit=TRUE, {
     fit(session, 80)
   })
-  
+
   observeEvent(input$showCondition, ignoreInit=TRUE, {
     condition.name <- isolate(input$showCondition)
     #printf(" condition.name: %s", condition.name)
@@ -72,7 +72,7 @@ server = function(input, output, session)
     #printf("sending count values for %s: %s", paste(node.names, collapse=", "), paste(values, collapse=", "))
     setNodeAttributes(session, attributeName="count", nodes=colnames(tbl.count), values)
   })
-  
+
   observeEvent(input$loadStyleFile,  ignoreInit=FALSE, {
     if(input$loadStyleFile != ""){
       tryCatch({
@@ -84,7 +84,7 @@ server = function(input, output, session)
       #later(function() {updateSelectInput(session, "loadStyleFile", selected=character(0))}, 0.5)
     }
   })
-  
+
   observeEvent(input$doLayout,  ignoreInit=TRUE,{
     if(input$doLayout != ""){
       strategy <- input$doLayout
@@ -92,19 +92,19 @@ server = function(input, output, session)
       later(function() {updateSelectInput(session, "doLayout", selected=character(0))}, 1)
     }
   })
-  
+
   observeEvent(input$selectName,  ignoreInit=TRUE,{
     selectNodes(session, input$selectName)
   })
-  
+
   observeEvent(input$sfn,  ignoreInit=TRUE,{
     selectFirstNeighbors(session)
   })
-  
+
   observeEvent(input$fitSelected,  ignoreInit=TRUE,{
     fitSelected(session, 100)
   })
-  
+
   observeEvent(input$getSelectedNodes, ignoreInit=TRUE, {
     output$selectedNodesDisplay <- renderText({" "})
     getSelectedNodes(session)
@@ -114,7 +114,7 @@ server = function(input, output, session)
    # output$showAll <- renderText({" "})
    # showAll(session)
   #})
-  
+
   observeEvent(input$loopConditions, ignoreInit=TRUE, {
     condition.names <- rownames(tbl.lfc)
     for(condition.name in condition.names[-1]){
@@ -127,11 +127,11 @@ server = function(input, output, session)
     } # for condition.name
     updateSelectInput(session, "setNodeAttributes", selected="baseline")
   })
-  
+
   #observeEvent(input$removeGraphButton, ignoreInit=TRUE, {
    # removeGraph(session)
   #})
-  
+
   observeEvent(input$addRandomGraphFromDataFramesButton, ignoreInit=TRUE, {
     source.nodes <-  LETTERS[sample(1:5, 5)]
     target.nodes <-  LETTERS[sample(1:5, 5)]
@@ -145,7 +145,7 @@ server = function(input, output, session)
                             stringsAsFactors=FALSE)
     addGraphFromDataFrame(session, tbl.edges, tbl.nodes)
   })
-  
+
   observeEvent(input$selectedNodes, {
     #  communicated here via assignement in cyjShiny.js
     #     Shiny.setInputValue("selectedNodes", value, {priority: "event"});
@@ -154,12 +154,12 @@ server = function(input, output, session)
       paste(newNodes)
     })
   })
-  
+
   output$value <- renderPrint({ input$action })
   output$cyjShiny <- renderCyjShiny({
     cyjShiny(graph=graph.json, layoutName="preset")
   })
-  
+
 } # server
 #----------------------------------------------------------------------------------------------------
 app <- shinyApp(ui = ui, server = server)
