@@ -1,7 +1,7 @@
 {
   "input": {
     "addRandomGraphFromDataFramesButton": 0,
-    "doLayout": "springy",
+    "doLayout": "",
     "fit": 0,
     "fitSelected": 0,
     "getSelectedNodes": 0,

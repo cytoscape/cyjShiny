@@ -2,14 +2,14 @@
   "input": {
     "addRandomGraphFromDataFramesButton": 0,
     "doLayout": "",
-    "fit": 1,
+    "fit": 0,
     "fitSelected": 0,
-    "getSelectedNodes": 0,
+    "getSelectedNodes": 1,
     "selectName": "",
     "sfn": 0
   },
   "output": {
-
+    "selectedNodesDisplay": " "
   },
   "export": {
 

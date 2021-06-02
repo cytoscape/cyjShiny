@@ -1,0 +1,4 @@
+library(shinytest)
+testApp(".")
+
+
