@@ -1,0 +1,17 @@
+{
+  "input": {
+    "addRandomGraphFromDataFramesButton": 1,
+    "doLayout": "fcose",
+    "fit": 2,
+    "fitSelected": 1,
+    "getSelectedNodes": 0,
+    "selectName": "",
+    "sfn": 1
+  },
+  "output": {
+
+  },
+  "export": {
+
+  }
+}
