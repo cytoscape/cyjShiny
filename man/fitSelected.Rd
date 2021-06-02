@@ -16,7 +16,7 @@ Set zoom and center of the graph display so that the currently selected nodes fi
 }
 \examples{
 \dontrun{
-  fitSelected(session, 100)
+fitSelected(session, 100)
 }
 
 }

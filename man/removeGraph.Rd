@@ -14,6 +14,6 @@ remove the current graph
 }
 \examples{
 \dontrun{
-  removeGraph(session)
+removeGraph(session)
 }
 }

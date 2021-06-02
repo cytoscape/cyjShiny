@@ -31,12 +31,13 @@ Assign the supplied edge attribute values to the graph structure contained in th
 }
 \examples{
 \dontrun{
-  setEdgeAttributes(session,
-                    attributeName="score",
-                    sourceNodes=c("A", "B", "C"),
-                    targetNodes=c("D", "E", "A"),
-                    interactions=c("promotes", "promotes", "inhibits"),
-                    values=new.scores)
+setEdgeAttributes(session,
+  attributeName = "score",
+  sourceNodes = c("A", "B", "C"),
+  targetNodes = c("D", "E", "A"),
+  interactions = c("promotes", "promotes", "inhibits"),
+  values = new.scores
+)
 }
 
 }

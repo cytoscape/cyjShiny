@@ -16,6 +16,6 @@ addGraphFromJsonFile
 }
 \examples{
 \dontrun{
-  addGraphFromJsonFile (session)
+addGraphFromJsonFile(session)
 }
 }

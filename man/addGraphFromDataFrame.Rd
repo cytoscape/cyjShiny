@@ -18,7 +18,7 @@ addGraphFromDataFrame
 }
 \examples{
 \dontrun{
-  addGraphFromDataFrame (session)
+addGraphFromDataFrame(session)
 }
 
 }

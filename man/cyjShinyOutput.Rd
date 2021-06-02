@@ -21,7 +21,7 @@ Standard shiny ui rendering construct
 }
 \examples{
 \dontrun{
-  mainPanel(cyjShinyOutput('cyjShiny'), width=10)
+mainPanel(cyjShinyOutput("cyjShiny"), width = 10)
 }
 
 }

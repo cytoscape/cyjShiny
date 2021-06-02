@@ -17,7 +17,7 @@ load a standard cytoscape.js style file
 }
 \examples{
 \dontrun{
-  loadStyleFile(system.file(package="cyjShiny", "extdata", "yeastGalactoseStyle.js"))
+loadStyleFile(system.file(package = "cyjShiny", "extdata", "yeastGalactoseStyle.js"))
 }
 
 }

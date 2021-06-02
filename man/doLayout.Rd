@@ -16,6 +16,6 @@ Layout the current graph using the specified strategy.
 }
 \examples{
 \dontrun{
-  doLayout(session, "cola")
+doLayout(session, "cola")
 }
 }

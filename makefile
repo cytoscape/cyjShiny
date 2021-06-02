@@ -1,14 +1,11 @@
-basic: npm docs install
+basic: roxy install
 
-all:  npm docs install build check
+all:  roxy install build check
 
-docs:
+roxy:
 	R -e "devtools::document()"
 vig:
 	R -e "devtools::build_vignettes()"
-
-npm:
-	(cd browserCode; make)
 
 build:
 	(R CMD build --no-build-vignettes .)

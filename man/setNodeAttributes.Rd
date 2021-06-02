@@ -20,10 +20,11 @@ Assign the supplied node attribute values to the graph structure contained in th
 }
 \examples{
 \dontrun{
-  setNodeAttributes(session,
-                    attributeName=attribute,
-                    nodes=yeastGalactodeNodeIDs,
-                    values=expression.vector)
+setNodeAttributes(session,
+  attributeName = attribute,
+  nodes = yeastGalactodeNodeIDs,
+  values = expression.vector
+)
 }
 
 }

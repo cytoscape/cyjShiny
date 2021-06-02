@@ -14,7 +14,7 @@ Convert R graphNEL object to cytoscape.js JSON.
 }
 \examples{
 \dontrun{
-  g.json <- graphNELtoJSON(graphNEL())
+g.json <- graphNELtoJSON(graphNEL())
 }
 
 }

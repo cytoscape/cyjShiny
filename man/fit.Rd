@@ -16,7 +16,7 @@ Set zoom and center of the graph display so that graph fills the display.
 }
 \examples{
 \dontrun{
-  fit(session, 100)
+fit(session, 100)
 }
 
 }

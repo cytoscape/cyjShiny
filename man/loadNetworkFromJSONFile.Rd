@@ -17,7 +17,7 @@ load a standard cytoscape.js JSON network file
 }
 \examples{
 \dontrun{
-  loadNetworkFromJSONFile(system.file(package="cyjShiny", "extdata", "galFiltered.cyjs"))
+loadNetworkFromJSONFile(system.file(package = "cyjShiny", "extdata", "galFiltered.cyjs"))
 }
 
 }
