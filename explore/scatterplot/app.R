@@ -19,8 +19,10 @@ server <- function(input, output) {
       yPoints <- sample(1:100,  replace=TRUE)
       plot(xPoints, yPoints, col=point.color)
       })
-    
-    
+
+
 }
 
 app <- shinyApp(ui = ui, server = server)
+if(!interactive())
+    runApp(app, port=9876)
