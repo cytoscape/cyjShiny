@@ -1,5 +1,7 @@
-default: test
+default: run
 
-test:
+run:
 	R -f app.R
+	
+test:	
 	R -f runTestScript.R

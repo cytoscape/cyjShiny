@@ -1,7 +1,5 @@
 
 library(shiny)
-options(shiny.host = '127.0.0.1')
-options(shiny.port = 8888)
 set.seed(17)
 
 ui <- fluidPage(
@@ -26,7 +24,6 @@ server <- function(input, output) {
 }
 
 app <- shinyApp(ui = ui, server = server)
-#app <-runApp(shinyApp(ui = ui, server = server), port=9870)
-#if(!interactive())
-#    runApp(app, port=9876)
+if(!interactive())
+    runApp(app, port=9876)
 
