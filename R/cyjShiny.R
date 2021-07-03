@@ -247,7 +247,10 @@ fitSelected <- function(session, padding = 50) {
 #'
 
 getSelectedNodes <- function(session) {
+
+  printf("--- cyjShiny, sendCustomMessage('getSelectedNodes')")
   session$sendCustomMessage("getSelectedNodes", message = list())
+
 } # getSelectedNodes
 #----------------------------------------------------------------------------------------------------
 #' Assign the supplied node attribute values to the graph structure contained in the browser.
@@ -449,7 +452,6 @@ addGraphFromJsonFile <- function(session, jsonFilename) {
 #' @export
 #'
 selectNodes <- function(session, nodeNames) {
-  print(nodeNames)
   session$sendCustomMessage(type = "selectNodes", message = toJSON(nodeNames))
 } # selectNodes
 #------------------------------------------------------------------------------------------------------------------------

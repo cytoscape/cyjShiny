@@ -93,22 +93,29 @@ HTMLWidgets.widget({
 		    style:  style, //defaultStyle,
 		    ready: function(){
                         log("cyjShiny cyjs ready");
-			//$("#cyjShiny").height(0.95*window.innerHeight);
                         log("cyjShiny widget, initial dimensions: " + allocatedWidth + ", " + allocatedHeight)
 			$("#cyjShiny").height(allocatedHeight)
 			$("#cyjShiny").width(allocatedWidth)
 			var cyj = this;
 			window.cyj = this;   // terrible hack.  but gives us a simple way to call cytosacpe functions
-			//If given a style, this is the place to set it!
 			if (style != null) {
-				cyj.style(style.json);
-			}
+                          cyj.style(style.json);
+			  }
 			log("small cyjs network ready, with " + cyj.nodes().length + " nodes.");
 		        log("  initial widget dimensions: " +
                             $("#cyjShiny").width() + ", " +
                             $("#cyjShiny").height());
 
 			cyj.nodes().map(function(node){node.data({degree: node.degree()})});
+                        cyj.on('tap', function(evt){
+			    var id = "canvas";  // if not node or edge, tap was on the cyjs canvas
+			    if(typeof(evt.target.id) != "undefined"){
+				id = evt.target.id();
+			       }
+			    console.log("tapped: ", id)
+			    Shiny.setInputValue("selection", id, {priority: "event"});
+
+			})
 			//setTimeout(function() {
 			//    cyj.fit(10)
 			//}, 600);
@@ -267,6 +274,14 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("invertSelection", funct
     var currentlySelected = self.cyj.filter("node:selected");
     self.cyj.nodes().select();
     currentlySelected.unselect();
+})
+//------------------------------------------------------------------------------------------------------------------------
+if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("getCurrentSelection", function(message){
+
+    log("--- currentSelection requested ");
+    var currentlySelected = self.cyj.filter("node:selected");
+    Shiny.setInputValue("currentSelection", currentlySelected, {priority: "event"});
+
 })
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("hideSelection", function(message){
