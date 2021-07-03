@@ -3,6 +3,7 @@ library(R6)
 library(cyjShiny)
 library(later)
 library(RUnit)
+
 #----------------------------------------------------------------------------------------------------
 buttonStyle <- "margin: 5px; margin-right: 0px; font-size: 14px;"
 
@@ -34,7 +35,7 @@ SelectionTest = R6Class("SelectionTest",
     public = list(
 
         initialize = function(){
-            printf("initializing demo")
+            message(sprintf("initializing demo"))
             },
 
         #------------------------------------------------------------
@@ -44,6 +45,8 @@ SelectionTest = R6Class("SelectionTest",
                sidebarLayout(
                    sidebarPanel(
                        actionButton("testGetSelectedNodesButton", "Test Get Selected Nodes"), HTML("<br><br>"),
+                       #div(style="background-color: white; width:100%; border: 1px solid black",
+                       div(style="border: 1px solid black; height:100px; padding:10px;", textOutput(outputId="resultsBox")),
                        width=3
                        ),
                    mainPanel(cyjShinyOutput('cyjShiny', height=400),width=9)
@@ -62,8 +65,10 @@ SelectionTest = R6Class("SelectionTest",
                   later(function(){
                      getSelectedNodes(session)
                      later(function(){
+                        message(sprintf("about to check currentlySelectedNodes"))
+                        message(sprintf("targetNodes: %s", paste(targetNodes, collapse=",")))
                         private$testResult <- checkEquals(private$currentlySelectedNodes, targetNodes)
-                        printf("test result: %s", private$testResult)
+                        message(sprintf("test result: %s", private$testResult))
                         }, 0.5)
                      }, 0.5)
                   }, 0.5)
@@ -79,16 +84,24 @@ SelectionTest = R6Class("SelectionTest",
                 })
 
             observeEvent(input$selectedNodes, ignoreInit=TRUE, {
+               message(sprintf("--- observing input$selectedNodes"))
                private$currentlySelectedNodes = input$selectedNodes;
+               output$resultsBox <- renderText({input$selectedNodes});
                })
 
-            runNodeSelectionTest()
+            if(!interactive()){
+                runNodeSelectionTest()
+                later(function(){
+                      stopifnot(private$testResult == TRUE)
+                      quit()
+                      }, 5)
+                }
             } # server
 
        ) # public
     ) # class
 #--------------------------------------------------------------------------------
-app <- SelectionTest$new()
-x <- shinyApp(app$ui, app$server)
-runApp(x, port=1156)
+x <- SelectionTest$new()
+runApp(shinyApp(x$ui, x$server), port=9999, launch.browser=TRUE)
+
 
