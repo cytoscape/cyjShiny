@@ -148,9 +148,8 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("getNodePositions", func
     var tbl = JSON.stringify(self.cyj.nodes().map(function(n){return{id: n.id(),
                                                                      x: n.position().x,
                                                                      y: n.position().y}}));
-
     log(tbl)
-    Shiny.onInputChange("tbl.nodePositions", tbl)
+    Shiny.setInputValue("tbl.nodePositions", tbl,  {priority: "event"});
     })
 
 //------------------------------------------------------------------------------------------------------------------------

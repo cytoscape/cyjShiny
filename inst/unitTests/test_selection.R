@@ -45,7 +45,6 @@ SelectionTest = R6Class("SelectionTest",
                sidebarLayout(
                    sidebarPanel(
                        actionButton("testGetSelectedNodesButton", "Test Get Selected Nodes"), HTML("<br><br>"),
-                       #div(style="background-color: white; width:100%; border: 1px solid black",
                        div(style="border: 1px solid black; height:100px; padding:10px;", textOutput(outputId="resultsBox")),
                        width=3
                        ),

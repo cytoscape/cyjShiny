@@ -248,7 +248,7 @@ fitSelected <- function(session, padding = 50) {
 
 getSelectedNodes <- function(session) {
 
-  printf("--- cyjShiny, sendCustomMessage('getSelectedNodes')")
+  message(sprintf("--- cyjShiny, sendCustomMessage('getSelectedNodes')"))
   session$sendCustomMessage("getSelectedNodes", message = list())
 
 } # getSelectedNodes
@@ -373,6 +373,7 @@ setNodePositions <- function(session, tbl.positions) {
 
   tbl.json <- toJSON(tbl.positions) # force a json representation which is an array of {id,x,y{ objects
   session$sendCustomMessage(type = "setNodePositions", message = list(tbl = tbl.json))
+
 } # setNodePositions
 #------------------------------------------------------------------------------------------------------------------------
 #' remove the current graph
