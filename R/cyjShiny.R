@@ -340,7 +340,8 @@ setEdgeAttributes <- function(session, attributeName, sourceNodes, targetNodes, 
 doLayout <- function(session, strategy)
 {
    stopifnot(strategy %in% c("cola", "cose", "circle", "concentric", "grid", "breadthfirst",
-                             "preset", "random", "euler", "dagre", "cose-bilkent", "fcose", "springy","spread"))
+                             "preset", "random", "euler", "dagre", "cose-bilkent", "fcose",
+                             "klay", "springy","spread"))
 
   session$sendCustomMessage(type = "doLayout", message = list(strategy = strategy))
 } # doLayout

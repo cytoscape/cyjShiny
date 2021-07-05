@@ -1,5 +1,11 @@
 // following http://www.htmlwidgets.org/develop_intro.html
 "use strict";
+
+//import cytoscape from 'cytoscape';
+//import klay from 'cytoscape-klay';
+//cytoscape.use(klay);
+
+
 /*****************
 var cytoscape = require('cytoscape');
 //----------------------------------------------------------------------------------------------------
@@ -25,6 +31,11 @@ cytoscape.use(springy);
 let spread = require('cytoscape-spread');
 cytoscape.use(spread);
 
+debugger;
+
+let klay = require('cytoscape-klay');
+cytoscape.use(klay);
+
 $ = require('jquery');
 require('jquery-ui-bundle');
 // apparently two versions of jquery get loaded: by shiny, and just above
@@ -32,6 +43,8 @@ require('jquery-ui-bundle');
 // this stackoverflow discussion: https://stackoverflow.com/questions/31227844/typeerror-datatable-is-not-a-function
 $.noConflict();
 ****************/
+
+
 //----------------------------------------------------------------------------------------------------
 var defaultStyle = [{selector: 'node', css: {
                         'text-valign': 'center',
