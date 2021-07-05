@@ -43,7 +43,7 @@ PositionTest = R6Class("PositionTest",
         #------------------------------------------------------------
         ui = function(){
            fluidPage(
-               titlePanel(title="cyjShiny get/set position test"),
+               titlePanel(title="cyjShiny layouts test"),
                sidebarLayout(
                    sidebarPanel(
                        radioButtons("chooseLayout", "Select Layout:",
