@@ -2,34 +2,28 @@ library(shiny)
 library(R6)
 
 
-WorldTest = R6Class("WorldTest",
-    
-public = list(
-        
+HelloWorldDemo = R6Class("HelloWorldDemo",
+
+  public = list(
         initialize = function(){
-            message(sprintf("Hello print"))
+            message(sprintf("initializing HelloWorldDemo"))
         },
-        
-ui = function(){       
-    fluidPage(
-        
-        actionButton(inputId = "printHelloButton", label = "PrintHello World"),
-        
+
+   ui = function(){
+      fluidPage(
+        actionButton(inputId="sayHelloButton", label="Say Hello"),
         textOutput("textDisplay")
-        
-    )},
+        )},
 
-server = function(input, output, session) {
-    
-    observeEvent(input$printHelloButton,{
-        
-        output$textDisplay = renderText("Hello world")
-    })
-    
-    
-}
-)
-)
+  server = function(input, output, session) {
 
-x <- WorldTest$new()
+    observeEvent(input$sayHelloButton,{
+       output$textDisplay = renderText("Hello world!")
+       })
+
+    } # server
+  ) # public
+) # class
+
+x <- HelloWorldDemo$new()
 runApp(shinyApp(x$ui, x$server), port=9999, launch.browser=TRUE)
