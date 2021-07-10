@@ -79,7 +79,7 @@ SelectionTest = R6Class("SelectionTest",
 
             observeEvent(input$testGetSelectedNodesButton, ignoreInit=TRUE, {
                 runNodeSelectionTest()
-                later(function(){printf("after test, result: %s", private$testResult)}, 2.0)
+                later(function(){sprintf("after test, result: %s", private$testResult)}, 2.0)
                 })
 
             observeEvent(input$selectedNodes, ignoreInit=TRUE, {
