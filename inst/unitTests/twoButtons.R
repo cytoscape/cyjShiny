@@ -2,7 +2,6 @@
 library(shiny)
 library(shinyjs)
 if (interactive()) {
-    library(shiny)
     
     shinyApp(
         ui = fluidPage(
