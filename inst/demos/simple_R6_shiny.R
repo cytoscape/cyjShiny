@@ -25,10 +25,19 @@ Simple.R6.Shiny = R6Class("Simple.R6.Shiny",
                sidebarLayout(
                    sidebarPanel(
                        actionButton("incrementValueButton", "Increment Value"), HTML("<br><br>"),
-                       actionButton("printValueButton", "Print Value to stdout"),
+                       actionButton("printValueButton", "Print Value to stdout"),HTML("<br><br>"),
+                       actionButton("displayValueButton", "Display Current Value"),
                        width=3
                        ),
-                   mainPanel(div(),width=9)
+                    mainPanel(
+                        fluidRow(
+                            div(style="height:50px; border: 5px solid red; width:500px;",
+                                verbatimTextOutput("textDisplayOutput", placeholder = TRUE)
+                            )
+                        ),
+                     width=9
+                                    
+                    )
                ) # sidebarLayout
             )}, # ui
 

@@ -26,17 +26,17 @@ MyModule = R6Class("MyModule",
         values$name <- NULL
                             
         observeEvent(input$ClickonMe, ignoreInit=TRUE, {
-          values$name <- T
+          values$name <- TRUE
         })
 
         observeEvent(input$ClickonMe3,{
           if (values$name){ 
-            values$name <- F
+            values$name <- FALSE
           }
         })
         observeEvent(input$ClickonMe2,{
           if (values$name){
-            print(values$name)
+            print("HELLO WORLD")
           }
         }) 
                             
@@ -47,7 +47,7 @@ MyModule = R6Class("MyModule",
             selector = "div:has(> #Responsetext)"
             )
           }
-          as.character(values$name)})
+          as.character("HELLO WORLD")})
                             
       } # server
                           
