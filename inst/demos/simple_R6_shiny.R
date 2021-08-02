@@ -51,6 +51,9 @@ Simple.R6.Shiny = R6Class("Simple.R6.Shiny",
             observeEvent(input$printValueButton, ignoreInit=TRUE, {
                message(sprintf("currentValue: %d", private$currentValue))
                })
+            observeEvent(input$displayValueButton, ignoreInit = TRUE, {
+               output$textDisplayOutput <- renderPrint({private$currentValue})  
+            })
             } # server
 
        ) # public
