@@ -43,17 +43,18 @@ Simple.R6.Shiny = R6Class("Simple.R6.Shiny",
 
         #------------------------------------------------------------
         server = function(input, output, session){
-
+                
+            output$textDisplayOutput <- renderPrint({private$currentValue}) 
+            
             observeEvent(input$incrementValueButton, ignoreInit=TRUE, {
                 private$currentValue <- private$currentValue + 1
+                output$textDisplayOutput <- renderPrint({private$currentValue}) 
                 })
 
             observeEvent(input$printValueButton, ignoreInit=TRUE, {
                message(sprintf("currentValue: %d", private$currentValue))
                })
-            observeEvent(input$displayValueButton, ignoreInit = TRUE, {
-               output$textDisplayOutput <- renderPrint({private$currentValue})  
-            })
+
             } # server
 
        ) # public
