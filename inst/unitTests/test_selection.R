@@ -5,8 +5,6 @@ library(later)
 library(RUnit)
 
 #----------------------------------------------------------------------------------------------------
-buttonStyle <- "margin: 5px; margin-right: 0px; font-size: 14px;"
-
 tbl.nodes <- data.frame(id=c("X", "Y", "Z"),
                         type=c("kinase", "TF", "glycoprotein"),
                         x=c(50, 180, 600),
