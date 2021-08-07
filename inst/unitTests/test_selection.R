@@ -21,7 +21,6 @@ tbl.edges <- data.frame(source=c("X", "Y", "Z"),
 graph.json <- dataFramesToJSON(tbl.edges, tbl.nodes)
 
 
-
 SelectionTest = R6Class("SelectionTest",
 
     #--------------------------------------------------------------------------------
@@ -49,7 +48,7 @@ SelectionTest = R6Class("SelectionTest",
                    mainPanel(cyjShinyOutput('cyjShiny', height=400),width=9)
                ) # sidebarLayout
             )}, # ui
-
+    
         #------------------------------------------------------------
         server = function(input, output, session){
 
@@ -77,9 +76,9 @@ SelectionTest = R6Class("SelectionTest",
 
             observeEvent(input$testGetSelectedNodesButton, ignoreInit=TRUE, {
                 runNodeSelectionTest()
-                later(function(){sprintf("after test, result: %s", private$testResult)}, 2.0)
+                later(function(){message(sprintf("after test, result: %s", private$testResult))},2.0)
                 })
-
+            
             observeEvent(input$selectedNodes, ignoreInit=TRUE, {
                message(sprintf("--- observing input$selectedNodes"))
                private$currentlySelectedNodes = input$selectedNodes;
