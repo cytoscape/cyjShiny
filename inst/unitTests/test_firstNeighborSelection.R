@@ -21,54 +21,83 @@ tbl.edges <- data.frame(source=c("X", "Y", "Z"),
 graph.json <- dataFramesToJSON(tbl.edges, tbl.nodes)
 
 
-firstNeighborsSelectionTest = R6Class("firstNeighborsSelectionTest",
+SelectionTest = R6Class("SelectionTest",
                         
-                #--------------------------------------------------------------------------------
-                private = list(currentlySelectedNodes=NULL,
-                                testResult=NULL
-                ),
-                
-                #--------------------------------------------------------------------------------
-                public = list(
-                    
-                    initialize = function(){
-                    message(sprintf("initializing demo"))
-                    },
-                    
-                    #------------------------------------------------------------
-                    ui = function(){
-                    fluidPage(
-                        titlePanel(title="cyjShiny automated test"),
-                        sidebarLayout(
-                        sidebarPanel(
-                            selectInput("selectName", "Select Node by ID:", choices = c("", sort(tbl.nodes$id))),
-                            actionButton("sfn", "Select First Neighbor"),HTML("<br><br>"),
+                        #--------------------------------------------------------------------------------
+                        private = list(currentlySelectedNodes=NULL,
+                                       testResult=NULL
                         ),
-                        mainPanel(cyjShinyOutput('cyjShiny', height=400),width=9)
-                        ) # sidebarLayout
-                    )}, # ui
-                    
-                    #------------------------------------------------------------
-                    server = function(input, output, session){
-                    
-                    
-                    output$cyjShiny <- renderCyjShiny({
-                        cyjShiny(graph=graph.json, layoutName="preset")
-                    })
-                    
-                    observeEvent(input$selectName,  ignoreInit=TRUE,{
-                        selectNodes(session, input$selectName)
-                    })
-                    
-                    observeEvent(input$sfn,  ignoreInit=TRUE,{
-                        selectFirstNeighbors(session)
-                    })
-                    
-
-                } # server
+                        
+                        #--------------------------------------------------------------------------------
+                        public = list(
                           
-            ) # public
+                          initialize = function(){
+                            message(sprintf("initializing demo"))
+                          },
+                          
+                          #------------------------------------------------------------
+                          ui = function(){
+                            fluidPage(
+                              titlePanel(title="cyjShiny automated test"),
+                              sidebarLayout(
+                                sidebarPanel(
+                                  actionButton("sfn", "Select First Neighbor"),HTML("<br><br>"),
+                                  div(style="border: 1px solid black; height:100px; padding:10px;", textOutput(outputId="resultsBox")),
+                                  width=3
+                                ),
+                                mainPanel(cyjShinyOutput('cyjShiny', height=400),width=9)
+                              ) # sidebarLayout
+                            )}, # ui
+                          
+                          #------------------------------------------------------------
+                          server = function(input, output, session){
+                            runNodeSelectionTest <- function(){
+                              private$testResult <- FALSE  # be pessimistic
+                              clearSelection(session);
+                              targetNodes <- c("X")
+                              later(function(){
+                                selectNodes(session, targetNodes)
+                                later(function(){
+                                  getSelectedNodes(session)
+                                  selectFirstNeighbors(session)
+                                  later(function(){
+                                    message(sprintf("about to check currentlySelectedNodes"))
+                                    message(sprintf("targetNodes: %s", paste(targetNodes, collapse=",")))
+                                    private$testResult <- checkEquals(private$currentlySelectedNodes, targetNodes)
+                                    message(sprintf("test result: %s", private$testResult))
+                                  }, 0.5)
+                                }, 0.8)
+                              }, 0.9)
+                            }
+                            
+                            
+                            output$cyjShiny <- renderCyjShiny({
+                              cyjShiny(graph=graph.json, layoutName="preset")
+                            })
+                            
+                            observeEvent(input$sfn,  ignoreInit=TRUE,{
+                              runNodeSelectionTest()
+                              later(function(){message(sprintf("after test, result: %s", private$testResult))},3.0)
+                            })
+                            
+                            observeEvent(input$selectedNodes, {
+                              private$currentlySelectedNodes = input$selectedNodes;
+                              output$resultsBox <- renderText({input$selectedNodes});
+                              
+                            })
+                            
+                            if(!interactive()){
+                              runNodeSelectionTest()
+                              later(function(){
+                                stopifnot(private$testResult == TRUE)
+                                quit()
+                              }, 5)
+                            }
+                            
+                          } # server
+                          
+                        ) # public
 ) # class
 #--------------------------------------------------------------------------------
-x <- firstNeighborsSelectionTest$new()
+x <- SelectionTest$new()
 runApp(shinyApp(x$ui, x$server), port=9999, launch.browser=TRUE)
