@@ -41,9 +41,7 @@ SelectionTest = R6Class("SelectionTest",
                               titlePanel(title="cyjShiny automated test"),
                               sidebarLayout(
                                 sidebarPanel(
-                                  actionButton("sfn", "Select First Neighbor"),HTML("<br><br>"),
-                                  div(style="border: 1px solid black; height:100px; padding:10px;", textOutput(outputId="resultsBox")),
-                                  width=3
+                                  actionButton("sfn", "Select First Neighbor")
                                 ),
                                 mainPanel(cyjShinyOutput('cyjShiny', height=400),width=9)
                               ) # sidebarLayout
@@ -66,24 +64,24 @@ SelectionTest = R6Class("SelectionTest",
                                     private$testResult <- checkEquals(private$currentlySelectedNodes, targetNodes)
                                     message(sprintf("test result: %s", private$testResult))
                                   }, 0.5)
-                                }, 0.8)
-                              }, 0.9)
-                            }
-                            
+                                }, 0.5)
+                              }, 0.5)
+                            } # runNodeSelectionTest
                             
                             output$cyjShiny <- renderCyjShiny({
                               cyjShiny(graph=graph.json, layoutName="preset")
                             })
                             
+                            
                             observeEvent(input$sfn,  ignoreInit=TRUE,{
                               runNodeSelectionTest()
-                              later(function(){message(sprintf("after test, result: %s", private$testResult))},3.0)
+                              later(function(){message(sprintf("after test, result: %s", private$testResult))},2.0)
                             })
                             
+                            
                             observeEvent(input$selectedNodes, {
+                              message(sprintf("--- observing input$selectedNodes"))
                               private$currentlySelectedNodes = input$selectedNodes;
-                              output$resultsBox <- renderText({input$selectedNodes});
-                              
                             })
                             
                             if(!interactive()){
@@ -93,6 +91,7 @@ SelectionTest = R6Class("SelectionTest",
                                 quit()
                               }, 5)
                             }
+                            
                             
                           } # server
                           
