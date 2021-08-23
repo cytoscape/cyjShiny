@@ -7,7 +7,7 @@
 readAndStandardizeJSONNetworkFile(filename)
 }
 \arguments{
-\item{file}{a json file}
+\item{filename}{a json file}
 }
 \description{
 Read in a JSON network file, identify (or add) elements field return JSON

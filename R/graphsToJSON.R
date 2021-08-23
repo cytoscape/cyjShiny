@@ -257,7 +257,7 @@ dataFramesToJSON <- function(tbl.edges, tbl.nodes = NULL) {
 #--------------------------------------------------------------------------------------------------------------
 #' Read in a JSON file, extract the selector elements, return JSON
 #'
-#' @param file  a json file
+#' @param filename  a json file
 #'
 #' @aliases readAndStandardizeJSONStyleFile
 #' @rdname readAndStandardizeJSONStyleFile
@@ -280,7 +280,7 @@ readAndStandardizeJSONStyleFile <- function(filename) {
 #----------------------------------------------------------------------------------------------------------
 #' Read in a JSON network file, identify (or add) elements field return JSON
 #'
-#' @param file  a json file
+#' @param filename  a json file
 #'
 #' @aliases readAndStandardizeJSONNetworkFile
 #' @rdname readAndStandardizeJSONNetworkFile

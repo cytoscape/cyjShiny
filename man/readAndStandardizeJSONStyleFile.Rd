@@ -7,7 +7,7 @@
 readAndStandardizeJSONStyleFile(filename)
 }
 \arguments{
-\item{file}{a json file}
+\item{filename}{a json file}
 }
 \description{
 Read in a JSON file, extract the selector elements, return JSON

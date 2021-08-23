@@ -36,19 +36,19 @@ Simple.R6.Shiny = R6Class("Simple.R6.Shiny",
                             )
                         ),
                      width=9
-                                    
+
                     )
                ) # sidebarLayout
             )}, # ui
 
         #------------------------------------------------------------
         server = function(input, output, session){
-                
-            output$textDisplayOutput <- renderPrint({private$currentValue}) 
-            
+
+            output$textDisplayOutput <- renderText({private$currentValue})
+
             observeEvent(input$incrementValueButton, ignoreInit=TRUE, {
                 private$currentValue <- private$currentValue + 1
-                output$textDisplayOutput <- renderPrint({private$currentValue}) 
+                output$textDisplayOutput <- renderText({private$currentValue})
                 })
 
             observeEvent(input$printValueButton, ignoreInit=TRUE, {
@@ -61,6 +61,6 @@ Simple.R6.Shiny = R6Class("Simple.R6.Shiny",
     ) # class
 #--------------------------------------------------------------------------------
 app <- Simple.R6.Shiny$new()
-runApp(shinyApp(app$ui, app$server), port=9999, launch.browser=TRUE)
+runApp(shinyApp(app$ui, app$server), port=9990, launch.browser=TRUE)
 
 

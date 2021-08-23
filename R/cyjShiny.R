@@ -41,8 +41,10 @@
 #'   stringsAsFactors = FALSE
 #' )
 #'
-#' graph.json.v1 <- dataFramesToJSON(tbl.edges) #  simple legitimate graph, nodes implied, but no node attributes
-#' graph.json.v2 <- dataFramesToJSON(tbl.edges, tbl.nodes) # nodes and edges both explicit,  attributes specified
+#'   #  simple legitimate graph, nodes implied, but no node attributes
+#' graph.json.v1 <- dataFramesToJSON(tbl.edges)
+#'   # nodes and edges both explicit,  attributes specified
+#' graph.json.v2 <- dataFramesToJSON(tbl.edges, tbl.nodes)
 #'
 #' g <- graphNEL(nodes = c("A", "B", "C"), edgemode = "directed")
 #' g <- addEdge("A", "B", g)
@@ -160,7 +162,7 @@ loadNetworkFromJSONFile <- function(filename) {
 #------------------------------------------------------------------------------------------------------------------------
 #' load a standard cytoscape.js style file
 #'
-#' @param filename character string, either relative or absolute path.
+#' @param styleFile character string, either relative or absolute path.
 #'
 #' @return nothing
 #'

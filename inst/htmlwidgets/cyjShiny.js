@@ -1,50 +1,6 @@
 // following http://www.htmlwidgets.org/develop_intro.html
 "use strict";
-
-//import cytoscape from 'cytoscape';
-//import klay from 'cytoscape-klay';
-//cytoscape.use(klay);
-
-
-/*****************
-var cytoscape = require('cytoscape');
-//----------------------------------------------------------------------------------------------------
-// add layout extensions
-var cola = require('cytoscape-cola');
-cytoscape.use(cola);
-
-let dagre = require('cytoscape-dagre');
-cytoscape.use(dagre);
-
-let coseBilkent = require('cytoscape-cose-bilkent');
-cytoscape.use(coseBilkent);
-
-let euler = require('cytoscape-euler');
-cytoscape.use(euler);
-
-let fcose = require('cytoscape-fcose');
-cytoscape.use(fcose);
-
-let springy = require('cytoscape-springy');
-cytoscape.use(springy);
-
-let spread = require('cytoscape-spread');
-cytoscape.use(spread);
-
-debugger;
-
-let klay = require('cytoscape-klay');
-cytoscape.use(klay);
-
-$ = require('jquery');
-require('jquery-ui-bundle');
-// apparently two versions of jquery get loaded: by shiny, and just above
-// see https://api.jquery.com/jquery.noconflict/ and
-// this stackoverflow discussion: https://stackoverflow.com/questions/31227844/typeerror-datatable-is-not-a-function
-$.noConflict();
-****************/
-
-
+var cyjShiny_version = "1.0.26";
 //----------------------------------------------------------------------------------------------------
 var defaultStyle = [{selector: 'node', css: {
                         'text-valign': 'center',

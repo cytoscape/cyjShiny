@@ -14,7 +14,7 @@ install:
 	(R CMD INSTALL --no-test-load .)
 
 check:
-	(cd ..; R CMD check --no-vignettes --no-manual `ls -t cyjShiny_* | head -1`)
+	R -e "devtools::check(cran=TRUE)"
 
 biocCheck:
 	(cd ..; R CMD BiocCheck `ls -t cyjShiny_* | head -1`)
