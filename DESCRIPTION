@@ -1,19 +1,29 @@
 Package: cyjShiny
-Title: cyjShiny
-Version: 1.0.19
-Date: 2021-06-02
-Author: Omar Shah, Paul Shannon, Dharna Chandrakar
-Maintainer: Paul Shannon <pshannon@systemsbiology.org>
+Title: Cytoscape.js Shiny Widget (cyjShiny)
+Version: 1.0.20
+Date: 2021-08-23
+Authors@R: c(person("Omar", "Shah", role = c("aut")), 
+             person("Paul", "Shannon", email = "pshannon@systemsbiology.org", role = c("aut", "cre")), 
+             person("Dharna", "Chandrakar", role = c("aut")), 
+             person("Augustin", "Luna", email = "aluna@jimmy.harvard.edu", role = c("aut")))                  
 Description: This package provides cytoscape.js as a shiny widget.
-Depends: R (>= 3.5.0), htmlwidgets, shiny, jsonlite, graph, base64enc
-License: MIT + file LICENSE
+Depends: 
+    R (>= 3.5.0), 
+    htmlwidgets, 
+    shiny, 
+    jsonlite, 
+    graph, 
+    base64enc
+License: file LICENSE
 Encoding: UTF-8
 LazyData: true
 biocViews:
 Collate:
    'graphsToJSON.R'
    'cyjShiny.R'
-Suggests: rmarkdown   
+Suggests: 
+    rmarkdown,
+    BiocStyle
 VignetteBuilder:
   knitr
 RoxygenNote: 7.1.1
