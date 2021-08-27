@@ -1,7 +1,7 @@
 ---
 title: "cyjShiny Introduction: a simple demo"
 author: "Paul Shannon"
-package: igvR
+package: cyjShiny
 date: "`r Sys.Date()`"
 output:
    BiocStyle::html_document
@@ -34,8 +34,8 @@ library(shiny)
 library(cyjShiny)
 ```
 
-Create the igvR instance, with all default parameters (portRange, quiet, title).  Javascript and HTML is loaded into
-your browser, igv.js is initialized, a websocket connection between your R process and that web page is constructed,
+Create the cyjShiny instance, with all default parameters (portRange, quiet, title). Javascript and HTML is loaded into
+your browser, cytoscape.js is initialized, a websocket connection between your R process and that web page is constructed,
 over which subsequent commands and data will travel.
 
 ```{r app code, prompt=TRUE, message=TRUE, results="show"}

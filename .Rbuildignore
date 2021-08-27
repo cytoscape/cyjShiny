@@ -3,3 +3,5 @@
 ^browserCode$
 ^doc$
 ^Meta$
+^\.github$
+^makefile$
