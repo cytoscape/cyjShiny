@@ -2,8 +2,11 @@ basic: roxy install
 
 all:  roxy install build check
 
+build_check: build check
+
 roxy:
 	R -e "devtools::document()"
+	
 vig:
 	R -e "devtools::build_vignettes()"
 
