@@ -69,7 +69,7 @@ jobs:
         run: |
           #remotes::install_deps(dependencies = TRUE) # With shell: Rscript {0}
           #remotes::install_cran("rcmdcheck")
-          make install_deps
+          make installDeps
         shell: bash
 
       - name: Check
@@ -78,7 +78,7 @@ jobs:
         run: |
           #options(crayon.enabled = TRUE) # With shell: Rscript {0}
           #rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"), error_on = "warning", check_dir = "check")
-          make build_check
+          make buildCheck
         shell: bash
 
       - name: Upload check results
