@@ -1,3 +1,5 @@
+![R-CMD-CHECK](https://github.com/cytoscape/cyjShiny/actions/workflows/R-CMD-CHECK.yaml/badge.svg)
+
 ## cyjShiny
 
 cytoscape.js as a shiny widget, with an API based on RCyjs (and ancestrally, RCy3)
