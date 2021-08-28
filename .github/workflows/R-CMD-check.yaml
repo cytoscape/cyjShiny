@@ -69,7 +69,7 @@ jobs:
         run: |
           #remotes::install_deps(dependencies = TRUE) # With shell: Rscript {0}
           #remotes::install_cran("rcmdcheck")
-          make basic
+          make install_deps; make basic
         shell: bash
 
       - name: Check
