@@ -17,7 +17,7 @@ buildWithVignettes:
 	(R CMD build .)
 
 install_deps: 
-        R -e "devtools::install_deps(dependencies = TRUE)"
+        R -e "paste0("Installed: ", paste(rownames(installed.packages()), collapse="|")); devtools::install_deps(dependencies = TRUE)"
 
 install:
 	(R CMD INSTALL --no-test-load .)
