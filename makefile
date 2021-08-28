@@ -17,7 +17,7 @@ buildWithVignettes:
 	(R CMD build .)
 
 installDeps: 
-        R -e "devtools::install_deps(dependencies=TRUE)"
+	R -e "devtools::install_deps(dependencies=TRUE)"
 
 install:
 	(R CMD INSTALL --no-test-load .)
