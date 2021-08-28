@@ -60,12 +60,12 @@ jobs:
       - name: Install system dependencies
         if: runner.os == 'Linux'
         run: |
-          while read -r cmd
-          do
-            eval sudo $cmd
-          done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04"))')
-          sudo apt-get update && sudo apt-get -y install libcurl4-openssl-dev
-
+          #while read -r cmd
+          #do
+          #  eval sudo $cmd
+          #done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04"))')
+          sudo apt-get update && sudo apt-get -yqq install libcurl4-openssl-dev libxml2-dev libssl-dev pandoc pandoc-citeproc
+          
       - name: Install dependencies
         run: |
           #remotes::install_deps(dependencies = TRUE) # With shell: Rscript {0}
