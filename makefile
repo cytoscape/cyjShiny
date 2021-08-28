@@ -1,6 +1,6 @@
 basic: roxy install
 
-all: install_deps roxy install build check
+all: roxy install build check
 
 build_check: build check
 
