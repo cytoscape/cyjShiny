@@ -1,4 +1,4 @@
-![R-CMD-check](https://github.com/cytoscape/cyjShiny/actions/workflows/R-CMD-check.yaml/badge.svg)
+![R-CMD-check](https://github.com/cytoscape/cyjShiny/actions/workflows/R-CMD-check.yaml/badge.svg?branch=abandonWebPack-try2)
 
 ## cyjShiny
 
