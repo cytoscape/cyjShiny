@@ -2,7 +2,7 @@ basic: roxy install
 
 all: roxy install build check
 
-build_check: build check
+buildCheck: build check
 
 roxy:
 	R -e "devtools::document()"
