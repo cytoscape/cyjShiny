@@ -1,6 +1,6 @@
 basic: roxy install
 
-all:  roxy install build check
+all: install_deps roxy install build check
 
 build_check: build check
 
@@ -15,6 +15,9 @@ build:
 
 buildWithVignettes:
 	(R CMD build .)
+
+install_deps: 
+        R -e "devtools::install_deps(dependencies = TRUE)"
 
 install:
 	(R CMD INSTALL --no-test-load .)
