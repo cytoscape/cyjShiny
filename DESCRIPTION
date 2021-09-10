@@ -6,8 +6,19 @@ Authors@R: c(person("Omar", "Shah", role = c("aut")),
              person("Paul", "Shannon", email = "pshannon@systemsbiology.org", role = c("aut", "cre")), 
              person("Augustin", "Luna", email = "aluna@jimmy.harvard.edu", role = c("aut")))       
 Description: Wraps cytoscape.js as a shiny widget.
-Depends: R (>= 3.5.0), htmlwidgets, shiny, jsonlite, graph, base64enc
-Suggests: RUnit, knitr, rmarkdown, markdown, BiocStyle
+Depends: 
+    R (>= 3.5.0), 
+    htmlwidgets, 
+    shiny, 
+    jsonlite, 
+    graph, 
+    base64enc
+Suggests: 
+    RUnit, 
+    knitr, 
+    rmarkdown, 
+    markdown, 
+    BiocStyle
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true
