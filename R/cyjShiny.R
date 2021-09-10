@@ -41,8 +41,10 @@
 #'   stringsAsFactors = FALSE
 #' )
 #'
-#' graph.json.v1 <- dataFramesToJSON(tbl.edges) #  simple legitimate graph, nodes implied, but no node attributes
-#' graph.json.v2 <- dataFramesToJSON(tbl.edges, tbl.nodes) # nodes and edges both explicit,  attributes specified
+#'   #  simple legitimate graph, nodes implied, but no node attributes
+#' graph.json.v1 <- dataFramesToJSON(tbl.edges)
+#'   # nodes and edges both explicit,  attributes specified
+#' graph.json.v2 <- dataFramesToJSON(tbl.edges, tbl.nodes)
 #'
 #' g <- graphNEL(nodes = c("A", "B", "C"), edgemode = "directed")
 #' g <- addEdge("A", "B", g)
@@ -160,7 +162,7 @@ loadNetworkFromJSONFile <- function(filename) {
 #------------------------------------------------------------------------------------------------------------------------
 #' load a standard cytoscape.js style file
 #'
-#' @param filename character string, either relative or absolute path.
+#' @param styleFile character string, either relative or absolute path.
 #'
 #' @return nothing
 #'
@@ -247,7 +249,10 @@ fitSelected <- function(session, padding = 50) {
 #'
 
 getSelectedNodes <- function(session) {
+
+  message(sprintf("--- cyjShiny, sendCustomMessage('getSelectedNodes')"))
   session$sendCustomMessage("getSelectedNodes", message = list())
+
 } # getSelectedNodes
 #----------------------------------------------------------------------------------------------------
 #' Assign the supplied node attribute values to the graph structure contained in the browser.
@@ -337,7 +342,8 @@ setEdgeAttributes <- function(session, attributeName, sourceNodes, targetNodes, 
 doLayout <- function(session, strategy)
 {
    stopifnot(strategy %in% c("cola", "cose", "circle", "concentric", "grid", "breadthfirst",
-                             "preset", "random", "euler", "dagre", "cose-bilkent", "fcose", "springy","spread"))
+                             "preset", "random", "euler", "dagre", "cose-bilkent", "fcose",
+                             "klay", "springy","spread"))
 
   session$sendCustomMessage(type = "doLayout", message = list(strategy = strategy))
 } # doLayout
@@ -370,6 +376,7 @@ setNodePositions <- function(session, tbl.positions) {
 
   tbl.json <- toJSON(tbl.positions) # force a json representation which is an array of {id,x,y{ objects
   session$sendCustomMessage(type = "setNodePositions", message = list(tbl = tbl.json))
+
 } # setNodePositions
 #------------------------------------------------------------------------------------------------------------------------
 #' remove the current graph
@@ -449,7 +456,6 @@ addGraphFromJsonFile <- function(session, jsonFilename) {
 #' @export
 #'
 selectNodes <- function(session, nodeNames) {
-  print(nodeNames)
   session$sendCustomMessage(type = "selectNodes", message = toJSON(nodeNames))
 } # selectNodes
 #------------------------------------------------------------------------------------------------------------------------

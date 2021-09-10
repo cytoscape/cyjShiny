@@ -7,7 +7,7 @@
 loadStyleFile(styleFile)
 }
 \arguments{
-\item{filename}{character string, either relative or absolute path.}
+\item{styleFile}{character string, either relative or absolute path.}
 }
 \value{
 nothing

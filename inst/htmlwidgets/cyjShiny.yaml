@@ -1,10 +1,47 @@
 dependencies:
+
   - name: cyjShiny
-    version: 0.99.0
+    version: 1.0.19
     src: htmlwidgets
-    script: ./lib/bundle.js
+    script:  lib/cytoscape-3.18.2-min.js
     stylesheet: ./lib/cyjShiny.css
 
+  - name: klay
+    version: 3.1.2
+    src: htmlwidgets/lib/klay
+    script:
+      - klay.js
+      - cytoscape-klay.js
+
+  - name: cola
+    version: 2.3.0
+    src: htmlwidgets/lib/cola
+    script:
+      - cola.min.js
+      - cytoscape-cola.js
+
+  - name: spread
+    version: 3.0.0
+    src: htmlwidgets/lib/spread
+    script:
+      - weaver.min.js
+      - cytoscape-spread.js
+
+  - name: fcose
+    version: 1.1.0
+    src: htmlwidgets/lib/fcose
+    script:
+      - numeric-1.2.6.js
+      - layout-base.js
+      - cose-base.js
+      - cytoscape-fcose.js
+
+  - name: springy
+    version: 2.5.0
+    src: htmlwidgets/lib/springy
+    script:
+      - springy.js
+      - cytoscape-springy.js
 
 
 
