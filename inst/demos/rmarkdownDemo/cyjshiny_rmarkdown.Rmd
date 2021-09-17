@@ -1,0 +1,33 @@
+---
+title: "cyjShiny Demo"
+output: html_document
+---
+
+# Load Library
+
+```{r include = FALSE}
+library(cyjShiny)
+```
+
+# Show Toy Network
+
+```{r}
+tbl.nodes <- data.frame(id=c("A", "B", "C"),
+                        type=c("kinase", "TF", "glycoprotein"),
+                        lfc=c(-3, 1, 1),
+                        count=c(0, 0, 0),
+                        stringsAsFactors=FALSE)
+
+tbl.edges <- data.frame(source=c("A", "B", "C"),
+                        target=c("B", "C", "A"),
+                        interaction=c("phosphorylates", "synthetic lethal", "unknown"),
+                        stringsAsFactors=FALSE)
+
+graph.json <- toJSON(dataFramesToJSON(tbl.edges, tbl.nodes), auto_unbox=TRUE)
+
+print(graph.json)
+print(class(graph.json))
+
+cyjShiny(graph=graph.json, layoutName="cola")
+```
+
