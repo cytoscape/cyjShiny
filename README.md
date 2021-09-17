@@ -17,7 +17,7 @@ remotes::install_github(repo="cytoscape/cyjShiny", ref="master", build_vignette=
 ## More Information
 * [Wiki](https://github.com/cytoscape/cyjShiny/wiki).
 
-![model](ygModelImage.png)
+![model](inst/docs/ygModelImage.png)
 
 ## r-cytoscape.js: Update **August 27, 2018** 
 
