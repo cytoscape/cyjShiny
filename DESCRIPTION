@@ -19,7 +19,7 @@ Suggests:
     rmarkdown, 
     markdown, 
     BiocStyle
-License: file LICENSE
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 biocViews:
