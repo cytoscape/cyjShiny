@@ -4,5 +4,6 @@
 ^doc$
 ^Meta$
 ^\.github$
+^\.binder$
 makefile
 Makefile
