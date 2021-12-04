@@ -11,6 +11,9 @@ doLayout(session, strategy)
 
 \item{strategy}{a character string, one of cola, cose, circle, concentric, grid, breadthfirst, random, dagre, cose-bilkent.}
 }
+\value{
+Nothing
+}
 \description{
 Layout the current graph using the specified strategy.
 }

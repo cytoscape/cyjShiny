@@ -9,6 +9,9 @@ graphNELtoJSON(g)
 \arguments{
 \item{g}{a graphNEL}
 }
+\value{
+a string with a cytoscape.js JSON graph
+}
 \description{
 Convert R graphNEL object to cytoscape.js JSON.
 }

@@ -1,9 +1,10 @@
 #' Convert R graphNEL object to cytoscape.js JSON.
 #'
 #' @import graph
-#'
-#'
-#' @param g  a graphNEL
+#' 
+#' @param g a graphNEL
+#' 
+#' @return a string with a cytoscape.js JSON graph
 #'
 #' @examples
 #' \dontrun{
@@ -14,7 +15,7 @@
 #' @rdname graphNELtoJSON
 #'
 #' @export
-
+#' 
 graphNELtoJSON <- function(g) # Copied from RCyjs/R/utils.R
 {
   if (length(nodes(g)) == 0) {
@@ -117,18 +118,20 @@ graphNELtoJSON <- function(g) # Copied from RCyjs/R/utils.R
 
   paste0(vec.trimmed, collapse = " ")
 } # graphNELtoJSON
+
 #----------------------------------------------------------------------------------------------------------
 #' Create a cytoscape.js JSON graph from one or two data.frames.
 #'
 #' @param tbl.edges data.frame, with source, target and interaction columns, others option for edge attributes
 #' @param tbl.nodes data.frame, options, useful for orphan nodes, and necessary for adding node attributes
 #'
-
+#' @return a string with a cytoscape.js JSON graph
+#' 
 #' @aliases dataFramesToJSON
 #' @rdname dataFramesToJSON
 #'
 #' @export
-
+#' 
 dataFramesToJSON <- function(tbl.edges, tbl.nodes = NULL) {
   # catch any factor columns - they only cause trouble
   stopifnot(!grepl("factor", as.character(lapply(tbl.edges, class))))
@@ -227,44 +230,59 @@ dataFramesToJSON <- function(tbl.edges, tbl.nodes = NULL) {
   vec.trimmed <- vec [which(vec != "")]
   paste0(vec.trimmed, collapse = " ")
 } # dataFramesToJSON
-#----------------------------------------------------------------------------------------------------------
-# we know of at least two JSON object structures used to specify style:
-# simple: an array of selector objects:
-#    [ {"selector": "node", "css": {
-#      "shape": "ellipse",
-#      "text-valign":"center",
-#      "text-halign":"center",
-#      ...
-#      }]
-# more complex, exported from the Cytoscape desktop application
-# this is also an array of objects, one named "style" which (like the simple format described above)
-# contains an array of selectors:
-#  [ {
-#   "format_version" : "1.0",
-#   "generated_by" : "cytoscape-3.7.2",
-#   "target_cytoscapejs_version" : "~2.1",
-#   "title" : "cytoscapeSimple",
-#   "style" : [ {
-#     "selector" : "node",
-#     "css" : {
-#       "background-color" : "rgb(255,255,255)",
-#       "shape" : "ellipse",
-#       ...
-#       }]}]
-#
-# the following utility function examines the incoming JSON, returns exactly and only an array of
-# selector objects
-#--------------------------------------------------------------------------------------------------------------
+
 #' Read in a JSON file, extract the selector elements, return JSON
+#' 
+#' @description this utility function examines the incoming JSON, returns 
+#' exactly and only an array of selector objects
 #'
 #' @param filename  a json file
+#' 
+#' @details there are at least two JSON object structures used to specify style
+#' (see function comments in code for more details):
+#'  * simple: an array of selector objects
+#'  * more complex, exported from the Cytoscape desktop application this is 
+#'  also an array of objects, one named "style" which (like the simple format 
+#'  described above) contains an array of selectors. 
+#' @md 
+#'
+#' @return a string with a cytoscape.js JSON graph
 #'
 #' @aliases readAndStandardizeJSONStyleFile
 #' @rdname readAndStandardizeJSONStyleFile
 #'
 #' @export
-#'
+#' 
 readAndStandardizeJSONStyleFile <- function(filename) {
+  #-----------------------------------------------------------------------------
+  # we know of at least two JSON object structures used to specify style:
+  # simple: an array of selector objects:
+  #    [ {"selector": "node", "css": {
+  #      "shape": "ellipse",
+  #      "text-valign":"center",
+  #      "text-halign":"center",
+  #      ...
+  #      }]
+  # more complex, exported from the Cytoscape desktop application
+  # this is also an array of objects, one named "style" which (like the simple 
+  # format described above) contains an array of selectors:
+  #  [ {
+  #   "format_version" : "1.0",
+  #   "generated_by" : "cytoscape-3.7.2",
+  #   "target_cytoscapejs_version" : "~2.1",
+  #   "title" : "cytoscapeSimple",
+  #   "style" : [ {
+  #     "selector" : "node",
+  #     "css" : {
+  #       "background-color" : "rgb(255,255,255)",
+  #       "shape" : "ellipse",
+  #       ...
+  #       }]}]
+  #
+  # this utility function examines the incoming JSON, returns exactly and only 
+  # an array of selector objects
+  #-----------------------------------------------------------------------------
+  
   obj <- fromJSON(filename) # very strict parser, no unquoted field names
 
   if ("style" %in% names(obj)) {
@@ -277,10 +295,12 @@ readAndStandardizeJSONStyleFile <- function(filename) {
 
   stop(sprintf("unrecognized JSON style file format in %s", filename))
 } # readAndStandardizeJSONStyleFile
-#----------------------------------------------------------------------------------------------------------
+
 #' Read in a JSON network file, identify (or add) elements field return JSON
 #'
-#' @param filename  a json file
+#' @param filename a JSON file
+#'
+#' @return a string with a cytoscape.js JSON graph
 #'
 #' @aliases readAndStandardizeJSONNetworkFile
 #' @rdname readAndStandardizeJSONNetworkFile
@@ -303,4 +323,3 @@ readAndStandardizeJSONNetworkFile <- function(filename) {
 
   stop(sprintf("unrecognized JSON graph file format in %s", filename))
 } # readAndStandardizeJSONNetworkFile
-#----------------------------------------------------------------------------------------------------------

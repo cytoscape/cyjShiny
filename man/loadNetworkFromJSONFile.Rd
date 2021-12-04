@@ -2,7 +2,7 @@
 % Please edit documentation in R/cyjShiny.R
 \name{loadNetworkFromJSONFile}
 \alias{loadNetworkFromJSONFile}
-\title{load a standard cytoscape.js JSON network file}
+\title{Load a standard cytoscape.js JSON network file}
 \usage{
 loadNetworkFromJSONFile(filename)
 }
@@ -10,10 +10,10 @@ loadNetworkFromJSONFile(filename)
 \item{filename}{character string, either relative or absolute path.}
 }
 \value{
-nothing
+Nothing
 }
 \description{
-load a standard cytoscape.js JSON network file
+Load a standard cytoscape.js JSON network file
 }
 \examples{
 \dontrun{

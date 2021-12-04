@@ -15,6 +15,9 @@ setNodeAttributes(session, attributeName, nodes, values)
 
 \item{values}{a character, logical or numeric vector, the new values.}
 }
+\value{
+Nothing
+}
 \description{
 Assign the supplied node attribute values to the graph structure contained in the browser.
 }

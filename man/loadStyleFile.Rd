@@ -2,7 +2,7 @@
 % Please edit documentation in R/cyjShiny.R
 \name{loadStyleFile}
 \alias{loadStyleFile}
-\title{load a standard cytoscape.js style file}
+\title{Load a standard cytoscape.js style file}
 \usage{
 loadStyleFile(styleFile)
 }
@@ -10,10 +10,10 @@ loadStyleFile(styleFile)
 \item{styleFile}{character string, either relative or absolute path.}
 }
 \value{
-nothing
+Nothing
 }
 \description{
-load a standard cytoscape.js style file
+Load a standard cytoscape.js style file
 }
 \examples{
 \dontrun{

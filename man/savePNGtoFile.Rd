@@ -2,7 +2,7 @@
 % Please edit documentation in R/cyjShiny.R
 \name{savePNGtoFile}
 \alias{savePNGtoFile}
-\title{save a png rendering of the current network view to the specified filename}
+\title{Save a png rendering of the current network view to the specified filename}
 \usage{
 savePNGtoFile(session, filename)
 }
@@ -11,6 +11,9 @@ savePNGtoFile(session, filename)
 
 \item{filename}{a character string}
 }
+\value{
+Nothing
+}
 \description{
-save a png rendering of the current network view to the specified filename
+Save a png rendering of the current network view to the specified filename
 }

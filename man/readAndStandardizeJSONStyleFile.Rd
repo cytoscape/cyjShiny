@@ -9,6 +9,20 @@ readAndStandardizeJSONStyleFile(filename)
 \arguments{
 \item{filename}{a json file}
 }
+\value{
+a string with a cytoscape.js JSON graph
+}
 \description{
-Read in a JSON file, extract the selector elements, return JSON
+this utility function examines the incoming JSON, returns
+exactly and only an array of selector objects
+}
+\details{
+there are at least two JSON object structures used to specify style
+(see function comments in code for more details):
+\itemize{
+\item simple: an array of selector objects
+\item more complex, exported from the Cytoscape desktop application this is
+also an array of objects, one named "style" which (like the simple format
+described above) contains an array of selectors.
+}
 }

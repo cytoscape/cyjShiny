@@ -7,7 +7,10 @@
 readAndStandardizeJSONNetworkFile(filename)
 }
 \arguments{
-\item{filename}{a json file}
+\item{filename}{a JSON file}
+}
+\value{
+a string with a cytoscape.js JSON graph
 }
 \description{
 Read in a JSON network file, identify (or add) elements field return JSON

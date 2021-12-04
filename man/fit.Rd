@@ -11,6 +11,9 @@ fit(session, padding = 50)
 
 \item{padding}{integer, default 50 pixels.}
 }
+\value{
+Nothing
+}
 \description{
 Set zoom and center of the graph display so that graph fills the display.
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/cyjShiny.R
 \name{setNodePositions}
 \alias{setNodePositions}
-\title{set node positions from the supplied data.frame}
+\title{Set node positions from the supplied data.frame}
 \usage{
 setNodePositions(session, tbl.positions)
 }
@@ -11,6 +11,9 @@ setNodePositions(session, tbl.positions)
 
 \item{tbl.positions}{a data.frame with three columns: id, x, y}
 }
+\value{
+Nothing
+}
 \description{
-set node positions from the supplied data.frame
+Set node positions from the supplied data.frame
 }

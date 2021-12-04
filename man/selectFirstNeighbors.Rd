@@ -2,13 +2,16 @@
 % Please edit documentation in R/cyjShiny.R
 \name{selectFirstNeighbors}
 \alias{selectFirstNeighbors}
-\title{selectFirstNeighbors of the currently selected nodes}
+\title{Select first neighbors of the currently selected nodes}
 \usage{
 selectFirstNeighbors(session)
 }
 \arguments{
 \item{session}{a Shiny Server session object.}
 }
+\value{
+Nothing
+}
 \description{
-selectFirstNeighbors of the currently selected nodes
+Select first neighbors of the currently selected nodes
 }

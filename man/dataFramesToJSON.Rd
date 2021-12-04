@@ -11,6 +11,9 @@ dataFramesToJSON(tbl.edges, tbl.nodes = NULL)
 
 \item{tbl.nodes}{data.frame, options, useful for orphan nodes, and necessary for adding node attributes}
 }
+\value{
+a string with a cytoscape.js JSON graph
+}
 \description{
 Create a cytoscape.js JSON graph from one or two data.frames.
 }

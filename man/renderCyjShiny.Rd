@@ -2,7 +2,7 @@
 % Please edit documentation in R/cyjShiny.R
 \name{renderCyjShiny}
 \alias{renderCyjShiny}
-\title{More shiny plumbing -  a cyjShiny wrapper for htmlwidget standard rendering operation}
+\title{More shiny plumbing - a cyjShiny wrapper for htmlwidget standard rendering operation}
 \usage{
 renderCyjShiny(expr, env = parent.frame(), quoted = FALSE)
 }
@@ -14,8 +14,8 @@ renderCyjShiny(expr, env = parent.frame(), quoted = FALSE)
 \item{quoted}{logical specifies whether expr is quoted ("useuful if you want to save an expression in a variable").}
 }
 \value{
-not sure
+output from htmlwidgets rendering operation
 }
 \description{
-More shiny plumbing -  a cyjShiny wrapper for htmlwidget standard rendering operation
+More shiny plumbing - a cyjShiny wrapper for htmlwidget standard rendering operation
 }

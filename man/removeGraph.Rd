@@ -2,15 +2,18 @@
 % Please edit documentation in R/cyjShiny.R
 \name{removeGraph}
 \alias{removeGraph}
-\title{remove the current graph}
+\title{Remove the current graph}
 \usage{
 removeGraph(session)
 }
 \arguments{
 \item{session}{a Shiny Server session object.}
 }
+\value{
+Nothing
+}
 \description{
-remove the current graph
+Remove the current graph
 }
 \examples{
 \dontrun{

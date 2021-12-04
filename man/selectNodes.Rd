@@ -2,7 +2,7 @@
 % Please edit documentation in R/cyjShiny.R
 \name{selectNodes}
 \alias{selectNodes}
-\title{selectNodes}
+\title{Select Nodes}
 \usage{
 selectNodes(session, nodeNames)
 }
@@ -11,6 +11,9 @@ selectNodes(session, nodeNames)
 
 \item{nodeNames}{character, a list of node IDs}
 }
+\value{
+Nothing
+}
 \description{
-selectNodes
+Select Nodes
 }

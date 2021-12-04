@@ -52,7 +52,7 @@
 #'
 #' # output$cyjShiny <- renderCyjShiny(cyjShiny(graph.json.v[123]))
 #' @export
-
+#' 
 cyjShiny <- function(graph, layoutName, styleFile = NULL, width = NULL, height = NULL, elementId = NULL) {
   stopifnot(layoutName %in% c(
     "preset",
@@ -108,18 +108,18 @@ cyjShiny <- function(graph, layoutName, styleFile = NULL, width = NULL, height =
 #' @rdname cyjShinyOutput
 #'
 #' @export
-
+#' 
 cyjShinyOutput <- function(outputId, width = "100%", height = "400") {
   htmlwidgets::shinyWidgetOutput(outputId, "cyjShiny", width, height, package = "cyjShiny")
 }
-#------------------------------------------------------------------------------------------------------------------------
-#' More shiny plumbing -  a cyjShiny wrapper for htmlwidget standard rendering operation
+
+#' More shiny plumbing - a cyjShiny wrapper for htmlwidget standard rendering operation
 #'
 #' @param expr an expression that generates an HTML widget.
 #' @param env environment in which to evaluate expr.
 #' @param quoted logical specifies whether expr is quoted ("useuful if you want to save an expression in a variable").
 #'
-#' @return not sure
+#' @return output from htmlwidgets rendering operation
 #'
 #' @aliases renderCyjShiny
 #' @rdname renderCyjShiny
@@ -133,12 +133,12 @@ renderCyjShiny <- function(expr, env = parent.frame(), quoted = FALSE) {
 
   htmlwidgets::shinyRenderWidget(expr, cyjShinyOutput, env, quoted = TRUE)
 }
-#------------------------------------------------------------------------------------------------------------------------
-#' load a standard cytoscape.js JSON network file
+
+#' Load a standard cytoscape.js JSON network file
 #'
 #' @param filename character string, either relative or absolute path.
 #'
-#' @return nothing
+#' @return Nothing
 #'
 #' @export
 #'
@@ -151,7 +151,7 @@ renderCyjShiny <- function(expr, env = parent.frame(), quoted = FALSE) {
 #' @rdname loadNetworkFromJSONFile
 #'
 #' @export
-
+#' 
 loadNetworkFromJSONFile <- function(filename) {
   jsonText <- readAndStandardizeJSONNetworkFile(filename)
   message <- list(json = jsonText)
@@ -159,12 +159,12 @@ loadNetworkFromJSONFile <- function(filename) {
   session <- shiny::getDefaultReactiveDomain()
   session$sendCustomMessage("loadJSONNetwork", message)
 } # loadNetworkFromJSONFile
-#------------------------------------------------------------------------------------------------------------------------
-#' load a standard cytoscape.js style file
+
+#' Load a standard cytoscape.js style file
 #'
 #' @param styleFile character string, either relative or absolute path.
 #'
-#' @return nothing
+#' @return Nothing
 #'
 #' @export
 #'
@@ -177,7 +177,7 @@ loadNetworkFromJSONFile <- function(filename) {
 #' @rdname loadStyleFile
 #'
 #' @export
-
+#'
 loadStyleFile <- function(styleFile) {
   if (styleFile == "default style") {
     styleFile <- system.file(package = "cyjShiny", "extdata", "defaultStyle.json")
@@ -191,12 +191,14 @@ loadStyleFile <- function(styleFile) {
   session <- shiny::getDefaultReactiveDomain()
   session$sendCustomMessage("loadStyle", message)
 } # loadStyleFile
-#------------------------------------------------------------------------------------------------------------------------
+
 #' Set zoom and center of the graph display so that graph fills the display.
 #'
 #' @param session a Shiny server session object.
 #' @param padding integer, default 50 pixels.
 #'
+#' @return Nothing
+#' 
 #' @examples
 #' \dontrun{
 #' fit(session, 100)
@@ -212,12 +214,14 @@ loadStyleFile <- function(styleFile) {
 fit <- function(session, padding = 50) {
   session$sendCustomMessage("fit", list(padding = padding))
 } # fitSelected
-#------------------------------------------------------------------------------------------------------------------------
+
 #' Set zoom and center of the graph display so that the currently selected nodes fill the display
 #'
 #' @param session  a Shiny server session object.
 #' @param padding integer, default 50 pixels.
 #'
+#' @return Nothing
+#' 
 #' @examples
 #' \dontrun{
 #' fitSelected(session, 100)
@@ -233,28 +237,27 @@ fit <- function(session, padding = 50) {
 fitSelected <- function(session, padding = 50) {
   session$sendCustomMessage("fitSelected", list(padding = padding))
 } # fitSelected
-#------------------------------------------------------------------------------------------------------------------------
-#' getSelectedNodes
+
+#' Get Selected Nodes
+#'
+#' @param session a Shiny server session object.
+#'
+#' @return a data.frame with (at least) an id column
 #'
 #' \code{getSelectedNodes} get the selected nodes
 #'
 #' @rdname getSelectedNodes
 #' @aliases getSelectedNodes
 #'
-#' @param session a Shiny server session object.
-#'
-#' @return a data.frame with (at least) an id column
-#'
 #' @export
 #'
-
 getSelectedNodes <- function(session) {
 
   message(sprintf("--- cyjShiny, sendCustomMessage('getSelectedNodes')"))
   session$sendCustomMessage("getSelectedNodes", message = list())
 
 } # getSelectedNodes
-#----------------------------------------------------------------------------------------------------
+
 #' Assign the supplied node attribute values to the graph structure contained in the browser.
 #'
 #' @param session a Shiny Server session object.
@@ -262,6 +265,8 @@ getSelectedNodes <- function(session) {
 #' @param nodes a character vector the names of the nodes whose attributes are updated.
 #' @param values a character, logical or numeric vector, the new values.
 #'
+#' @return Nothing
+#' 
 #' @examples
 #' \dontrun{
 #' setNodeAttributes(session,
@@ -275,7 +280,7 @@ getSelectedNodes <- function(session) {
 #' @rdname setNodeAttributes
 #'
 #' @export
-
+#' 
 setNodeAttributes <- function(session, attributeName, nodes, values) {
   session$sendCustomMessage(
     type = "setNodeAttributes",
@@ -286,7 +291,7 @@ setNodeAttributes <- function(session, attributeName, nodes, values) {
     )
   )
 } # setNodeAttributes
-#------------------------------------------------------------------------------------------------------------------------
+
 #' Assign the supplied edge attribute values to the graph structure contained in the browser.
 #'
 #' @param session a Shiny Server session object.
@@ -295,6 +300,8 @@ setNodeAttributes <- function(session, attributeName, nodes, values) {
 #' @param targetNodes a character vector, the names of the target nodes of the edgees
 #' @param interactions a character vector, further identifying the specific edge whose attributes are updated.
 #' @param values a character, logical or numeric vector, the new values.
+#'
+#' @return Nothing
 #'
 #' @examples
 #' \dontrun{
@@ -311,7 +318,7 @@ setNodeAttributes <- function(session, attributeName, nodes, values) {
 #' @rdname setEdgeAttributes
 #'
 #' @export
-
+#'
 setEdgeAttributes <- function(session, attributeName, sourceNodes, targetNodes, interactions, values) {
   session$sendCustomMessage(
     type = "setEdgeAttributes",
@@ -324,11 +331,13 @@ setEdgeAttributes <- function(session, attributeName, sourceNodes, targetNodes, 
     )
   )
 } # setEdgeAttributes
-#------------------------------------------------------------------------------------------------------------------------
+
 #' Layout the current graph using the specified strategy.
 #'
 #' @param session a Shiny Server session object.
 #' @param strategy a character string, one of cola, cose, circle, concentric, grid, breadthfirst, random, dagre, cose-bilkent.
+#'
+#' @return Nothing
 #'
 #' @examples
 #' \dontrun{
@@ -338,7 +347,7 @@ setEdgeAttributes <- function(session, attributeName, sourceNodes, targetNodes, 
 #' @rdname doLayout
 #'
 #' @export
-
+#'
 doLayout <- function(session, strategy)
 {
    stopifnot(strategy %in% c("cola", "cose", "circle", "concentric", "grid", "breadthfirst",
@@ -347,10 +356,12 @@ doLayout <- function(session, strategy)
 
   session$sendCustomMessage(type = "doLayout", message = list(strategy = strategy))
 } # doLayout
-#------------------------------------------------------------------------------------------------------------------------
-#' get node positions
+
+#' Get node positions
 #'
 #' @param session a Shiny Server session object.
+#'
+#' @return Nothing
 #'
 #' @aliases getNodePositions
 #' @rdname getNodePositions
@@ -360,17 +371,19 @@ doLayout <- function(session, strategy)
 getNodePositions <- function(session) {
   x <- session$sendCustomMessage(type = "getNodePositions", message = list())
 } # getNodePositions
-#------------------------------------------------------------------------------------------------------------------------
-#' set node positions from the supplied data.frame
+
+#' Set node positions from the supplied data.frame
 #'
 #' @param session a Shiny Server session object.
 #' @param tbl.positions a data.frame with three columns: id, x, y
+#'
+#' @return Nothing
 #'
 #' @aliases setNodePositions
 #' @rdname setNodePositions
 #'
 #' @export
-
+#'
 setNodePositions <- function(session, tbl.positions) {
   stopifnot(colnames(tbl.positions) == c("id", "x", "y"))
 
@@ -378,10 +391,12 @@ setNodePositions <- function(session, tbl.positions) {
   session$sendCustomMessage(type = "setNodePositions", message = list(tbl = tbl.json))
 
 } # setNodePositions
-#------------------------------------------------------------------------------------------------------------------------
-#' remove the current graph
+
+#' Remove the current graph
 #'
 #' @param session a Shiny Server session object.
+#'
+#' @return Nothing
 #'
 #' @examples
 #' \dontrun{
@@ -391,16 +406,18 @@ setNodePositions <- function(session, tbl.positions) {
 #' @rdname removeGraph
 #'
 #' @export
-
+#'
 removeGraph <- function(session) {
   session$sendCustomMessage(type = "removeGraph", message = list())
 } # removeGraph
-#------------------------------------------------------------------------------------------------------------------------
-#' addGraphFromDataFrame
+
+#' Add graph from data.frame
 #'
 #' @param session a Shiny Server session object.
 #' @param tbl.edges a data.frame with source, traget, interaction columns (and option other attributes)
 #' @param tbl.nodes (optional; nodes can be deduced from tbl.edges) a data.frame with nodes and their attributes
+#'
+#' @return Nothing
 #'
 #' @examples
 #' \dontrun{
@@ -411,7 +428,7 @@ removeGraph <- function(session) {
 #' @rdname addGraphFromDataFrame
 #'
 #' @export
-
+#'
 addGraphFromDataFrame <- function(session, tbl.edges, tbl.nodes = NULL) {
   illegal.tbl <- ncol(tbl.edges) < 3
   illegal.colnames <- !(all(colnames(tbl.edges)[1:3] == c("source", "target", "interaction")))
@@ -425,11 +442,13 @@ addGraphFromDataFrame <- function(session, tbl.edges, tbl.nodes = NULL) {
   g.json <- dataFramesToJSON(tbl.edges, tbl.nodes)
   session$sendCustomMessage(type = "addGraph", message = list(graph = g.json))
 } # addGraphFromDataFrame
-#------------------------------------------------------------------------------------------------------------------------
-#' addGraphFromJsonFile
+
+#' Add graph from JSON file
 #'
 #' @param session a Shiny Server session object.
 #' @param jsonFilename of a text file with JSON representation of a cytoscape.js graph
+#'
+#' @return Nothing
 #'
 #' @examples
 #' \dontrun{
@@ -444,11 +463,13 @@ addGraphFromJsonFile <- function(session, jsonFilename) {
   g.json <- readLines(jsonFilename)
   session$sendCustomMessage(type = "addGraph", message = list(graph = g.json))
 } # addGraphFromJSON
-#------------------------------------------------------------------------------------------------------------------------
-#' selectNodes
+
+#' Select Nodes
 #'
 #' @param session a Shiny Server session object.
 #' @param nodeNames character, a list of node IDs
+#'
+#' @return Nothing
 #'
 #' @aliases selectNodes
 #' @rdname selectNodes
@@ -458,10 +479,12 @@ addGraphFromJsonFile <- function(session, jsonFilename) {
 selectNodes <- function(session, nodeNames) {
   session$sendCustomMessage(type = "selectNodes", message = toJSON(nodeNames))
 } # selectNodes
-#------------------------------------------------------------------------------------------------------------------------
-#' selectFirstNeighbors of the currently selected nodes
+
+#' Select first neighbors of the currently selected nodes
 #'
 #' @param session a Shiny Server session object.
+#'
+#' @return Nothing
 #'
 #' @aliases selectFirstNeighbors
 #' @rdname  selectFirstNeighbors
@@ -471,10 +494,12 @@ selectNodes <- function(session, nodeNames) {
 selectFirstNeighbors <- function(session) {
   session$sendCustomMessage(type = "sfn", message = list())
 } # selectFirstNeighbors
-#------------------------------------------------------------------------------------------------------------------------
-#' clearSelection all node and edge selections removed
+
+#' Clear selection all node and edge selections removed
 #'
 #' @param session a Shiny Server session object.
+#'
+#' @return Nothing
 #'
 #' @aliases clearSelection
 #' @rdname clearSelection
@@ -484,10 +509,12 @@ selectFirstNeighbors <- function(session) {
 clearSelection <- function(session) {
   session$sendCustomMessage(type = "clearSelection", message = list())
 } # clearSelection
-#------------------------------------------------------------------------------------------------------------------------
-#' invertSelection all selected nodes and their edges are hidden
+
+#' Invert selection all selected nodes and their edges are hidden
 #'
 #' @param session a Shiny Server session object.
+#'
+#' @return Nothing
 #'
 #' @aliases invertSelection
 #' @rdname invertSelection
@@ -497,10 +524,12 @@ clearSelection <- function(session) {
 invertSelection <- function(session) {
   session$sendCustomMessage(type = "invertSelection", message = list())
 } # invertSelection
-#------------------------------------------------------------------------------------------------------------------------
-#' hideSelection all selected nodes and their edges are hidden
+
+#' Hide selection all selected nodes and their edges are hidden
 #'
 #' @param session a Shiny Server session object.
+#'
+#' @return Nothing
 #'
 #' @aliases hideSelection
 #' @rdname hideSelection
@@ -510,10 +539,12 @@ invertSelection <- function(session) {
 hideSelection <- function(session) {
   session$sendCustomMessage(type = "hideSelection", message = list())
 } # hideSelection
-#------------------------------------------------------------------------------------------------------------------------
-#' showAll all selected nodes and their edges are hidden
+
+#' Show all all selected nodes and their edges are hidden
 #'
 #' @param session a Shiny Server session object.
+#'
+#' @return Nothing
 #'
 #' @aliases showAll
 #' @rdname showAll
@@ -523,11 +554,13 @@ hideSelection <- function(session) {
 showAll <- function(session) {
   session$sendCustomMessage(type = "showAll", message = list())
 } # showAll
-#------------------------------------------------------------------------------------------------------------------------
-#' save a png rendering of the current network view to the specified filename
+
+#' Save a png rendering of the current network view to the specified filename
 #'
 #' @param session a Shiny Server session object.
 #' @param filename a character string
+#'
+#' @return Nothing
 #'
 #' @aliases savePNGtoFile
 #' @rdname savePNGtoFile
@@ -539,4 +572,3 @@ savePNGtoFile <- function(session, filename)
    session$sendCustomMessage(type="savePNGtoFile", message=list(filename))
 
 } # savePNGtoFile
-#------------------------------------------------------------------------------------------------------------------------

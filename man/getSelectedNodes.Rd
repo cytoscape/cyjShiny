@@ -2,7 +2,7 @@
 % Please edit documentation in R/cyjShiny.R
 \name{getSelectedNodes}
 \alias{getSelectedNodes}
-\title{getSelectedNodes}
+\title{Get Selected Nodes}
 \usage{
 getSelectedNodes(session)
 }
@@ -11,7 +11,9 @@ getSelectedNodes(session)
 }
 \value{
 a data.frame with (at least) an id column
+
+\code{getSelectedNodes} get the selected nodes
 }
 \description{
-\code{getSelectedNodes} get the selected nodes
+Get Selected Nodes
 }

@@ -2,13 +2,16 @@
 % Please edit documentation in R/cyjShiny.R
 \name{getNodePositions}
 \alias{getNodePositions}
-\title{get node positions}
+\title{Get node positions}
 \usage{
 getNodePositions(session)
 }
 \arguments{
 \item{session}{a Shiny Server session object.}
 }
+\value{
+Nothing
+}
 \description{
-get node positions
+Get node positions
 }

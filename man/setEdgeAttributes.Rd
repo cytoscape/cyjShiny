@@ -26,6 +26,9 @@ setEdgeAttributes(
 
 \item{values}{a character, logical or numeric vector, the new values.}
 }
+\value{
+Nothing
+}
 \description{
 Assign the supplied edge attribute values to the graph structure contained in the browser.
 }

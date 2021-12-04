@@ -2,13 +2,16 @@
 % Please edit documentation in R/cyjShiny.R
 \name{showAll}
 \alias{showAll}
-\title{showAll all selected nodes and their edges are hidden}
+\title{Show all all selected nodes and their edges are hidden}
 \usage{
 showAll(session)
 }
 \arguments{
 \item{session}{a Shiny Server session object.}
 }
+\value{
+Nothing
+}
 \description{
-showAll all selected nodes and their edges are hidden
+Show all all selected nodes and their edges are hidden
 }

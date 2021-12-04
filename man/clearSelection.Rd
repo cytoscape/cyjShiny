@@ -2,13 +2,16 @@
 % Please edit documentation in R/cyjShiny.R
 \name{clearSelection}
 \alias{clearSelection}
-\title{clearSelection all node and edge selections removed}
+\title{Clear selection all node and edge selections removed}
 \usage{
 clearSelection(session)
 }
 \arguments{
 \item{session}{a Shiny Server session object.}
 }
+\value{
+Nothing
+}
 \description{
-clearSelection all node and edge selections removed
+Clear selection all node and edge selections removed
 }

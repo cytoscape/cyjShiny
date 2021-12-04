@@ -2,13 +2,16 @@
 % Please edit documentation in R/cyjShiny.R
 \name{hideSelection}
 \alias{hideSelection}
-\title{hideSelection all selected nodes and their edges are hidden}
+\title{Hide selection all selected nodes and their edges are hidden}
 \usage{
 hideSelection(session)
 }
 \arguments{
 \item{session}{a Shiny Server session object.}
 }
+\value{
+Nothing
+}
 \description{
-hideSelection all selected nodes and their edges are hidden
+Hide selection all selected nodes and their edges are hidden
 }

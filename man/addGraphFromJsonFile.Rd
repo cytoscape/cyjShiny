@@ -2,7 +2,7 @@
 % Please edit documentation in R/cyjShiny.R
 \name{addGraphFromJsonFile}
 \alias{addGraphFromJsonFile}
-\title{addGraphFromJsonFile}
+\title{Add graph from JSON file}
 \usage{
 addGraphFromJsonFile(session, jsonFilename)
 }
@@ -11,8 +11,11 @@ addGraphFromJsonFile(session, jsonFilename)
 
 \item{jsonFilename}{of a text file with JSON representation of a cytoscape.js graph}
 }
+\value{
+Nothing
+}
 \description{
-addGraphFromJsonFile
+Add graph from JSON file
 }
 \examples{
 \dontrun{
