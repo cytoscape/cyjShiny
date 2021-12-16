@@ -4,7 +4,8 @@ author: "Paul Shannon"
 package: cyjShiny
 date: "`r Sys.Date()`"
 output:
-   BiocStyle::html_document
+  html_document:
+    toc: yes
 vignette: >
   %\VignetteIndexEntry{"cyjShiny Introduction: a simple demo"}
   %\VignetteEngine{knitr::rmarkdown}
