@@ -30,7 +30,7 @@ var defaultStyle = [{selector: 'node', css: {
                    ];
 //----------------------------------------------------------------------------------------------------
 var executionMode = "devel";
-const log = function(msg)
+const cyjshiny_log = function(msg)
 {
   if(executionMode == "devel")
       console.log(msg);
@@ -42,18 +42,18 @@ HTMLWidgets.widget({
     type: 'output',
 
     factory: function(el, allocatedWidth, allocatedHeight) {
-        log("---- entering factory, initial dimensions: " + allocatedWidth + ", " + allocatedHeight);
+        cyjshiny_log("---- entering factory, initial dimensions: " + allocatedWidth + ", " + allocatedHeight);
 	var cyj;
 	return {
 	    renderValue: function(x, instance) {
-		log("---- ~/github/cyjsShiny/inst/browserCode/src/cyjShiny.js, renderValue");
-                log(x);
+		cyjshiny_log("---- ~/github/cyjsShiny/inst/browserCode/src/cyjShiny.js, renderValue");
+                cyjshiny_log(x);
                 var data = JSON.parse(x.graph);
                 var layoutName = x.layoutName;
                 var style = JSON.parse(x.style.json);
                 if (style == "default style")
                     style = defaultStyle;
-		// log(data);
+		// cyjshiny_log(data);
 		var cyDiv = el;
 		cyj = cytoscape({
 		    container: cyDiv,
@@ -61,8 +61,8 @@ HTMLWidgets.widget({
 		    layout: {name: layoutName},
 		    style:  style, //defaultStyle,
 		    ready: function(){
-                        log("cyjShiny cyjs ready");
-                        log("cyjShiny widget, initial dimensions: " + allocatedWidth + ", " + allocatedHeight)
+                        cyjshiny_log("cyjShiny cyjs ready");
+                        cyjshiny_log("cyjShiny widget, initial dimensions: " + allocatedWidth + ", " + allocatedHeight)
 			$("#cyjShiny").height(allocatedHeight)
 			$("#cyjShiny").width(allocatedWidth)
 			var cyj = this;
@@ -70,8 +70,8 @@ HTMLWidgets.widget({
 			if (style != null) {
                           cyj.style(style.json);
 			  }
-			log("small cyjs network ready, with " + cyj.nodes().length + " nodes.");
-		        log("  initial widget dimensions: " +
+			cyjshiny_log("small cyjs network ready, with " + cyj.nodes().length + " nodes.");
+		        cyjshiny_log("  initial widget dimensions: " +
                             $("#cyjShiny").width() + ", " +
                             $("#cyjShiny").height());
 
@@ -81,7 +81,7 @@ HTMLWidgets.widget({
 			    if(typeof(evt.target.id) != "undefined"){
 				id = evt.target.id();
 			       }
-			    console.log("tapped: ", id)
+			    cyjshiny_log("tapped: ", id)
 			    Shiny.setInputValue("selection", id, {priority: "event"});
 
 			})
@@ -92,10 +92,10 @@ HTMLWidgets.widget({
 		}) // cytoscape()
             }, // renderValue
             resize: function(width, height) {
-		console.log("widget resize");
+		cyjshiny_log("widget resize");
 		var parentWidth = $("#cyjShiny").parent().width()
 		var parentHeight = $("#cyjShiny").parent().height()
-		console.log("widget resize, parentWidth: " + parentWidth + "  height: " + parentHeight);
+		cyjshiny_log("widget resize, parentWidth: " + parentWidth + "  height: " + parentHeight);
 		$("#cyjShiny").width(parentWidth)
 		$("#cyjShiny").height(parentHeight)
 	    },
@@ -113,23 +113,23 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("doLayout", function(mes
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("getNodePositions", function(message){
 
-    log("--- entering getNodePositions, customMessangeHandler")
+    cyjshiny_log("--- entering getNodePositions, customMessangeHandler")
     var tbl = JSON.stringify(self.cyj.nodes().map(function(n){return{id: n.id(),
                                                                      x: n.position().x,
                                                                      y: n.position().y}}));
-    log(tbl)
+    cyjshiny_log(tbl)
     Shiny.setInputValue("tbl.nodePositions", tbl,  {priority: "event"});
     })
 
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("setNodePositions", function(message){
 
-    log("--- entering setNodePositions, customMessangeHandler")
-    log(message.tbl)
+    cyjshiny_log("--- entering setNodePositions, customMessangeHandler")
+    cyjshiny_log(message.tbl)
 
     var tbl = message.tbl; // JSON.parse(message.tbl)
 
-    console.log("calling setPosition map");
+    cyjshiny_log("calling setPosition map");
     tbl.map(function(e){
        var tag="[id='" + e.id + "']";
        self.cyj.$(tag).position({x: e.x, y:e.y});
@@ -155,14 +155,14 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("addGraph", function(mes
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("redraw", function(message){
 
-    log("redraw requested");
+    cyjshiny_log("redraw requested");
     self.cyj.style().update();
     })
 
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("setNodeAttributes", function(message){
 
-    log("setNodeAttributes requested")
+    cyjshiny_log("setNodeAttributes requested")
 
     var nodeIDs = message.nodes;
     var attributeName = message.attribute;
@@ -177,7 +177,7 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("setNodeAttributes", fun
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("setEdgeAttributes", function(message){
 
-    log("setEdgeAttributes requested")
+    cyjshiny_log("setEdgeAttributes requested")
 
     var attributeName = message.attributeName;
     var sourceNodes = message.sourceNodes;
@@ -187,11 +187,11 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("setEdgeAttributes", fun
 
    for(var i=0; i < sourceNodes.length; i++){
       var id = sourceNodes[i] + "-(" + interactions[i] + ")-" + targetNodes[i];
-      log("edge id: " + id)
+      cyjshiny_log("edge id: " + id)
       var edge = self.cyj.getElementById(id)
-      log(edge)
+      cyjshiny_log(edge)
       if(edge != undefined){
-         log("setting edge " + attributeName + " to " + values[i])
+         cyjshiny_log("setting edge " + attributeName + " to " + values[i])
          edge.data({[attributeName]: values[i]})
          }
       } // for i
@@ -200,7 +200,7 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("setEdgeAttributes", fun
 //----------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("selectNodes", function(message){
 
-   log("selectNodes requested (16 apr 2020, 835a) : " + message);
+   cyjshiny_log("selectNodes requested (16 apr 2020, 835a) : " + message);
 
    var nodeIDs = message;
 
@@ -214,7 +214,7 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("selectNodes", function(
      filterStrings.push(s);
      } // for i
 
-   log("filtersStrings, joined: " + filterStrings.join());
+   cyjshiny_log("filtersStrings, joined: " + filterStrings.join());
 
    var nodesToSelect = window.cyj.nodes(filterStrings.join());
    nodesToSelect.select()
@@ -223,14 +223,14 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("selectNodes", function(
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("clearSelection", function(message){
 
-    log("clearSelection requested: " + message);
+    cyjshiny_log("clearSelection requested: " + message);
     self.cyj.filter("node:selected").unselect();
 
 })
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("showAll", function(message){
 
-    log("showAll requested: " + message);
+    cyjshiny_log("showAll requested: " + message);
     self.cyj.nodes().show()
     self.cyj.edges().show()
 
@@ -238,7 +238,7 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("showAll", function(mess
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("invertSelection", function(message){
 
-    log("invertSelection requested: " + message);
+    cyjshiny_log("invertSelection requested: " + message);
     var currentlySelected = self.cyj.filter("node:selected");
     self.cyj.nodes().select();
     currentlySelected.unselect();
@@ -246,7 +246,7 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("invertSelection", funct
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("getCurrentSelection", function(message){
 
-    log("--- currentSelection requested ");
+    cyjshiny_log("--- currentSelection requested ");
     var currentlySelected = self.cyj.filter("node:selected");
     Shiny.setInputValue("currentSelection", currentlySelected, {priority: "event"});
 
@@ -254,52 +254,52 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("getCurrentSelection", f
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("hideSelection", function(message){
 
-    log("hideSelection requested: " + message);
+    cyjshiny_log("hideSelection requested: " + message);
     self.cyj.filter("node:selected").hide();
 
 })
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("getSelectedNodes", function(message){
 
-    log("getSelectedNodes requested: " + message);
+    cyjshiny_log("getSelectedNodes requested: " + message);
     var value = self.cyj.filter("node:selected")
         .map(function(node) {
             return(node.data().id)})
              //return {id: node.data().id, label: node.data().label}})
 
-    log(self.cyj.filter("node:selected"));
-    log(value)
+    cyjshiny_log(self.cyj.filter("node:selected"));
+    cyjshiny_log(value)
     Shiny.setInputValue("selectedNodes", value, {priority: "event"});
 
 });
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("sfn", function(message){
 
-    log("sfn requested: " + message);
+    cyjshiny_log("sfn requested: " + message);
     self.cyj.nodes(':selected').neighborhood().nodes().select();
 
 })
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("fitSelected", function(message){
 
-    log("fitSelected requested");
+    cyjshiny_log("fitSelected requested");
     var padding = message.padding;
 
     var selectedNodes = self.cyj.filter("node:selected");
 
     if(selectedNodes.length == 0){
-	log("no nodes currently selected")
+	cyjshiny_log("no nodes currently selected")
      }
    else{
-       log("fitSelected, with padding " + padding);
+       cyjshiny_log("fitSelected, with padding " + padding);
        self.cyj.fit(selectedNodes, padding)
    }
 })
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("fit", function(message){
-    log("fit requested: ");
+    cyjshiny_log("fit requested: ");
     var padding = message.padding;
-    log("   padding: " + padding)
+    cyjshiny_log("   padding: " + padding)
     self.cyj.fit(padding);
     });
 //------------------------------------------------------------------------------------------------------------------------
@@ -312,7 +312,7 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("fit", function(message)
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("loadJSONNetwork", function(message) {
 
     window.cyj.remove(window.cyj.elements());
-    log("--- loadJSONNetwork")
+    cyjshiny_log("--- loadJSONNetwork")
     window.msg = message;
     var graph = JSON.parse(message.json)
     window.cyj.add(graph.elements);
@@ -322,9 +322,9 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("loadJSONNetwork", funct
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("loadStyle", function(message) {
 
-    log("loading style");
+    cyjshiny_log("loading style");
     //var styleSheet = message.json;
-    log(message)
+    cyjshiny_log(message)
     var style = JSON.parse(message.json)
     if(style == "default style")
         style = defaultStyle;
@@ -334,7 +334,7 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("loadStyle", function(me
 //------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("savePNGtoFile", function(message){
 
-   log("savePNGtoFile: " + message);
+   cyjshiny_log("savePNGtoFile: " + message);
    var pngJSON = JSON.stringify(window.cyj.png());
    Shiny.setInputValue("pngData", pngJSON, {priority: "event"});
 
