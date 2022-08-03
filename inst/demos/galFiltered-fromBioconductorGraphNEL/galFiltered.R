@@ -4,8 +4,12 @@ library(htmlwidgets)
 library(graph)
 library(jsonlite)
 #----------------------------------------------------------------------------------------------------
-load("yeastGalactoseGraphNEL.RData")
-load("yeastGalactose.RData")
+
+yeastGalactoseGraphNELFile <- system.file(file.path("demos", "galFiltered-fromBioconductorGraphNEL", "yeastGalactoseGraphNEL.RData"), package="cyjShiny")
+yeastGalactoseFile <- system.file(file.path("demos", "galFiltered-fromBioconductorGraphNEL", "yeastGalactose.RData"), package="cyjShiny")
+  
+load(yeastGalactoseGraphNELFile)
+load(yeastGalactoseFile)
 tbl.mrna <- as.data.frame(tbl.mrna)
 nodeAttrs <- nodeData(g, attr="label")
 

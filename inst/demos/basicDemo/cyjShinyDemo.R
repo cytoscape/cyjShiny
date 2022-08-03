@@ -3,6 +3,9 @@ library(cyjShiny)
 library(htmlwidgets)
 library(graph)
 library(jsonlite)
+
+printf <- function(...) cat(sprintf(...))
+
 #----------------------------------------------------------------------------------------------------
 # the yeast galactose network was the earliest demo used in the Cytoscape project,
 # consisting of the graph (a Bioconductor graphNEL) and expression (a data.frame)
@@ -23,7 +26,9 @@ yeastGalactodeNodeIDs <- nodes(g)
 g <- addNode("gal1RGexp", g)
 graph <- graphNELtoJSON(g)
 
-styleList <- c("", "Yeast-Galactose"="yeastGalactoseStyle.js")
+yeastGalactoseStyleFile <- system.file(file.path("demos", "galFiltered-fromBioconductorGraphNEL", "yeastGalactoseStyle.js"), package="cyjShiny")
+
+styleList <- c("", "Yeast-Galactose"=yeastGalactoseStyleFile)
 condition <- c("", "gal1RGexp", "gal4RGexp", "gal80Rexp")
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
