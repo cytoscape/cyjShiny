@@ -1,7 +1,7 @@
 Package: cyjShiny
 Title: Cytoscape.js Shiny Widget (cyjShiny)
-Version: 1.0.34
-Date: 2022-01-16
+Version: 1.0.35
+Date: 2022-05-27
 Authors@R: c(person("Omar", "Shah", role = c("ctb")), 
              person("Paul", "Shannon", email = "pshannon@systemsbiology.org", role = c("aut")), 
              person("Augustin", "Luna", email = "aluna@jimmy.harvard.edu", role = c("aut", "cre"), comment = c(ORCID = "0000-0001-5709-371X")))       
@@ -27,4 +27,4 @@ Collate:
    'graphsToJSON.R'
    'cyjShiny.R'
 VignetteBuilder: knitr
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.0

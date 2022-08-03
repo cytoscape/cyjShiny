@@ -1,3 +1,6 @@
+default:
+	@echo targets: basic[roxy install] build check 
+
 basic: roxy install
 
 all: roxy install build check
@@ -6,7 +9,7 @@ buildCheck: build check
 
 roxy:
 	R -e "devtools::document()"
-	
+
 vig:
 	R -e "devtools::build_vignettes()"
 
