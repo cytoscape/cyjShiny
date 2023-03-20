@@ -3,7 +3,8 @@ library(cyjShiny)
 library(htmlwidgets)
 library(graph)
 library(jsonlite)
-#----------------------------------------------------------------------------------------------------
+
+# NETWORK DATA ----
 tbl.nodes <- data.frame(id=c("A", "B", "C"),
                         type=c("kinase", "TF", "glycoprotein"),
                         lfc=c(-3, 1, 1),
@@ -16,21 +17,24 @@ tbl.edges <- data.frame(source=c("A", "B", "C"),
                         stringsAsFactors=FALSE)
 
 graph.json <- toJSON(dataFramesToJSON(tbl.edges, tbl.nodes), auto_unbox=TRUE)
-#----------------------------------------------------------------------------------------------------
+
+# UI ----
 ui = shinyUI(fluidPage(
 
     cyjShinyOutput('cyjShiny'),
     width=10
     )
 )
-#----------------------------------------------------------------------------------------------------
+
+# SERVER ----
 server = function(input, output, session)
 {
     output$cyjShiny <- renderCyjShiny({
        cyjShiny(graph=graph.json, layoutName="cola")
        })
 
-} # server
-#----------------------------------------------------------------------------------------------------
+}
+
+# RUN ----
 runApp(shinyApp(ui=ui, server=server), port=9999)
 

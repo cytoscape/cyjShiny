@@ -1,6 +1,9 @@
 library(shiny)
 library(cyjShiny)
 library(htmlwidgets)
+
+printf <- function(...) cat(sprintf(...))
+
 #----------------------------------------------------------------------------------------------------
 # one way to create a graph is via the Bioconductor graphNEL class.
 # here we use the data.frame strategy.
@@ -19,7 +22,6 @@ tbl.edges <- data.frame(source=c("A", "B", "C"),
 graph.json <- toJSON(dataFramesToJSON(tbl.edges, tbl.nodes), auto_unbox=TRUE)
 #----------------------------------------------------------------------------------------------------
 ui = shinyUI(fluidPage(
-
   tags$head(
      tags$style("#cyjShiny{height:95vh !important;}"),
      tags$style(".well{border-width:0px;}")
@@ -35,6 +37,7 @@ ui = shinyUI(fluidPage(
         actionButton("randomNodeAttributes", "Send"),
         h6("Try out png-saving capability, using the currently displayed network"),
         actionButton("savePNGbutton", "Save PNG to 'foo.png'"),
+        downloadButton("savePng", "Save PNG"),
         width=3
         #style="margin-right:10px; padding-right:0px;"
         ),
@@ -72,19 +75,11 @@ server = function(input, output, session) {
       setNodeAttributes(session, attributeName="lfc", nodes=nodeNames, newValues)
       })
 
-   output$value <- renderPrint({ input$action })
-   output$cyjShiny <- renderCyjShiny({
-     print("renderCyjShiny")
-     print(graph.json)
-     print(class(graph.json))
-     cyjShiny(graph=graph.json, layoutName="cola")
-     })
-
    observeEvent(input$savePNGbutton, ignoreInit=TRUE, {
      file.name <- tempfile(fileext=".png")
      savePNGtoFile(session, file.name)
-     })
-
+   })
+   
    observeEvent(input$pngData, ignoreInit=TRUE, {
      print("received pngData")
      png.parsed <- fromJSON(input$pngData)
@@ -96,10 +91,26 @@ server = function(input, output, session) {
      conn <- file("foo.png", "wb")
      writeBin(png.parsed.binary, conn)
      close(conn)
-
+   })
+   
+   output$value <- renderPrint({ input$action })
+   output$cyjShiny <- renderCyjShiny({
+     print("renderCyjShiny")
+     print(graph.json)
+     print(class(graph.json))
+     cyjShiny(graph=graph.json, layoutName="cola")
      })
-
-
+   
+   output$savePng <- downloadHandler(
+     filename = "network.png",
+     content = function(file) {
+       selectedCondition <- input$selectCondition
+       curGraphFile <- curGraphFileReactive()
+       g <- makeIgraphObj(selectedCondition, curGraphFile)
+       
+       igraph::write_graph(g, file, format="gml")
+     }
+   )   
 } # server
 #----------------------------------------------------------------------------------------------------
 browseURL("http://localhost:6789")

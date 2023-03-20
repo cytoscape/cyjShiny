@@ -4,6 +4,10 @@ library(htmlwidgets)
 library(graph)
 library(jsonlite)
 library(later)
+
+# PURPOSE ----
+# Load and visualize networks generated in Cytoscape Desktop 
+
 #----------------------------------------------------------------------------------------------------
 demo.directory <- system.file(package="cyjShiny", "extdata", "demoGraphsAndStyles")
 styles <- c("",

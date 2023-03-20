@@ -1,5 +1,8 @@
 library(cyjShiny)
 library(later)
+
+# NOTE (2023-03-20): Differences to other demos? 
+
 #----------------------------------------------------------------------------------------------------
 styles <- c("",
             "generic style"="basicStyle.js",

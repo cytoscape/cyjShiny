@@ -15,7 +15,6 @@
 #' @rdname graphNELtoJSON
 #'
 #' @export
-#' 
 graphNELtoJSON <- function(g) # Copied from RCyjs/R/utils.R
 {
   if (length(nodes(g)) == 0) {

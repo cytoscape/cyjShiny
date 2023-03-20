@@ -3,6 +3,9 @@ library(cyjShiny)
 library(htmlwidgets)
 library(graph)
 library(jsonlite)
+
+# NOT WORKING: 2023-03-20
+
 #----------------------------------------------------------------------------------------------------
 
 yeastGalactoseGraphNELFile <- system.file(file.path("demos", "galFiltered-fromBioconductorGraphNEL", "yeastGalactoseGraphNEL.RData"), package="cyjShiny")

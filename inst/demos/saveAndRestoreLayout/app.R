@@ -1,6 +1,12 @@
 library(cyjShiny)
 library(DT)
 library(later)
+
+# PURPOSE ----
+# Within a session, save node positions and restore positions for nodes moved after positions saved
+
+printf <- function(...) cat(sprintf(...))
+
 #----------------------------------------------------------------------------------------------------
 styles <- c("",
             "generic style"="basicStyle.js",

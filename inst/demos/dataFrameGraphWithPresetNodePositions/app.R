@@ -1,5 +1,11 @@
 library(cyjShiny)
 library(later)
+
+# PURPOSE ----
+# Use preset layout to set node positions 
+
+printf <- function(...) cat(sprintf(...))
+
 #----------------------------------------------------------------------------------------------------
 styles <- c("",
             "generic style"="basicStyle.js",

@@ -1,5 +1,11 @@
 library(cyjShiny)
 library(later)
+
+# PURPOSE ----
+# Shows usage of multiple styles 
+
+printf <- function(...) cat(sprintf(...))
+
 #----------------------------------------------------------------------------------------------------
 styles <- c("style 01" = "style01.js",
             "generic style"="basicStyle.js")

@@ -4,39 +4,52 @@ library(htmlwidgets)
 library(graph)
 library(jsonlite)
 
+# HELPER FUNCTIONS ----
+# printf prints formatted output like in C
 printf <- function(...) cat(sprintf(...))
 
-#----------------------------------------------------------------------------------------------------
-# the yeast galactose network was the earliest demo used in the Cytoscape project,
+# LOAD DATA ----
+# The yeast galactose network was the earliest demo used in the Cytoscape project,
 # consisting of the graph (a Bioconductor graphNEL) and expression (a data.frame)
+
 g <- get(load(system.file(package="cyjShiny", "extdata", "yeastGalactoseGraphNEL.RData")))
 printf("--- loaded g")
 print(g)
 tbl.mrna <- get(load(system.file(package="cyjShiny", "extdata", "yeastGalactoseExpressionTable.RData")))
 printf("--- loaded tbl.mrna: %d x %d", nrow(tbl.mrna), ncol(tbl.mrna))
-#----------------------------------------------------------------------------------------------------
+
+# GENERATE GRAPH ----
 tbl.mrna <- as.data.frame(tbl.mrna)
 nodeAttrs <- nodeData(g, attr="label")
 
-g <- removeNode("YER056CA", g) #not used in all three experimental conditions
+# Not used in all three experimental conditions
+g <- removeNode("YER056CA", g) 
 
 yeastGalactoseNodeNames <- as.character(nodeAttrs)
 yeastGalactodeNodeIDs <- nodes(g)
 
 g <- addNode("gal1RGexp", g)
+
+## Convert graphNEL data to cytoscape.js JSON structure (see https://js.cytoscape.org/#notation/elements-json)
+# NOTE: graphNEL is not a requirement of cyjShiny, but the cytoscape.js JSON structured string in variable "graph" is
 graph <- graphNELtoJSON(g)
 
-yeastGalactoseStyleFile <- system.file(file.path("demos", "galFiltered-fromBioconductorGraphNEL", "yeastGalactoseStyle.js"), package="cyjShiny")
+# Style files (see https://js.cytoscape.org/#style)
+yeastGalactoseStyleFile <- system.file(file.path("demos", "basicDemo", "yeastGalactoseStyle.js"), package="cyjShiny")
+basicStyleFile <- system.file(file.path("demos", "basicDemo", "basicStyle.js"), package="cyjShiny")
 
-styleList <- c("", "Yeast-Galactose"=yeastGalactoseStyleFile)
-condition <- c("", "gal1RGexp", "gal4RGexp", "gal80Rexp")
-#----------------------------------------------------------------------------------------------------
-ui = shinyUI(fluidPage(
+# SET INPUT OPTIONS ----
+styleList <- c("", "Basic"="basicStyleFile", "Yeast-Galactose"="yeastGalactoseStyleFile")
+condition <- c("gal1RGexp", "gal4RGexp", "gal80Rexp")
+
+# UI ----
+ui <-  shinyUI(fluidPage(
 
   tags$head(
      tags$link(rel = "stylesheet", type = "text/css",
                href = "http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css"),
      tags$style("#cyjShiny{height:95vh !important;}")),
+  
   sidebarLayout(
       sidebarPanel(
           selectInput("loadStyleFile", "Select Style: ", choices=styleList),
@@ -66,17 +79,19 @@ ui = shinyUI(fluidPage(
           htmlOutput("selectedNodesDisplay"),
           width=2
       ),
-      mainPanel(cyjShinyOutput('cyjShiny'),
-          width=10
+      mainPanel(
+        cyjShinyOutput('cyjShiny'),
+        width=10
       )
   ) # sidebarLayout
 ))
-#----------------------------------------------------------------------------------------------------
-server = function(input, output, session)
-{
+
+# SERVER ----
+server <- function(input, output, session) {
+    # Event observers 
     observeEvent(input$fit, ignoreInit=TRUE, {
        fit(session, 80)
-       })
+    })
 
     observeEvent(input$setNodeAttributes, ignoreInit=TRUE, {
        attribute <- "lfc"
@@ -85,11 +100,13 @@ server = function(input, output, session)
                                    "gal4RGexp" = tbl.mrna$gal4RGexp,
                                    "gal80Rexp" = tbl.mrna$gal80Rexp)
        setNodeAttributes(session, attributeName=attribute, nodes=yeastGalactodeNodeIDs, values=expression.vector)
-       })
+    })
 
     observeEvent(input$loadStyleFile, ignoreInit=TRUE, {
-        if(input$loadStyleFile != "")
-            loadStyleFile(input$loadStyleFile)
+        if(input$loadStyleFile != "") {
+            styleFile = get(input$loadStyleFile)
+            loadStyleFile(styleFile)  
+        }
     })
 
     observeEvent(input$doLayout, ignoreInit=TRUE,{
@@ -127,21 +144,22 @@ server = function(input, output, session)
            Sys.sleep(1)
            } # for condition.name
         updateSelectInput(session, "setNodeAttributes", selected="gal1RGexp")
-        })
+    })
 
     observeEvent(input$selectedNodes, {
         newNodes <- input$selectedNodes;
         output$selectedNodesDisplay <- renderText({
            paste(newNodes)
-           })
         })
+    })
 
+    # Output variables 
     output$value <- renderPrint({ input$action })
+    
     output$cyjShiny <- renderCyjShiny({
-       styleFile <- system.file(package="cyjShiny", "extdata", "yeastGalactoseStyle.js")
-       cyjShiny(graph, layoutName="cose", styleFile=styleFile)
-       })
+       cyjShiny(graph, layoutName="cose", styleFile=yeastGalactoseStyleFile)
+    })
+} 
 
-} # server
-#----------------------------------------------------------------------------------------------------
+# RUN SHINY APP ----
 shinyApp(ui = ui, server = server)
