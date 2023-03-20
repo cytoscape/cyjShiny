@@ -96,9 +96,12 @@ Save the example styling to a file `style.js` in the current working directory a
 cyjShiny(graph_json, layoutName="cola", styleFile="style.js")
 ```
 
-## Demo 
+## Demos
 
-* Try [Demo](https://cannin.shinyapps.io/cyjShiny/) on [shinyapps.io](https://www.shinyapps.io/)
-* Demo [Code](https://github.com/cytoscape/cyjShiny/tree/master/inst/demos/basicDemo)
+* Try [basicDemo Demo](https://cannin.shinyapps.io/cyjShiny/) on [shinyapps.io](https://www.shinyapps.io/)
+* [basicDemo Code](https://github.com/cytoscape/cyjShiny/tree/master/inst/demos/basicDemo)
+* Other Demos: 
+  * quickStartDemo: Demo used in README; [Code](https://github.com/cytoscape/cyjShiny/tree/master/inst/demos/quickStartDemo)
+  * rmarkdownDemo: Demo for cyjShiny use in R Markdown files; [Code](https://github.com/cytoscape/cyjShiny/tree/master/inst/demos/rmarkdownDemo)
 
 <img src="inst/docs/ygModelImage.png" height="480px" />
