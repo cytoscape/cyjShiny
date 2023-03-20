@@ -103,5 +103,10 @@ cyjShiny(graph_json, layoutName="cola", styleFile="style.js")
 * Other Demos: 
   * quickStartDemo: Demo used in README; [Code](https://github.com/cytoscape/cyjShiny/tree/master/inst/demos/quickStartDemo)
   * rmarkdownDemo: Demo for cyjShiny use in R Markdown files; [Code](https://github.com/cytoscape/cyjShiny/tree/master/inst/demos/rmarkdownDemo)
+  * dataFrameGraphWithPresetNodePositions: Use preset layout to set node positions; [Code](https://github.com/cytoscape/cyjShiny/tree/master/inst/demos/dataFrameGraphWithPresetNodePositions)
+  * fromCytoscapeDesktop: Load and visualize networks generated in Cytoscape Desktop; [Code](https://github.com/cytoscape/cyjShiny/tree/master/inst/demos/fromCytoscapeDesktop)
+  * saveAndRestoreLayout: Within a session, save node positions and restore positions for nodes moved after positions saved; [Code](https://github.com/cytoscape/cyjShiny/tree/master/inst/demos/saveAndRestoreLayout)
+  * withDT: Include at DT table of node values along with the graph visualization; [Code](https://github.com/cytoscape/cyjShiny/tree/master/inst/demos/withDT)
+
 
 <img src="inst/docs/ygModelImage.png" height="480px" />
