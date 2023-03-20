@@ -27,7 +27,9 @@ remotes::install_github(repo="cytoscape/cyjShiny", ref="master", build_vignette=
 
 * [Shiny Development Basics](https://shiny.rstudio.com/tutorial/) 
 * [Shiny Extensions for Embedding Javascript Visualizations](https://shiny.rstudio.com/articles/htmlwidgets.html)
-* Get help: `help(package="cyjShiny")`
+* Get Help: `help(package="cyjShiny")`
+  * Main available features: layouts, node selection, styling, save to PNG, fit graphs to display area
+* Quick Start Example: 
 
 ```
 library(shiny)
@@ -37,13 +39,13 @@ library(jsonlite)
 
 # NETWORK DATA ----
 tbl_nodes <- data.frame(id=c("A", "B", "C"), 
-                        type=c("dna", "rna", "protein"),
+                        size=c(10, 20, 30),
                         stringsAsFactors=FALSE)
 
 # Must have the interaction column 
 tbl_edges <- data.frame(source=c("A", "B", "C"),
                         target=c("B", "C", "A"),
-                        interaction=c("interacts", "stimulates", "inhibits"),
+                        interaction=c("inhibit", "stimulate", "inhibit"),
                         stringsAsFactors=FALSE)
 
 graph_json <- toJSON(dataFramesToJSON(tbl_edges, tbl_nodes), auto_unbox=TRUE)
@@ -54,12 +56,44 @@ ui <- fluidPage(cyjShinyOutput('cyjShiny'))
 # SERVER ----
 server <- function(input, output, session) {
   output$cyjShiny <- renderCyjShiny({
-    cyjShiny(graph=graph_json, layoutName="cola")
+    # Layouts (see js.cytoscape.org): cola, cose, circle, concentric, grid, breadthfirst, random, dagre, cose-bilkent
+    cyjShiny(graph_json, layoutName="cola")
   })
 }
 
 # RUN ----
 shinyApp(ui=ui, server=server)
+```
+
+## Styling 
+
+Many of the visual properties of a network can be stylized. 
+
+* [Styling Documentation](https://js.cytoscape.org/#style)
+* Example Styling (`data()` maps data dynamically to specify a property value from the input data.frame):
+
+```
+[
+  {"selector":"node", "css": {
+    "border-width": "2px",
+    "width": "data(size)",
+    "height": "data(size)", 
+    "content": "data(id)"
+  }},
+  {"selector": "edge[interaction='stimulate']", "css": {
+    "line-color": "green"
+  }},
+  {"selector": "edge[interaction='inhibit']", "css": {
+    "line-color": "red"
+  }}
+]
+```
+* Styling Usage with Quick Start Example: 
+
+Save the example styling to a file `style.js` in the current working directory and replace `cyjShiny()` in the Quick Start example as shown below:
+
+```
+cyjShiny(graph_json, layoutName="cola", styleFile="style.js")
 ```
 
 ## Demo 
