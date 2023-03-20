@@ -108,5 +108,6 @@ cyjShiny(graph_json, layoutName="cola", styleFile="style.js")
   * saveAndRestoreLayout: Within a session, save node positions and restore positions for nodes moved after positions saved; [Code](https://github.com/cytoscape/cyjShiny/tree/master/inst/demos/saveAndRestoreLayout)
   * withDT: Include at DT table of node values along with the graph visualization; [Code](https://github.com/cytoscape/cyjShiny/tree/master/inst/demos/withDT)
 
-
-<img src="inst/docs/ygModelImage.png" height="480px" />
+<p align="center">
+ <img src="inst/docs/ygModelImage.png" height="480px" />
+</p>
