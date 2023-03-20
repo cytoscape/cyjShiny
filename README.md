@@ -2,7 +2,7 @@
 
 ## cyjShiny
 
-cyjShiny is a Shiny widget (based on (htmlWidgets)[http://www.htmlwidgets.org/index.html]) for network visualization using [cytoscape.js](https://js.cytoscape.org/).
+cyjShiny is a Shiny widget based on [htmlWidgets](http://www.htmlwidgets.org/index.html]) for network visualization using [cytoscape.js](https://js.cytoscape.org/).
 
 ## Installation
 ### From CRAN (Stable Version) 
@@ -13,7 +13,7 @@ Users should start with CRAN as it is the most stable version:
 install.packages("cyjShiny") 
 ```
 
-# Install from GitHub (Development Version) 
+### Install from GitHub (Development Version) 
 ```
 library(remotes)
 remotes::install_github(repo="cytoscape/cyjShiny", ref="master", build_vignette=TRUE)
@@ -27,51 +27,44 @@ remotes::install_github(repo="cytoscape/cyjShiny", ref="master", build_vignette=
 
 * [Shiny Development Basics](https://shiny.rstudio.com/tutorial/) 
 * [Shiny Extensions for Embedding Javascript Visualizations](https://shiny.rstudio.com/articles/htmlwidgets.html)
+* Get help: `help(package="cyjShiny")`
 
 ```
 library(shiny)
 library(cyjShiny)
-library(htmlwidgets)
 library(graph)
 library(jsonlite)
 
 # NETWORK DATA ----
-tbl.nodes <- data.frame(id=c("A", "B", "C"),
-                        type=c("kinase", "TF", "glycoprotein"),
-                        lfc=c(-3, 1, 1),
-                        count=c(0, 0, 0),
+tbl_nodes <- data.frame(id=c("A", "B", "C"), 
+                        type=c("dna", "rna", "protein"),
                         stringsAsFactors=FALSE)
 
-tbl.edges <- data.frame(source=c("A", "B", "C"),
+# Must have the interaction column 
+tbl_edges <- data.frame(source=c("A", "B", "C"),
                         target=c("B", "C", "A"),
-                        interaction=c("phosphorylates", "synthetic lethal", "unknown"),
+                        interaction=c("interacts", "stimulates", "inhibits"),
                         stringsAsFactors=FALSE)
 
-graph.json <- toJSON(dataFramesToJSON(tbl.edges, tbl.nodes), auto_unbox=TRUE)
+graph_json <- toJSON(dataFramesToJSON(tbl_edges, tbl_nodes), auto_unbox=TRUE)
 
 # UI ----
-ui = shinyUI(fluidPage(
-
-    cyjShinyOutput('cyjShiny'),
-    width=10
-    )
-)
+ui <- fluidPage(cyjShinyOutput('cyjShiny'))
 
 # SERVER ----
-server = function(input, output, session)
-{
-    output$cyjShiny <- renderCyjShiny({
-       cyjShiny(graph=graph.json, layoutName="cola")
-       })
-
+server <- function(input, output, session) {
+  output$cyjShiny <- renderCyjShiny({
+    cyjShiny(graph=graph_json, layoutName="cola")
+  })
 }
 
 # RUN ----
-runApp(shinyApp(ui=ui, server=server), port=9999)
+shinyApp(ui=ui, server=server)
 ```
 
 ## Demo 
 
-Try [Demo](https://cannin.shinyapps.io/cyjShiny/); Example [Code](https://github.com/cytoscape/cyjShiny/tree/master/inst/demos/basicDemo)
+* Try [Demo](https://cannin.shinyapps.io/cyjShiny/) on [shinyapps.io](https://www.shinyapps.io/)
+* Demo [Code](https://github.com/cytoscape/cyjShiny/tree/master/inst/demos/basicDemo)
 
-![model](inst/docs/ygModelImage.png | height=640)
+<img src="inst/docs/ygModelImage.png" height="480px" />
