@@ -87,26 +87,26 @@ server = function(input, output, session)
        setNodeAttributes(session, attributeName=attribute, nodes=yeastGalactodeNodeIDs, values=expression.vector)
        })
 
-    observeEvent(input$loadStyleFile,  ignoreInit=TRUE, {
+    observeEvent(input$loadStyleFile, ignoreInit=TRUE, {
         if(input$loadStyleFile != "")
             loadStyleFile(input$loadStyleFile)
     })
 
-    observeEvent(input$doLayout,  ignoreInit=TRUE,{
+    observeEvent(input$doLayout, ignoreInit=TRUE,{
         strategy <- input$doLayout
         doLayout(session, strategy)
         #session$sendCustomMessage(type="doLayout", message=list(input$doLayout))
     })
 
-    observeEvent(input$selectName,  ignoreInit=TRUE,{
+    observeEvent(input$selectName, ignoreInit=TRUE,{
         session$sendCustomMessage(type="selectNodes", message=list(input$selectName))
     })
 
-    observeEvent(input$sfn,  ignoreInit=TRUE,{
+    observeEvent(input$sfn, ignoreInit=TRUE,{
         session$sendCustomMessage(type="sfn", message=list())
     })
 
-    observeEvent(input$fitSelected,  ignoreInit=TRUE,{
+    observeEvent(input$fitSelected, ignoreInit=TRUE,{
         fitSelected(session, 100)
     })
 
@@ -115,7 +115,7 @@ server = function(input, output, session)
         getSelectedNodes(session)
     })
 
-    observeEvent(input$clearSelection,  ignoreInit=TRUE, {
+    observeEvent(input$clearSelection, ignoreInit=TRUE, {
         session$sendCustomMessage(type="clearSelection", message=list())
     })
 
@@ -144,4 +144,4 @@ server = function(input, output, session)
 
 } # server
 #----------------------------------------------------------------------------------------------------
-runApp(shinyApp(ui = ui, server = server)) # , port=191919)
+shinyApp(ui = ui, server = server)
