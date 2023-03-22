@@ -42,8 +42,8 @@ ui = shinyUI(fluidPage(
                                 "breadthfirst",
                                 "grid",
                                 "random",
-                                "dagre",
-                                "cose-bilkent")),
+                                "preset",
+                                "fcose")),
 
           selectInput("selectName", "Node ID:",
                       choices = c("", nodes(g))),

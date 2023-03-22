@@ -48,13 +48,8 @@ ui = shinyUI(fluidPage(
                                 "breadthfirst",
                                 "grid",
                                 "random",
-                                "dagre",
-                                "cose-bilkent",
                                 "preset",
-                                "euler",
-                                "fcose",
-                                "springy",
-                                "spread")),
+                                "fcose")),
           width=2
       ),
      mainPanel(fluidRow(

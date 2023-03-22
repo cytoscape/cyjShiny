@@ -27,9 +27,8 @@ ui = shinyUI(fluidPage(
                                 "breadthfirst",
                                 "grid",
                                 "random",
-                                "dagre",
-                                "cose-bilkent")),
-
+                                "preset",
+                                "fcose")),
 
           actionButton("sfn", "Select First Neighbor"),
           actionButton("fit", "Fit Graph"),

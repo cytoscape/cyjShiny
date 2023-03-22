@@ -14,7 +14,7 @@
 #' @rdname cyjShiny
 #'
 #' @param graph a graph in json format; converters from graphNEL and data.frame/s offered ("see also" below)
-#' @param layoutName character one of:"preset", "cose", "cola", "circle", "concentric", "breadthfirst", "grid", "random", "dagre", "cose-bilkent"
+#' @param layoutName character one of:"preset", "cose", "cola", "circle", "concentric", "breadthfirst", "grid", "random"
 #' @param styleFile, default NULL, can name a standard javascript cytoscape.js style file
 #' @param width integer  initial width of the widget.
 #' @param height integer initial height of the widget.
@@ -63,8 +63,10 @@ cyjShiny <- function(graph, layoutName, styleFile = NULL, width = NULL, height =
     "breadthfirst",
     "grid",
     "random",
-    "dagre",
-    "cose-bilkent"
+    "euler",
+    "fcose",
+    "springy",
+    "spread"
   ))
 
   defaultStyleFile <- system.file(package = "cyjShiny", "extdata", "defaultStyle.json")

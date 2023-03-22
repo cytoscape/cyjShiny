@@ -59,16 +59,9 @@ ui = shinyUI(fluidPage(
                                 "breadthfirst",
                                 "grid",
                                 "random",
-                                "dagre",
-                                "cose-bilkent",
                                 "preset",
-                                "euler",
-                                "fcose",
-                                "springy",
-                                "spread")),
+                                "fcose")),
           
-
-
           selectInput("showCondition", "Select Condition:", choices=rownames(tbl.lfc)),
           selectInput("selectName", "Select Node by ID:", choices = c("", sort(tbl.nodes$id))),
           actionButton("sfn", "Select First Neighbor"),
