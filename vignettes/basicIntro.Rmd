@@ -38,6 +38,10 @@ cyjShiny is a Shiny widget based on [htmlWidgets](http://www.htmlwidgets.org/ind
 install.packages("cyjShiny") 
 ```
 
+# Demo Files 
+
+Demo files are files in `inst/demos` folder of the project code repository: https://github.com/cytoscape/cyjShiny
+
 # Quick Start Example 
 
 * Running the following code in RStudio will produce output in the Viewer panel
@@ -99,7 +103,8 @@ cyjShiny(graph_json, layoutName="cola", styleFile=style_file)
 
 # Layouts 
 
-[Cytoscape.js](https://js.cytoscape.org/) includes many layouts by default, including: cola, cose, circle, concentric, grid, breadthfirst, random, fcose, spread
+[Cytoscape.js](https://js.cytoscape.org/) includes many layouts by default, including: cola, cose, circle, concentric, grid, breadthfirst, random, fcose, spread, preset
+
 
 ```{r}
 yeast_galactose_style_file <- system.file(file.path("demos", "rmarkdownDemo", "yeastGalactoseStyle.js"), package="cyjShiny")
@@ -107,6 +112,33 @@ yeast_galactose_graph <- readLines(system.file(file.path("demos", "rmarkdownDemo
 
 cyjShiny(yeast_galactose_graph, layoutName="fcose", styleFile=yeast_galactose_style_file)
 ```
+
+## Preset Layout
+
+The `preset` layout can be used to retain a layout 
+
+```{r}
+style_file <- system.file(file.path("demos", "rmarkdownDemo", "preset_style.js"), package="cyjShiny")
+graph_json <- readLines(system.file(file.path("demos", "rmarkdownDemo", "preset_graph.js"), package="cyjShiny"))
+cyjShiny(graph_json, layoutName="preset", styleFile=style_file)
+```
+
+# cyjShiny and Cytoscape Desktop
+
+Networks from the [Cytoscape Desktop](https://cytoscape.org/) can also be visualized within cyjShiny. Users can export the network for use with cytoscape.js (cyjShiny-compatible) format in this way: 
+
+`File -> Export -> Network to File -> Export File Format: "Cytoscape.js JSON (*.js)"`
+
+Any layouts generated in Cytoscape Desktop can be retained in cyjShiny by using the `preset` layout as shown in the example.
+
+```{r}
+preset_graph_file <- system.file(file.path("demos", "fromCytoscapeDesktop", "small", "cyjshiny.cyjs"), package="cyjShiny")
+graph_json <- readAndStandardizeJSONNetworkFile(preset_graph_file)
+writeLines(graph_json, "cyjshiny_cytoscape_desktop.cyjs")
+
+cyjShiny(graph_json, layoutName="preset")
+```
+
 
 # cyjShiny as Part of Shiny Applications
 
