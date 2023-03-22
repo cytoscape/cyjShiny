@@ -17,7 +17,7 @@ cyjShiny(
 \arguments{
 \item{graph}{a graph in json format; converters from graphNEL and data.frame/s offered ("see also" below)}
 
-\item{layoutName}{character one of:"preset", "cose", "cola", "circle", "concentric", "breadthfirst", "grid", "random", "dagre", "cose-bilkent"}
+\item{layoutName}{character one of:"preset", "cose", "cola", "circle", "concentric", "breadthfirst", "grid", "random"}
 
 \item{styleFile, }{default NULL, can name a standard javascript cytoscape.js style file}
 

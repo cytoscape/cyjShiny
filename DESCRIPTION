@@ -1,7 +1,7 @@
 Package: cyjShiny
 Title: Cytoscape.js Shiny Widget (cyjShiny)
-Version: 1.0.36
-Date: 2023-03-20
+Version: 1.0.37
+Date: 2023-03-22
 Authors@R: c(person("Omar", "Shah", role = c("ctb")), 
              person("Paul", "Shannon", email = "pshannon@systemsbiology.org", role = c("aut")), 
              person("Augustin", "Luna", email = "aluna@jimmy.harvard.edu", role = c("aut", "cre"), comment = c(ORCID = "0000-0001-5709-371X")))       
