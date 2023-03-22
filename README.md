@@ -56,7 +56,7 @@ ui <- fluidPage(cyjShinyOutput('cyjShiny'))
 # SERVER ----
 server <- function(input, output, session) {
   output$cyjShiny <- renderCyjShiny({
-    # Layouts (see js.cytoscape.org): cola, cose, circle, concentric, grid, breadthfirst, random, dagre, cose-bilkent
+    # Layouts (see js.cytoscape.org): cola, cose, circle, concentric, grid, breadthfirst, random, fcose, spread
     cyjShiny(graph_json, layoutName="cola")
   })
 }
