@@ -7,3 +7,4 @@
 ^\.binder$
 makefile
 Makefile
+inst/demos/fromCytoscapeDesktop/small/cyjshiny.cys

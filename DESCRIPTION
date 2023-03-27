@@ -1,10 +1,10 @@
 Package: cyjShiny
 Title: Cytoscape.js Shiny Widget (cyjShiny)
-Version: 1.0.37
-Date: 2023-03-22
+Version: 1.0.41
+Date: 2023-03-27
 Authors@R: c(person("Omar", "Shah", role = c("ctb")), 
              person("Paul", "Shannon", email = "pshannon@systemsbiology.org", role = c("aut")), 
-             person("Augustin", "Luna", email = "aluna@jimmy.harvard.edu", role = c("aut", "cre"), comment = c(ORCID = "0000-0001-5709-371X")))       
+             person("Augustin", "Luna", email = "augustin_luna@hms.harvard.edu", role = c("aut", "cre"), comment = c(ORCID = "0000-0001-5709-371X")))       
 Description: Wraps cytoscape.js as a shiny widget. cytoscape.js <https://js.cytoscape.org/> is a Javascript-based graph theory (network) library for visualization and analysis. This package supports the visualization of networks with custom visual styles and several available layouts. Demo Shiny applications are provided in the package code.  
 Depends: 
     R (>= 3.5.0), 
