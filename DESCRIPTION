@@ -1,7 +1,7 @@
 Package: cyjShiny
 Title: Cytoscape.js Shiny Widget (cyjShiny)
-Version: 1.0.41
-Date: 2023-03-27
+Version: 1.0.42
+Date: 2023-03-28
 Authors@R: c(person("Omar", "Shah", role = c("ctb")), 
              person("Paul", "Shannon", email = "pshannon@systemsbiology.org", role = c("aut")), 
              person("Augustin", "Luna", email = "augustin_luna@hms.harvard.edu", role = c("aut", "cre"), comment = c(ORCID = "0000-0001-5709-371X")))       
@@ -19,9 +19,6 @@ Suggests:
     rmarkdown, 
     markdown, 
     BiocStyle
-Remotes:
-    bioc::graph,
-    bioc::BiocStyle
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: false
