@@ -2,7 +2,7 @@
 
 ## cyjShiny
 
-cyjShiny is a Shiny widget based on [htmlWidgets](http://www.htmlwidgets.org/index.html) for network visualization using [cytoscape.js](https://js.cytoscape.org/).
+cyjShiny is a Shiny widget based on [htmlwidgets](http://www.htmlwidgets.org/index.html) for network visualization using [cytoscape.js](https://js.cytoscape.org/).
 
 ## Installation
 ### From CRAN (Stable Version) 
