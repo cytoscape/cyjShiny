@@ -21,7 +21,7 @@ remotes::install_github(repo="cytoscape/cyjShiny", ref="master", build_vignette=
 
 ### Compile cytoscape.js (Javascript Development) 
 
-[Instructions](https://github.com/cytoscape/cyjShiny/wiki/installation) for compiling cytoscape.js for use with htmlWidgets. NOTE: This should only be used by those actively modifying [cytoscape.js](https://js.cytoscape.org/).
+[Instructions](https://github.com/cytoscape/cyjShiny/wiki/installation) for compiling cytoscape.js for use with htmlwidgets. NOTE: This should only be used by those actively modifying [cytoscape.js](https://js.cytoscape.org/).
 
 ## Quick Start (First cyjShiny App)
 
