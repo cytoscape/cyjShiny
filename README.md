@@ -98,7 +98,7 @@ cyjShiny(graph_json, layoutName="cola", styleFile="style.js")
 
 ## Demos
 
-* Try [basicDemo Demo](https://cannin.shinyapps.io/cyjShiny/) on [shinyapps.io](https://www.shinyapps.io/)
+* Try [basicDemo Demo](https://cyjshiny.shinyapps.io/basicDemo/) on [shinyapps.io](https://www.shinyapps.io/)
 * [basicDemo Code](https://github.com/cytoscape/cyjShiny/tree/master/inst/demos/basicDemo)
 * Other Demos: 
   * quickStartDemo: Demo used in README; [Code](https://github.com/cytoscape/cyjShiny/tree/master/inst/demos/quickStartDemo)
