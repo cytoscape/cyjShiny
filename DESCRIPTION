@@ -22,6 +22,8 @@ Suggests:
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: false
+URL: https://github.com/cytoscape/cyjShiny
+BugReports: https://github.com/cytoscape/cyjShiny/issues
 Collate:
    'graphsToJSON.R'
    'cyjShiny.R'
