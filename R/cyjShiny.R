@@ -52,7 +52,7 @@
 #'
 #' # output$cyjShiny <- renderCyjShiny(cyjShiny(graph.json.v[123]))
 #' @export
-#' 
+#'
 cyjShiny <- function(graph, layoutName, styleFile = NULL, width = NULL, height = NULL, elementId = NULL) {
   stopifnot(layoutName %in% c(
     "preset",
@@ -110,7 +110,7 @@ cyjShiny <- function(graph, layoutName, styleFile = NULL, width = NULL, height =
 #' @rdname cyjShinyOutput
 #'
 #' @export
-#' 
+#'
 cyjShinyOutput <- function(outputId, width = "100%", height = "400") {
   htmlwidgets::shinyWidgetOutput(outputId, "cyjShiny", width, height, package = "cyjShiny")
 }
@@ -153,7 +153,7 @@ renderCyjShiny <- function(expr, env = parent.frame(), quoted = FALSE) {
 #' @rdname loadNetworkFromJSONFile
 #'
 #' @export
-#' 
+#'
 loadNetworkFromJSONFile <- function(filename) {
   jsonText <- readAndStandardizeJSONNetworkFile(filename)
   message <- list(json = jsonText)
@@ -200,7 +200,7 @@ loadStyleFile <- function(styleFile) {
 #' @param padding integer, default 50 pixels.
 #'
 #' @return Nothing
-#' 
+#'
 #' @examples
 #' \dontrun{
 #' fit(session, 100)
@@ -223,7 +223,7 @@ fit <- function(session, padding = 50) {
 #' @param padding integer, default 50 pixels.
 #'
 #' @return Nothing
-#' 
+#'
 #' @examples
 #' \dontrun{
 #' fitSelected(session, 100)
@@ -268,7 +268,7 @@ getSelectedNodes <- function(session) {
 #' @param values a character, logical or numeric vector, the new values.
 #'
 #' @return Nothing
-#' 
+#'
 #' @examples
 #' \dontrun{
 #' setNodeAttributes(session,
@@ -282,7 +282,7 @@ getSelectedNodes <- function(session) {
 #' @rdname setNodeAttributes
 #'
 #' @export
-#' 
+#'
 setNodeAttributes <- function(session, attributeName, nodes, values) {
   session$sendCustomMessage(
     type = "setNodeAttributes",
@@ -542,6 +542,21 @@ hideSelection <- function(session) {
   session$sendCustomMessage(type = "hideSelection", message = list())
 } # hideSelection
 
+#' Remove selection all selected nodes and their edges are hidden
+#'
+#' @param session a Shiny Server session object.
+#'
+#' @return Nothing
+#'
+#' @aliases removeSelection
+#' @rdname removeSelection
+#'
+#' @export
+#'
+removeSelection <- function(session) {
+  session$sendCustomMessage(type = "removeSelection", message = list())
+} # hideSelection
+
 #' Show all all selected nodes and their edges are hidden
 #'
 #' @param session a Shiny Server session object.
@@ -574,3 +589,21 @@ savePNGtoFile <- function(session, filename)
    session$sendCustomMessage(type="savePNGtoFile", message=list(filename))
 
 } # savePNGtoFile
+
+#' Save a JSON rendering of the current network view to the specified filename
+#'
+#' @param session a Shiny Server session object.
+#' @param filename a character string
+#'
+#' @return Nothing
+#'
+#' @aliases savePNGtoFile
+#' @rdname saveJSONtoFile
+#'
+#' @export
+#'
+saveJSONtoFile <- function(session, filename)
+{
+  session$sendCustomMessage(type="saveJSONtoFile", message=list(filename))
+
+} # saveNetworktoJSON
