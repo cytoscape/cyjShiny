@@ -1,5 +1,3 @@
-![R-CMD-check](https://github.com/cytoscape/cyjShiny/actions/workflows/R-CMD-check.yaml/badge.svg)
-
 ## cyjShiny
 
 cyjShiny is a Shiny widget based on [htmlwidgets](http://www.htmlwidgets.org/index.html) for network visualization using [cytoscape.js](https://js.cytoscape.org/).
