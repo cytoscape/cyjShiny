@@ -259,6 +259,12 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("hideSelection", functio
 
 })
 //------------------------------------------------------------------------------------------------------------------------
+if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("removeSelection", function(message){
+
+    cyjshiny_log("removeSelection requested: " + message);
+    self.cyj.filter("node:selected").remove();
+}) // remove selection nodes
+//------------------------------------------------------------------------------------------------------------------------
 if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("getSelectedNodes", function(message){
 
     cyjshiny_log("getSelectedNodes requested: " + message);
@@ -339,4 +345,12 @@ if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("savePNGtoFile", functio
    Shiny.setInputValue("pngData", pngJSON, {priority: "event"});
 
 })
+//------------------------------------------------------------------------------------------------------------------------
+if(HTMLWidgets.shinyMode) Shiny.addCustomMessageHandler("saveJSONtoFile", function(message){
+
+   cyjshiny_log("saveJSONtoFile: " + message);
+   var JSONdata = window.cyj.json();
+   Shiny.setInputValue("JSONData", JSONdata, {priority: "event"});
+
+}) //save network in Json format
 //------------------------------------------------------------------------------------------------------------------------
